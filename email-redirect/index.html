@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecipeBox AI - Email Confirmation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .manual-link {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        .manual-link:hover {
+            background: #5a6fd8;
+        }
+        .store-links {
+            margin-top: 30px;
+        }
+        .store-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            color: white;
+        }
+        .ios { background: #007AFF; }
+        .android { background: #34A853; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🍳 RecipeBox AI</div>
+        <h2 id="title">Confirming your email...</h2>
+        <div class="spinner" id="spinner"></div>
+        <p id="message">You will be redirected to the app shortly.</p>
+        <a href="#" id="manual-link" class="manual-link" style="display: none;">Open in App</a>
+        <div id="store-links" class="store-links" style="display: none;">
+            <p>Don't have the app yet?</p>
+            <a href="https://apps.apple.com/app/id6474084187" class="store-link ios">Download for iOS</a>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenHash = urlParams.get('token_hash');
+        const type = urlParams.get('type') || 'signup';
+        
+        // Create deep link
+        const deepLink = `stage4.recipebox-ai-v5://auth/callback?token_hash=${tokenHash}&type=${type}`;
+        
+        // Set manual link
+        const manualLink = document.getElementById('manual-link');
+        manualLink.href = deepLink;
+        
+        // Detect device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
+        
+        function showSuccess() {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('title').textContent = 'Email Confirmed!';
+            document.getElementById('message').textContent = 'Opening RecipeBox AI...';
+        }
+        
+        function showFallback() {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('title').textContent = 'Almost there!';
+            document.getElementById('message').textContent = 'Tap the button below to open the app:';
+            document.getElementById('manual-link').style.display = 'inline-block';
+            document.getElementById('store-links').style.display = 'block';
+        }
+        
+        if (!tokenHash) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('title').textContent = 'Invalid Link';
+            document.getElementById('message').textContent = 'This confirmation link is not valid. Please try again.';
+            document.getElementById('store-links').style.display = 'block';
+        } else if (isMobile) {
+            // Show success immediately
+            showSuccess();
+            
+            // Try to open the app
+            window.location.href = deepLink;
+            
+            // Show fallback after 3 seconds
+            setTimeout(showFallback, 3000);
+        } else {
+            // Desktop: show fallback immediately
+            setTimeout(() => {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('title').textContent = 'Email Confirmed!';
+                document.getElementById('message').textContent = 'Please open RecipeBox AI on your mobile device to continue.';
+                document.getElementById('store-links').style.display = 'block';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

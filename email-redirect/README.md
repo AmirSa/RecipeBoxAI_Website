@@ -1,36 +1,33 @@
-# Email Redirect Page
+# Email Redirect Page for RecipeBox AI
 
 This folder contains a simple HTML page that handles email confirmation redirects for RecipeBox AI.
 
+## 🌐 Your Domain: https://recipeboxai.app/
+
 ## Quick Deployment Options
 
-### Option 1: Netlify (Recommended)
-1. Create a free account at [Netlify](https://netlify.com)
-2. Drag and drop this `email-redirect` folder to Netlify
-3. Your site will be available at: `https://amazing-name-123456.netlify.app`
-4. You can customize the domain name in Netlify settings
+### Option 1: Netlify with Custom Domain (Recommended)
+1. Keep your existing Netlify deployment
+2. In Netlify dashboard → Domain settings
+3. Add custom domain: `recipeboxai.app`
+4. Configure DNS as instructed by Netlify
+5. Your redirect page will be available at: `https://recipeboxai.app/`
 
-### Option 2: Vercel
-1. Create a free account at [Vercel](https://vercel.com)
-2. Connect your GitHub repo or upload this folder
-3. Your site will be available at: `https://recipeboxai-email.vercel.app`
+### Option 2: Upload to Your Hosting
+1. Upload `index.html` to your web hosting
+2. Place it at: `https://recipeboxai.app/auth/confirm/`
+3. Ensure it's accessible via the URL above
 
-### Option 3: GitHub Pages
-1. Create a new GitHub repository called `recipeboxai-email`
-2. Upload the `index.html` file
-3. Enable GitHub Pages in repository settings
-4. Your site will be available at: `https://yourusername.github.io/recipeboxai-email`
+### Option 3: Vercel with Custom Domain
+1. Deploy to Vercel
+2. Add custom domain in Vercel dashboard
+3. Configure DNS settings as instructed
 
 ## Usage
 
 Once deployed, use this URL format in your Supabase email template:
 ```
-https://your-deployed-url.com/?token_hash={{ .TokenHash }}&type=signup
-```
-
-For example:
-```
-https://recipeboxai-email.netlify.app/?token_hash={{ .TokenHash }}&type=signup
+https://recipeboxai.app/auth/confirm?token_hash={{ .TokenHash }}&type=signup
 ```
 
 ## Features

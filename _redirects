@@ -1,0 +1,2 @@
+# Redirect /auth/confirm to the email confirmation page
+/auth/confirm /auth/confirm/index.html 200

@@ -1,14 +1,19 @@
-# Netlify Deployment for RecipeBox AI Email Confirmation
+# Netlify Deployment for RecipeBox AI
 
-This folder contains the proper structure for deploying to Netlify to serve your email confirmation page at `https://recipeboxai.app/auth/confirm`.
+This folder contains the complete structure for deploying to Netlify to serve your RecipeBox AI web pages.
 
 ## 📁 Folder Structure
 
 ```
 netlify-deploy/
+├── index.html               # Main landing page
 ├── auth/
 │   └── confirm/
 │       └── index.html        # Email confirmation redirect page
+├── terms/
+│   └── index.html           # Terms & Conditions page
+├── privacy/
+│   └── index.html           # Privacy Policy page
 └── _redirects               # Netlify redirect rules (optional)
 ```
 
@@ -31,20 +36,21 @@ netlify-deploy/
 
 ## 🌐 Result
 
-After deployment, your email confirmation page will be available at:
-- `https://recipeboxai.app/auth/confirm`
-- `https://recipeboxai.app/auth/confirm/`
-
-Both URLs will work and serve the same page.
+After deployment, your pages will be available at:
+- **Main site**: `https://recipeboxai.app/` (landing page)
+- **Email confirmation**: `https://recipeboxai.app/auth/confirm`
+- **Terms & Conditions**: `https://recipeboxai.app/terms`
+- **Privacy Policy**: `https://recipeboxai.app/privacy`
 
 ## ✅ Testing
 
-Test the page by visiting:
-```
-https://recipeboxai.app/auth/confirm?token_hash=test123&type=signup
-```
+Test the pages by visiting:
+- **Main landing page**: `https://recipeboxai.app/`
+- **Email confirmation**: `https://recipeboxai.app/auth/confirm?token_hash=test123&type=signup`
+- **Terms & Conditions**: `https://recipeboxai.app/terms`
+- **Privacy Policy**: `https://recipeboxai.app/privacy`
 
-You should see the RecipeBox AI confirmation page with the test parameters.
+You should see the respective RecipeBox AI pages.
 
 ## 🔧 DNS Configuration
 

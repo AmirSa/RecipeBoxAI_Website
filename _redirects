@@ -1,2 +1,5 @@
 # Redirect /auth/confirm to the email confirmation page
 /auth/confirm /auth/confirm/index.html 200
+
+# Redirect /auth/reset-password to the password reset page
+/auth/reset-password /auth/reset-password/index.html 200

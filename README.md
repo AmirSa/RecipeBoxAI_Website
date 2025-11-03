@@ -8,8 +8,10 @@ This folder contains the complete structure for deploying to Netlify to serve yo
 netlify-deploy/
 ├── index.html               # Main landing page
 ├── auth/
-│   └── confirm/
-│       └── index.html        # Email confirmation redirect page
+│   ├── confirm/
+│   │   └── index.html        # Email confirmation redirect page
+│   └── reset-password/
+│       └── index.html        # Password reset redirect page
 ├── terms/
 │   └── index.html           # Terms & Conditions page
 ├── privacy/
@@ -39,6 +41,7 @@ netlify-deploy/
 After deployment, your pages will be available at:
 - **Main site**: `https://recipeboxai.app/` (landing page)
 - **Email confirmation**: `https://recipeboxai.app/auth/confirm`
+- **Password reset**: `https://recipeboxai.app/auth/reset-password`
 - **Terms & Conditions**: `https://recipeboxai.app/terms`
 - **Privacy Policy**: `https://recipeboxai.app/privacy`
 
@@ -47,6 +50,7 @@ After deployment, your pages will be available at:
 Test the pages by visiting:
 - **Main landing page**: `https://recipeboxai.app/`
 - **Email confirmation**: `https://recipeboxai.app/auth/confirm?token_hash=test123&type=signup`
+- **Password reset**: `https://recipeboxai.app/auth/reset-password?token_hash=test123&type=recovery`
 - **Terms & Conditions**: `https://recipeboxai.app/terms`
 - **Privacy Policy**: `https://recipeboxai.app/privacy`
 
@@ -65,7 +69,14 @@ If you haven't set up your custom domain yet:
 
 ## 🧪 Supabase Configuration
 
-Update your Supabase email template to use:
+**For Email Confirmation:**
+Update your Supabase email confirmation template to use:
 ```
 https://recipeboxai.app/auth/confirm?token_hash={{ .TokenHash }}&type=signup
+```
+
+**For Password Reset:**
+Update your Supabase password reset template to use:
+```
+https://recipeboxai.app/auth/reset-password?token_hash={{ .TokenHash }}&type=recovery
 ```

@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecipeBox AI</title>
+    <title>RecipeBox AI - Your Smart Recipe Companion</title>
+    <meta name="description" content="Transform any recipe into your perfect meal. Scan, save, and customize recipes with AI-powered nutrition insights and personalized adaptations.">
+    <link rel="icon" type="image/png" href="app-icon.png">
+    <link rel="apple-touch-icon" href="app-icon.png">
     <style>
         * {
             margin: 0;
@@ -12,146 +15,392 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: #333;
+            overflow-x: hidden;
+        }
+
+        .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            color: white;
+            padding: 80px 20px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.4;
         }
 
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-text {
+            text-align: left;
+        }
+
+        .hero-video {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-wrapper {
+            position: relative;
             max-width: 600px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            text-align: center;
+            width: 100%;
+            border-radius: 20px;
+            overflow: visible;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: transparent;
         }
 
-        .header {
-            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
-            color: white;
-            padding: 60px 40px;
+        .video-wrapper video {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 20px;
         }
 
-        .header h1 {
-            font-size: 3em;
-            font-weight: 700;
+        .logo {
+            font-size: 4em;
             margin-bottom: 20px;
         }
 
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .app-links {
-            margin: 30px 0;
-        }
-
-        .app-link {
-            display: inline-block;
-            margin: 10px 15px;
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            text-decoration: none;
+        .app-icon {
+            width: 120px;
+            height: 120px;
             border-radius: 25px;
-            transition: transform 0.2s ease;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .app-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 700;
         }
 
-        .legal-links {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 1px solid #e9ecef;
+        .tagline {
+            font-size: 1.3em;
+            margin-bottom: 40px;
+            opacity: 0.95;
         }
 
-        .legal-link {
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            color: #667eea;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .features {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 60px;
+            color: #2d3748;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .feature-card p {
+            color: #718096;
+            line-height: 1.7;
+        }
+
+        .how-it-works {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .step h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .benefits {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .benefit {
+            text-align: center;
+        }
+
+        .benefit-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        footer {
+            background: #2d3748;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        footer a {
             color: #667eea;
             text-decoration: none;
-            margin: 0 15px;
-            font-size: 0.9em;
-        }
-
-        .legal-link:hover {
-            text-decoration: underline;
-        }
-
-        .footer {
-            background: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            font-size: 0.9em;
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
+            h1 { font-size: 2em; }
+            .features-grid, .steps, .benefits-grid { grid-template-columns: 1fr; }
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
             }
-            
-            .header {
-                padding: 40px 20px;
+            .hero-text {
+                text-align: center;
             }
-            
-            .header h1 {
-                font-size: 2.5em;
-            }
-            
-            .content {
-                padding: 30px 20px;
+            .video-wrapper {
+                max-width: 350px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>RecipeBox AI</h1>
-            <p>Your AI-Powered Recipe Companion</p>
-        </div>
-        
-        <div class="content">
-            <p>Welcome to RecipeBox AI - the smart way to organize, discover, and create amazing recipes with the power of artificial intelligence.</p>
-            
-            <div class="app-links">
-                <a href="#" class="app-link">📱 Download on App Store</a>
-                <a href="#" class="app-link">📱 Get it on Google Play</a>
-            </div>
-            
-            <h3>Features:</h3>
-            <ul style="text-align: left; max-width: 400px; margin: 20px auto;">
-                <li>🔍 Scan recipes from photos</li>
-                <li>🌐 Import recipes from websites</li>
-                <li>🎨 Generate AI recipe images</li>
-                <li>📚 Organize in cookbooks</li>
-                <li>🔄 Sync across devices</li>
-                <li>🧠 AI-powered suggestions</li>
-            </ul>
-            
-            <div class="legal-links">
-                <a href="/terms/" class="legal-link">Terms & Conditions</a>
-                <a href="/privacy/" class="legal-link">Privacy Policy</a>
-                <a href="mailto:hello@recipeboxai.app" class="legal-link">Contact Support</a>
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <img src="app-icon.png" alt="RecipeBox AI" class="app-icon">
+                    <h1>RecipeBox AI</h1>
+                    <p class="tagline">Your complete recipe companion with AI-powered insights</p>
+                    <a href="https://apps.apple.com/app/id6474084187" class="cta-button">
+                        <svg width="24" height="24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        Download for iOS
+                    </a>
+                </div>
+                <div class="hero-video">
+                    <div class="video-wrapper">
+                        <video autoplay loop muted playsinline webkit-playsinline preload="auto">
+                            <source src="demo-video.mov" type="video/mp4">
+                            <source src="demo-video.mov" type="video/quicktime">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="footer">
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Everything You Need</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3>Add from Anywhere</h3>
+                    <p>Scan from cookbooks, import from websites, or save from YouTube. AI organizes instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Nutrition Insights</h3>
+                    <p>Instant calorie counts, macros, and nutrients. Adjust servings and watch nutrition scale.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>AI Transformations</h3>
+                    <p>Make recipes healthier, vegetarian, high-protein, or match dietary needs with one tap.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Smart Search</h3>
+                    <p>Visual library with custom tags. Filter by meal type, cuisine, or diet. All offline.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👨‍🍳</div>
+                    <h3>Cooking Mode</h3>
+                    <p>Step-by-step instructions, ingredient checklists, and timers for hands-free cooking.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Privacy First</h3>
+                    <p>Your recipes, your data. Secure cloud sync with no sharing without permission.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Add Your Recipe</h3>
+                    <p>Scan, import, or paste from anywhere</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>AI Organizes</h3>
+                    <p>Instantly structures ingredients & nutrition</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Customize & Cook</h3>
+                    <p>Transform recipes and cook with guidance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="benefits">
+        <div class="container">
+            <h2 class="section-title">Perfect For</h2>
+            <div class="benefits-grid">
+                <div class="benefit">
+                    <div class="benefit-icon">🏠</div>
+                    <h4>Home Cooks</h4>
+                    <p>Organize your complete recipe collection</p>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">💪</div>
+                    <h4>Fitness Enthusiasts</h4>
+                    <p>Track macros and hit nutrition goals</p>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">👨‍👩‍👧‍👦</div>
+                    <h4>Busy Parents</h4>
+                    <p>Plan family meals with nutrition insights</p>
+                </div>
+                <div class="benefit">
+                    <div class="benefit-icon">🥗</div>
+                    <h4>Health Conscious</h4>
+                    <p>Make recipes healthier instantly</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
             <p>&copy; 2025 RecipeBox AI. All rights reserved.</p>
+            <p style="margin-top: 10px; opacity: 0.8;">
+                <a href="mailto:support@recipeboxai.app">Support</a> · 
+                <a href="/privacy">Privacy</a> · 
+                <a href="/terms">Terms</a>
+            </p>
         </div>
-    </div>
+    </footer>
+
+    <script>
+        // Ensure video plays on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.querySelector('video');
+            if (video) {
+                // Try to play the video
+                video.play().catch(function(error) {
+                    console.log('Autoplay failed:', error);
+                    // If autoplay fails, try again on user interaction
+                    document.addEventListener('click', function() {
+                        video.play().catch(e => console.log('Play failed:', e));
+                    }, { once: true });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

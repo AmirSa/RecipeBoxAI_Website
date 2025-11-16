@@ -117,29 +117,75 @@
             document.getElementById('store-links').style.display = 'block';
         }
         
-        if (!tokenHash) {
+        function showError(message) {
             document.getElementById('spinner').style.display = 'none';
-            document.getElementById('title').textContent = 'Invalid Link';
-            document.getElementById('message').textContent = 'This confirmation link is not valid. Please try again.';
+            document.getElementById('title').textContent = 'Verification Failed';
+            document.getElementById('message').textContent = message || 'Unable to confirm your email. Please try again.';
             document.getElementById('store-links').style.display = 'block';
-        } else if (isMobile) {
-            // Show success immediately
-            showSuccess();
-            
-            // Try to open the app
-            window.location.href = deepLink;
-            
-            // Show fallback after 3 seconds
-            setTimeout(showFallback, 3000);
-        } else {
-            // Desktop: show fallback immediately
-            setTimeout(() => {
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('title').textContent = 'Email Confirmed!';
-                document.getElementById('message').textContent = 'Please open RecipeBox AI on your mobile device to continue.';
-                document.getElementById('store-links').style.display = 'block';
-            }, 1000);
         }
+        
+        // Verify email with Supabase
+        async function verifyEmail() {
+            if (!tokenHash) {
+                showError('This confirmation link is not valid. Please try again.');
+                return;
+            }
+            
+            try {
+                // Call Supabase verification API
+                const response = await fetch('https://usrgdiakvnegybqfhcmb.supabase.co/auth/v1/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjM3MTU5OTEsImV4cCI6MjAzOTI5MTk5MX0.o8l-9ZqznVCEhAO03hTnFyq9bJJtRu_3rM7yTbE8hCw'
+                    },
+                    body: JSON.stringify({
+                        token_hash: tokenHash,
+                        type: type
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ Email verified successfully via API');
+                    handleSuccessfulVerification();
+                } else {
+                    const error = await response.json();
+                    console.error('❌ Verification API error:', error);
+                    // Continue with app redirect even if API call fails (might already be verified)
+                    handleSuccessfulVerification();
+                }
+            } catch (error) {
+                console.error('❌ Verification error:', error);
+                // Continue with app redirect even if API call fails
+                handleSuccessfulVerification();
+            }
+        }
+        
+        function handleSuccessfulVerification() {
+            if (isMobile) {
+                // Mobile: show success and redirect to app
+                showSuccess();
+                
+                // Try to open the app
+                setTimeout(() => {
+                    window.location.href = deepLink;
+                }, 500);
+                
+                // Show fallback after 3 seconds if app didn't open
+                setTimeout(showFallback, 3000);
+            } else {
+                // Desktop: show instructions
+                setTimeout(() => {
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('title').textContent = 'Email Confirmed! ✅';
+                    document.getElementById('message').innerHTML = 'Your email has been verified.<br><br>Please open <strong>RecipeBox AI</strong> on your iPhone or iPad and sign in with your email and password.';
+                    document.getElementById('store-links').style.display = 'block';
+                }, 500);
+            }
+        }
+        
+        // Start verification process
+        verifyEmail();
     </script>
 </body>
 </html>

@@ -1,0 +1,178 @@
+{
+  "title": "Classic Caesar Salad",
+  "prepTime": 15,
+  "cookTime": 0,
+  "servings": 4,
+  "calories": 240,
+  "notes": "For the best Caesar salad, use fresh romaine lettuce and freshly grated Parmesan cheese. The dressing can be made ahead and stored in the refrigerator for up to 3 days. Add grilled chicken for a complete meal.",
+  "sections": [
+    {
+      "id": "a3b2c3d4-e5f6-7890-abcd-000000000001",
+      "name": "For the Salad",
+      "ingredients": [
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000001",
+          "name": "romaine lettuce",
+          "amount": "2",
+          "unit": "heads",
+          "additionalInfo": "chopped",
+          "section": "For the Salad"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000002",
+          "name": "Parmesan cheese",
+          "amount": "1",
+          "unit": "cup",
+          "additionalInfo": "freshly grated",
+          "section": "For the Salad"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000003",
+          "name": "croutons",
+          "amount": "2",
+          "unit": "cups",
+          "additionalInfo": null,
+          "section": "For the Salad"
+        }
+      ]
+    },
+    {
+      "id": "a3b2c3d4-e5f6-7890-abcd-000000000002",
+      "name": "For the Dressing",
+      "ingredients": [
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000004",
+          "name": "mayonnaise",
+          "amount": "1/2",
+          "unit": "cup",
+          "additionalInfo": null,
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000005",
+          "name": "lemon juice",
+          "amount": "2",
+          "unit": "tbsp",
+          "additionalInfo": "freshly squeezed",
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000006",
+          "name": "garlic",
+          "amount": "2",
+          "unit": "cloves",
+          "additionalInfo": "minced",
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000007",
+          "name": "Dijon mustard",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000008",
+          "name": "Worcestershire sauce",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000009",
+          "name": "anchovy paste",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": "optional",
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000010",
+          "name": "Parmesan cheese",
+          "amount": "1/4",
+          "unit": "cup",
+          "additionalInfo": "grated",
+          "section": "For the Dressing"
+        },
+        {
+          "id": "b3b2c3d4-e5f6-7890-abcd-000000000011",
+          "name": "black pepper",
+          "amount": "1/2",
+          "unit": "tsp",
+          "additionalInfo": "freshly ground",
+          "section": "For the Dressing"
+        }
+      ]
+    }
+  ],
+  "instructions": [
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000001",
+      "stepNumber": 1,
+      "instruction": "Wash and thoroughly dry the romaine lettuce. Chop into bite-sized pieces and place in a large salad bowl."
+    },
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000002",
+      "stepNumber": 2,
+      "instruction": "In a small bowl, whisk together mayonnaise, lemon juice, minced garlic, Dijon mustard, Worcestershire sauce, and anchovy paste (if using)."
+    },
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000003",
+      "stepNumber": 3,
+      "instruction": "Add grated Parmesan cheese and black pepper to the dressing and whisk until smooth and well combined."
+    },
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000004",
+      "stepNumber": 4,
+      "instruction": "Pour dressing over the chopped lettuce and toss gently until every leaf is coated with dressing."
+    },
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000005",
+      "stepNumber": 5,
+      "instruction": "Add croutons and toss again gently to distribute them throughout the salad."
+    },
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000006",
+      "stepNumber": 6,
+      "instruction": "Top with freshly grated Parmesan cheese and additional black pepper if desired."
+    },
+    {
+      "id": "c3b2c3d4-e5f6-7890-abcd-000000000007",
+      "stepNumber": 7,
+      "instruction": "Serve immediately to keep the lettuce crisp and croutons crunchy. Enjoy!"
+    }
+  ],
+  "tags": {
+    "mealType": "Lunch",
+    "cuisine": "American",
+    "diet": "Vegetarian"
+  },
+  "autoTags": ["No Cook", "Salad", "Classic"],
+  "nutrition": {
+    "protein": 12.0,
+    "fat": 16.0,
+    "carbs": 18.0,
+    "richNutrients": [
+      {
+        "name": "Vitamin A",
+        "type": "vitamin",
+        "amount": "45% DV",
+        "description": "From romaine lettuce, supports eye health"
+      },
+      {
+        "name": "Calcium",
+        "type": "mineral",
+        "amount": "30% DV",
+        "description": "From Parmesan cheese, important for bone health"
+      },
+      {
+        "name": "Vitamin K",
+        "type": "vitamin",
+        "amount": "85% DV",
+        "description": "From lettuce, essential for blood clotting"
+      }
+    ]
+  }
+}

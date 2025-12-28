@@ -1,0 +1,156 @@
+{
+  "title": "Fluffy Buttermilk Pancakes",
+  "prepTime": 10,
+  "cookTime": 15,
+  "servings": 4,
+  "calories": 350,
+  "notes": "For extra fluffy pancakes, don't overmix the batter. Small lumps are okay! Let the batter rest for 5 minutes before cooking for even fluffier results. Serve immediately with warm maple syrup, butter, and fresh berries.",
+  "sections": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-000000000001",
+      "name": "Dry Ingredients",
+      "ingredients": [
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000001",
+          "name": "all-purpose flour",
+          "amount": "2",
+          "unit": "cups",
+          "additionalInfo": null,
+          "section": "Dry Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000002",
+          "name": "sugar",
+          "amount": "2",
+          "unit": "tbsp",
+          "additionalInfo": null,
+          "section": "Dry Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000003",
+          "name": "baking powder",
+          "amount": "2",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "Dry Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000004",
+          "name": "baking soda",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "Dry Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000005",
+          "name": "salt",
+          "amount": "1/2",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "Dry Ingredients"
+        }
+      ]
+    },
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-000000000002",
+      "name": "Wet Ingredients",
+      "ingredients": [
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000006",
+          "name": "buttermilk",
+          "amount": "2",
+          "unit": "cups",
+          "additionalInfo": null,
+          "section": "Wet Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000007",
+          "name": "eggs",
+          "amount": "2",
+          "unit": "",
+          "additionalInfo": "large",
+          "section": "Wet Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000008",
+          "name": "butter",
+          "amount": "1/4",
+          "unit": "cup",
+          "additionalInfo": "melted and cooled",
+          "section": "Wet Ingredients"
+        },
+        {
+          "id": "b1b2c3d4-e5f6-7890-abcd-000000000009",
+          "name": "vanilla extract",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "Wet Ingredients"
+        }
+      ]
+    }
+  ],
+  "instructions": [
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000001",
+      "stepNumber": 1,
+      "instruction": "In a large bowl, whisk together flour, sugar, baking powder, baking soda, and salt until well combined."
+    },
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000002",
+      "stepNumber": 2,
+      "instruction": "In another bowl, beat together buttermilk, eggs, melted butter, and vanilla extract until smooth."
+    },
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000003",
+      "stepNumber": 3,
+      "instruction": "Pour wet ingredients into dry ingredients and stir until just combined. Don't overmix - small lumps are fine. Let batter rest for 5 minutes."
+    },
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000004",
+      "stepNumber": 4,
+      "instruction": "Heat a griddle or large skillet over medium heat (about 350°F). Lightly grease with butter or cooking spray."
+    },
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000005",
+      "stepNumber": 5,
+      "instruction": "Pour 1/4 cup of batter for each pancake onto the hot griddle. Cook until bubbles form on the surface and edges look set, about 2-3 minutes."
+    },
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000006",
+      "stepNumber": 6,
+      "instruction": "Flip pancakes and cook until golden brown on the other side, about 2-3 minutes more."
+    },
+    {
+      "id": "c1b2c3d4-e5f6-7890-abcd-000000000007",
+      "stepNumber": 7,
+      "instruction": "Serve immediately with warm maple syrup, butter, and fresh berries. Keep cooked pancakes warm in a 200°F oven if making multiple batches."
+    }
+  ],
+  "tags": {
+    "mealType": "Breakfast",
+    "cuisine": "American",
+    "diet": "Vegetarian"
+  },
+  "autoTags": ["Easy", "Family-Friendly", "Classic"],
+  "nutrition": {
+    "protein": 10.0,
+    "fat": 12.0,
+    "carbs": 55.0,
+    "richNutrients": [
+      {
+        "name": "Calcium",
+        "type": "mineral",
+        "amount": "20% DV",
+        "description": "From buttermilk, important for bone health"
+      },
+      {
+        "name": "B Vitamins",
+        "type": "vitamin",
+        "amount": "15% DV",
+        "description": "From enriched flour and eggs, supports energy metabolism"
+      }
+    ]
+  }
+}

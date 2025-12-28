@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Recipes - RecipeBox AI</title>
+    <meta name="description" content="Discover our collection of delicious, tested recipes. From quick weeknight dinners to special occasion meals, find your next favorite dish.">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Browse Recipes - RecipeBox AI">
+    <meta property="og:description" content="Discover our collection of delicious recipes and add them directly to your RecipeBox AI app.">
+    <meta property="og:image" content="https://recipeboxai.app/app-icon.png">
+    <meta property="og:url" content="https://recipeboxai.app/recipes/">
+    
+    <link rel="icon" type="image/png" href="../app-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .filter-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar label {
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 8px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .filter-bar select:focus, .filter-bar input:focus {
+            border-color: #667eea;
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .recipe-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .recipe-card-content {
+            padding: 20px;
+        }
+
+        .recipe-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .recipe-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .recipe-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .recipe-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .recipe-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f0f4ff;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            background: #fff;
+            margin-top: 60px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .recipe-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🍳 RecipeBox AI Recipe Collection</h1>
+        <p>Discover delicious recipes and add them directly to your app</p>
+    </header>
+
+    <div class="container">
+        <div class="filter-bar">
+            <div>
+                <label for="search">Search:</label>
+                <input type="text" id="search" placeholder="Search recipes...">
+            </div>
+            <div>
+                <label for="mealType">Meal Type:</label>
+                <select id="mealType">
+                    <option value="">All</option>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Snacks">Snacks</option>
+                </select>
+            </div>
+            <div>
+                <label for="cuisine">Cuisine:</label>
+                <select id="cuisine">
+                    <option value="">All</option>
+                    <option value="American">American</option>
+                    <option value="Italian">Italian</option>
+                    <option value="Indian">Indian</option>
+                    <option value="Asian">Asian</option>
+                    <option value="Mexican">Mexican</option>
+                </select>
+            </div>
+            <div>
+                <label for="diet">Diet:</label>
+                <select id="diet">
+                    <option value="">All</option>
+                    <option value="Vegetarian">Vegetarian</option>
+                    <option value="Vegan">Vegan</option>
+                    <option value="Regular">Regular</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="recipe-grid" id="recipeGrid">
+            <!-- Recipes will be loaded here -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 RecipeBox AI. <a href="../">Back to Home</a> | <a href="../privacy/">Privacy Policy</a></p>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://usrgdiakvnegybqfhcmb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NjEyMTMsImV4cCI6MjA3MzQzNzIxM30.dDqM7KevNrOyg-demi11SNIpVOY6Iw-nRatQWySOokg';
+        
+        // Toggle this to switch between Supabase and local JSON
+        const USE_SUPABASE = true;
+        
+        let allRecipes = [];
+
+        // Load recipes from Supabase
+        async function loadRecipesFromSupabase(filters = {}) {
+            const params = {
+                p_limit: 50,
+                p_offset: 0
+            };
+            
+            if (filters.mealType) params.p_meal_type = filters.mealType;
+            if (filters.cuisine) params.p_cuisine = filters.cuisine;
+            if (filters.diet) params.p_diet = filters.diet;
+            if (filters.search) params.p_search = filters.search;
+            
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_shared_recipes_list`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Supabase error: ${response.status}`);
+            }
+            
+            const recipes = await response.json();
+            
+            // Transform Supabase format to display format
+            return recipes.map(r => ({
+                slug: r.slug,
+                title: r.title,
+                description: r.description || `Delicious ${r.title}`,
+                prepTime: r.prep_time,
+                cookTime: r.cook_time,
+                totalTime: r.prep_time + r.cook_time,
+                servings: r.servings,
+                calories: r.calories,
+                mealType: r.tags?.mealType || '',
+                cuisine: r.tags?.cuisine || '',
+                diet: r.tags?.diet || '',
+                tags: [
+                    r.tags?.mealType,
+                    r.tags?.cuisine,
+                    ...(r.auto_tags || [])
+                ].filter(Boolean),
+                image: r.image_path || r.image_url || `https://via.placeholder.com/600x400/667eea/ffffff?text=${encodeURIComponent(r.title)}`,
+                isFeatured: r.is_featured,
+                viewCount: r.view_count,
+                addCount: r.add_count
+            }));
+        }
+
+        // Load recipes from local JSON (fallback)
+        async function loadRecipesFromJSON() {
+            const response = await fetch('./data/recipes-master.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+
+        // Load recipes
+        async function loadRecipes() {
+            try {
+                if (USE_SUPABASE) {
+                    allRecipes = await loadRecipesFromSupabase();
+                } else {
+                    allRecipes = await loadRecipesFromJSON();
+                }
+                displayRecipes(allRecipes);
+            } catch (error) {
+                console.error('Error loading recipes:', error);
+                
+                // Try fallback to local JSON if Supabase fails
+                if (USE_SUPABASE) {
+                    console.log('Supabase failed, trying local JSON fallback...');
+                    try {
+                        allRecipes = await loadRecipesFromJSON();
+                        displayRecipes(allRecipes);
+                        return;
+                    } catch (fallbackError) {
+                        console.error('Fallback also failed:', fallbackError);
+                    }
+                }
+                
+                // Show helpful error message
+                const isFileProtocol = window.location.protocol === 'file:';
+                const errorHTML = isFileProtocol 
+                    ? `<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fff3cd; border-radius: 10px; border: 2px solid #ffc107;">
+                        <h3 style="color: #856404; margin-bottom: 15px;">⚠️ Local Testing Required</h3>
+                        <p style="color: #856404; margin-bottom: 20px;">You're opening this file directly. Browsers block local file requests for security.</p>
+                        <div style="text-align: left; max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px;">
+                            <p style="font-weight: 600; margin-bottom: 10px;">To test locally, run a web server:</p>
+                            <code style="display: block; background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 10px; font-family: monospace;">
+                                cd netlify-deploy<br>
+                                python3 -m http.server 8000
+                            </code>
+                            <p style="margin-top: 15px;">Then visit: <a href="http://localhost:8000/recipes/" style="color: #667eea; font-weight: 600;">http://localhost:8000/recipes/</a></p>
+                        </div>
+                    </div>`
+                    : `<p style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f8d7da; border-radius: 10px; color: #721c24;">
+                        Error loading recipes. Please try again later or contact support.
+                    </p>`;
+                
+                document.getElementById('recipeGrid').innerHTML = errorHTML;
+            }
+        }
+
+        // Display recipes
+        function displayRecipes(recipes) {
+            const grid = document.getElementById('recipeGrid');
+            
+            if (recipes.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px;">No recipes found matching your criteria.</p>';
+                return;
+            }
+
+            grid.innerHTML = recipes.map(recipe => `
+                <div class="recipe-card" onclick="window.location.href='./${recipe.slug}/'">
+                    <img src="${recipe.image}" alt="${recipe.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/600x400/667eea/ffffff?text=Recipe'">
+                    <div class="recipe-card-content">
+                        <h3>${recipe.title}</h3>
+                        <p>${recipe.description}</p>
+                        <div class="recipe-meta">
+                            <span>⏱️ ${recipe.totalTime} min</span>
+                            <span>🍽️ ${recipe.servings} servings</span>
+                            <span>🔥 ${recipe.calories} cal</span>
+                        </div>
+                        <div class="recipe-tags">
+                            ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter recipes - now fetches from Supabase with filters
+        async function filterRecipes() {
+            const search = document.getElementById('search').value;
+            const mealType = document.getElementById('mealType').value;
+            const cuisine = document.getElementById('cuisine').value;
+            const diet = document.getElementById('diet').value;
+
+            if (USE_SUPABASE) {
+                try {
+                    const recipes = await loadRecipesFromSupabase({
+                        search: search || null,
+                        mealType: mealType || null,
+                        cuisine: cuisine || null,
+                        diet: diet || null
+                    });
+                    displayRecipes(recipes);
+                } catch (error) {
+                    console.error('Error filtering recipes:', error);
+                    // Fall back to client-side filtering
+                    clientSideFilter(search, mealType, cuisine, diet);
+                }
+            } else {
+                clientSideFilter(search, mealType, cuisine, diet);
+            }
+        }
+        
+        // Client-side filtering fallback
+        function clientSideFilter(search, mealType, cuisine, diet) {
+            const searchLower = search.toLowerCase();
+            const filtered = allRecipes.filter(recipe => {
+                const matchesSearch = !search || 
+                    recipe.title.toLowerCase().includes(searchLower) || 
+                    recipe.description.toLowerCase().includes(searchLower);
+                const matchesMealType = !mealType || recipe.mealType === mealType;
+                const matchesCuisine = !cuisine || recipe.cuisine === cuisine;
+                const matchesDiet = !diet || recipe.diet === diet;
+
+                return matchesSearch && matchesMealType && matchesCuisine && matchesDiet;
+            });
+
+            displayRecipes(filtered);
+        }
+
+        // Debounce helper
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Event listeners with debouncing for search
+        document.getElementById('search').addEventListener('input', debounce(filterRecipes, 300));
+        document.getElementById('mealType').addEventListener('change', filterRecipes);
+        document.getElementById('cuisine').addEventListener('change', filterRecipes);
+        document.getElementById('diet').addEventListener('change', filterRecipes);
+
+        // Initialize
+        loadRecipes();
+    </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+{
+  "title": "Chicken Tikka Masala",
+  "prepTime": 20,
+  "cookTime": 30,
+  "servings": 6,
+  "calories": 420,
+  "notes": "This restaurant-style chicken tikka masala features tender marinated chicken in a rich, creamy tomato-based sauce. Best served with basmati rice or naan bread. For a healthier version, use Greek yogurt instead of heavy cream.",
+  "sections": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "For the Marinade",
+      "ingredients": [
+        {
+          "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+          "name": "chicken breast",
+          "amount": "2",
+          "unit": "lbs",
+          "additionalInfo": "cut into bite-sized pieces",
+          "section": "For the Marinade"
+        },
+        {
+          "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+          "name": "plain yogurt",
+          "amount": "1",
+          "unit": "cup",
+          "additionalInfo": null,
+          "section": "For the Marinade"
+        },
+        {
+          "id": "d4e5f6a7-b8c9-0123-def1-234567890123",
+          "name": "lemon juice",
+          "amount": "2",
+          "unit": "tbsp",
+          "additionalInfo": null,
+          "section": "For the Marinade"
+        },
+        {
+          "id": "e5f6a7b8-c9d0-1234-ef12-345678901234",
+          "name": "garam masala",
+          "amount": "2",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "For the Marinade"
+        },
+        {
+          "id": "f6a7b8c9-d0e1-2345-f123-456789012345",
+          "name": "paprika",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "For the Marinade"
+        },
+        {
+          "id": "a7b8c9d0-e1f2-3456-1234-567890123456",
+          "name": "cumin",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "For the Marinade"
+        }
+      ]
+    },
+    {
+      "id": "b8c9d0e1-f2a3-4567-2345-678901234567",
+      "name": "For the Sauce",
+      "ingredients": [
+        {
+          "id": "c9d0e1f2-a3b4-5678-3456-789012345678",
+          "name": "butter",
+          "amount": "3",
+          "unit": "tbsp",
+          "additionalInfo": null,
+          "section": "For the Sauce"
+        },
+        {
+          "id": "d0e1f2a3-b4c5-6789-4567-890123456789",
+          "name": "onion",
+          "amount": "1",
+          "unit": "",
+          "additionalInfo": "large, finely chopped",
+          "section": "For the Sauce"
+        },
+        {
+          "id": "e1f2a3b4-c5d6-7890-5678-901234567890",
+          "name": "garlic",
+          "amount": "4",
+          "unit": "cloves",
+          "additionalInfo": "minced",
+          "section": "For the Sauce"
+        },
+        {
+          "id": "f2a3b4c5-d6e7-8901-6789-012345678901",
+          "name": "ginger",
+          "amount": "1",
+          "unit": "tbsp",
+          "additionalInfo": "freshly grated",
+          "section": "For the Sauce"
+        },
+        {
+          "id": "a3b4c5d6-e7f8-9012-7890-123456789012",
+          "name": "tomato sauce",
+          "amount": "2",
+          "unit": "cups",
+          "additionalInfo": null,
+          "section": "For the Sauce"
+        },
+        {
+          "id": "b4c5d6e7-f8a9-0123-8901-234567890123",
+          "name": "heavy cream",
+          "amount": "1",
+          "unit": "cup",
+          "additionalInfo": null,
+          "section": "For the Sauce"
+        },
+        {
+          "id": "c5d6e7f8-a9b0-1234-9012-345678901234",
+          "name": "garam masala",
+          "amount": "1",
+          "unit": "tbsp",
+          "additionalInfo": null,
+          "section": "For the Sauce"
+        },
+        {
+          "id": "d6e7f8a9-b0c1-2345-0123-456789012345",
+          "name": "paprika",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": null,
+          "section": "For the Sauce"
+        },
+        {
+          "id": "e7f8a9b0-c1d2-3456-1234-567890123456",
+          "name": "salt",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": "or to taste",
+          "section": "For the Sauce"
+        },
+        {
+          "id": "f8a9b0c1-d2e3-4567-2345-678901234567",
+          "name": "fresh cilantro",
+          "amount": "1/4",
+          "unit": "cup",
+          "additionalInfo": "chopped, for garnish",
+          "section": "For the Sauce"
+        }
+      ]
+    }
+  ],
+  "instructions": [
+    {
+      "id": "a9b0c1d2-e3f4-5678-3456-789012345678",
+      "stepNumber": 1,
+      "instruction": "In a large bowl, combine yogurt, lemon juice, garam masala, paprika, and cumin. Add chicken pieces and mix well to coat. Cover and refrigerate for at least 1 hour (or up to 24 hours for best flavor)."
+    },
+    {
+      "id": "b0c1d2e3-f4a5-6789-4567-890123456789",
+      "stepNumber": 2,
+      "instruction": "Heat a large skillet over medium-high heat. Add marinated chicken in batches and cook until lightly charred and cooked through, about 8-10 minutes. Remove and set aside."
+    },
+    {
+      "id": "c1d2e3f4-a5b6-7890-5678-901234567890",
+      "stepNumber": 3,
+      "instruction": "In the same skillet, melt butter over medium heat. Add chopped onion and sauté until soft and golden, about 5 minutes."
+    },
+    {
+      "id": "d2e3f4a5-b6c7-8901-6789-012345678901",
+      "stepNumber": 4,
+      "instruction": "Add minced garlic and grated ginger, stirring constantly for 1 minute until fragrant."
+    },
+    {
+      "id": "e3f4a5b6-c7d8-9012-7890-123456789012",
+      "stepNumber": 5,
+      "instruction": "Stir in tomato sauce, garam masala, paprika, and salt. Simmer for 10 minutes, stirring occasionally, until sauce thickens slightly."
+    },
+    {
+      "id": "f4a5b6c7-d8e9-0123-8901-234567890123",
+      "stepNumber": 6,
+      "instruction": "Reduce heat to low and stir in heavy cream until well combined. Return cooked chicken to the pan and simmer for 5 more minutes."
+    },
+    {
+      "id": "a5b6c7d8-e9f0-1234-9012-345678901234",
+      "stepNumber": 7,
+      "instruction": "Taste and adjust seasoning with salt if needed. Garnish with fresh cilantro and serve hot with basmati rice or naan bread."
+    }
+  ],
+  "tags": {
+    "mealType": "Dinner",
+    "cuisine": "Indian",
+    "diet": "Regular"
+  },
+  "autoTags": ["Popular", "Spicy", "Comfort Food", "Restaurant-Style"],
+  "nutrition": {
+    "protein": 35.0,
+    "fat": 22.0,
+    "carbs": 18.0,
+    "richNutrients": [
+      {
+        "name": "Protein",
+        "type": "mineral",
+        "amount": "35g",
+        "description": "Essential for muscle growth and repair"
+      },
+      {
+        "name": "Vitamin A",
+        "type": "vitamin",
+        "amount": "25% DV",
+        "description": "From tomatoes and paprika, supports eye health"
+      },
+      {
+        "name": "Calcium",
+        "type": "mineral",
+        "amount": "15% DV",
+        "description": "From yogurt and cream, important for bone health"
+      }
+    ]
+  }
+}

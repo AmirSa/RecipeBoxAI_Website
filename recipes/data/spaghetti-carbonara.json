@@ -1,0 +1,148 @@
+{
+  "title": "Spaghetti Carbonara",
+  "prepTime": 10,
+  "cookTime": 20,
+  "servings": 4,
+  "calories": 520,
+  "notes": "The key to perfect carbonara is removing the pan from heat before adding the egg mixture - the residual heat will cook the eggs without scrambling them. Use freshly grated Parmesan for the best flavor. Traditional carbonara doesn't include cream - the creaminess comes from the eggs and cheese.",
+  "sections": [
+    {
+      "id": "a4b2c3d4-e5f6-7890-abcd-000000000001",
+      "name": "Ingredients",
+      "ingredients": [
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000001",
+          "name": "spaghetti",
+          "amount": "1",
+          "unit": "lb",
+          "additionalInfo": null,
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000002",
+          "name": "pancetta",
+          "amount": "8",
+          "unit": "oz",
+          "additionalInfo": "diced",
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000003",
+          "name": "eggs",
+          "amount": "4",
+          "unit": "",
+          "additionalInfo": "large, room temperature",
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000004",
+          "name": "Parmesan cheese",
+          "amount": "1",
+          "unit": "cup",
+          "additionalInfo": "freshly grated",
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000005",
+          "name": "garlic",
+          "amount": "3",
+          "unit": "cloves",
+          "additionalInfo": "minced",
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000006",
+          "name": "black pepper",
+          "amount": "1",
+          "unit": "tsp",
+          "additionalInfo": "freshly ground",
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000007",
+          "name": "salt",
+          "amount": "",
+          "unit": "",
+          "additionalInfo": "for pasta water",
+          "section": "Ingredients"
+        },
+        {
+          "id": "b4b2c3d4-e5f6-7890-abcd-000000000008",
+          "name": "fresh parsley",
+          "amount": "2",
+          "unit": "tbsp",
+          "additionalInfo": "chopped, for garnish",
+          "section": "Ingredients"
+        }
+      ]
+    }
+  ],
+  "instructions": [
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000001",
+      "stepNumber": 1,
+      "instruction": "Bring a large pot of salted water to boil. Add spaghetti and cook according to package directions until al dente. Reserve 1 cup of pasta water before draining."
+    },
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000002",
+      "stepNumber": 2,
+      "instruction": "While pasta cooks, cook diced pancetta in a large skillet over medium heat until crispy, about 8-10 minutes. Add minced garlic in the last minute."
+    },
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000003",
+      "stepNumber": 3,
+      "instruction": "In a bowl, whisk together eggs, grated Parmesan cheese, and black pepper until well combined. Set aside."
+    },
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000004",
+      "stepNumber": 4,
+      "instruction": "When pasta is ready, drain and add it to the skillet with pancetta. Remove skillet from heat."
+    },
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000005",
+      "stepNumber": 5,
+      "instruction": "Quickly pour the egg mixture over the hot pasta, tossing continuously to coat. The residual heat will cook the eggs without scrambling them."
+    },
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000006",
+      "stepNumber": 6,
+      "instruction": "If the sauce seems too thick, add reserved pasta water a little at a time until you reach desired consistency."
+    },
+    {
+      "id": "c4b2c3d4-e5f6-7890-abcd-000000000007",
+      "stepNumber": 7,
+      "instruction": "Serve immediately, garnished with extra Parmesan, black pepper, and fresh parsley. Enjoy while hot!"
+    }
+  ],
+  "tags": {
+    "mealType": "Dinner",
+    "cuisine": "Italian",
+    "diet": "Regular"
+  },
+  "autoTags": ["Easy", "Classic", "Pasta"],
+  "nutrition": {
+    "protein": 28.0,
+    "fat": 24.0,
+    "carbs": 48.0,
+    "richNutrients": [
+      {
+        "name": "Protein",
+        "type": "mineral",
+        "amount": "28g",
+        "description": "From eggs and pancetta, essential for muscle building"
+      },
+      {
+        "name": "Calcium",
+        "type": "mineral",
+        "amount": "35% DV",
+        "description": "From Parmesan cheese, supports bone health"
+      },
+      {
+        "name": "B Vitamins",
+        "type": "vitamin",
+        "amount": "20% DV",
+        "description": "From eggs and pasta, supports energy metabolism"
+      }
+    ]
+  }
+}

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>California Avocado Toast - RecipeBox AI</title>
+    <meta name="description" content="Fresh California avocado toast with cherry tomatoes and feta. Quick, healthy, and delicious breakfast recipe. Ready in 10 minutes!">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="California Avocado Toast">
+    <meta property="og:description" content="Fresh and healthy avocado toast topped with cherry tomatoes and feta cheese">
+    <meta property="og:image" content="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/california-avocado-toast.jpg">
+    
+    <!-- Schema.org Recipe Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      "name": "California Avocado Toast",
+      "description": "Fresh and healthy avocado toast topped with cherry tomatoes and feta cheese. Perfect for a quick breakfast or brunch!",
+      "prepTime": "PT5M",
+      "cookTime": "PT5M",
+      "totalTime": "PT10M",
+      "recipeYield": "2 servings",
+      "recipeCategory": "Breakfast",
+      "recipeCuisine": "American",
+      "keywords": "avocado toast, breakfast, healthy, quick, vegetarian",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "calories": "280 calories",
+        "proteinContent": "8g",
+        "fatContent": "18g",
+        "carbohydrateContent": "28g"
+      },
+      "recipeIngredient": [
+        "4 slices bread (whole grain or sourdough)",
+        "2 ripe avocados",
+        "1 tbsp lemon juice (freshly squeezed)",
+        "1/4 tsp red pepper flakes",
+        "8 cherry tomatoes (halved)",
+        "2 tbsp feta cheese (crumbled, optional)",
+        "1 tbsp olive oil (extra virgin)",
+        "salt to taste",
+        "black pepper to taste"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToStep",
+          "text": "Toast the bread slices in a toaster or on a griddle until golden brown and crispy on both sides."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "While bread is toasting, cut avocados in half, remove pit, and scoop flesh into a bowl."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Mash avocados with a fork, adding lemon juice, salt, and pepper. Mash to desired consistency - chunky or smooth."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Spread the mashed avocado generously on each toast slice, making sure to reach the edges."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Top each toast with halved cherry tomatoes and crumbled feta cheese if using."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Drizzle with olive oil and sprinkle with red pepper flakes for a little kick."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Serve immediately while toast is still warm and crispy. Enjoy!"
+        }
+      ]
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .back-link:hover {
+            opacity: 1;
+        }
+        
+        .hero-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .recipe-meta {
+            display: flex;
+            justify-content: space-around;
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .meta-item {
+            text-align: center;
+        }
+        
+        .meta-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            display: block;
+        }
+        
+        .meta-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            color: #4CAF50;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .notes {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+        
+        .ingredients-list {
+            list-style: none;
+        }
+        
+        .ingredients-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ingredients-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .ingredient-amount {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-right: 0.5rem;
+        }
+        
+        .instructions-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+        
+        .instructions-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+        
+        .instructions-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #4CAF50;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .nutrition-item {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .nutrition-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .add-button {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 2rem 0;
+            transition: transform 0.2s;
+        }
+        
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .add-button:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .recipe-meta {
+                padding: 1rem;
+            }
+            
+            .hero-image {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="../" class="back-link">← Back to All Recipes</a>
+            <h1>California Avocado Toast</h1>
+            <p>Fresh and healthy avocado toast topped with cherry tomatoes and feta cheese</p>
+        </div>
+        
+        <img src="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/california-avocado-toast.jpg" 
+             alt="California Avocado Toast" 
+             class="hero-image">
+        
+        <div class="content">
+            <div class="recipe-meta">
+                <div class="meta-item">
+                    <span class="meta-value">5</span>
+                    <span class="meta-label">min prep</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">5</span>
+                    <span class="meta-label">min cook</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">2</span>
+                    <span class="meta-label">servings</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">280</span>
+                    <span class="meta-label">calories</span>
+                </div>
+            </div>
+            
+            <div class="tags">
+                <span class="tag">🍳 Breakfast</span>
+                <span class="tag">🇺🇸 American</span>
+                <span class="tag">🥗 Vegetarian</span>
+                <span class="tag">⚡ Quick</span>
+                <span class="tag">💚 Healthy</span>
+                <span class="tag">✨ Trendy</span>
+            </div>
+            
+            <button class="add-button" onclick="addToRecipeBox()">
+                📱 Add to My RecipeBox
+            </button>
+            
+            <div class="notes">
+                <strong>💡 Chef's Notes:</strong><br>
+                Use ripe avocados for the best flavor and texture. Add a poached egg on top for extra protein! For best results, toast the bread until it's golden and crispy. The contrast between warm toast and cool avocado is perfect.
+            </div>
+            
+            <div class="section">
+                <h2>Ingredients</h2>
+                <ul class="ingredients-list">
+                    <li>
+                        <span class="ingredient-amount">4 slices</span>
+                        bread (whole grain or sourdough)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">2</span>
+                        avocados (ripe)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 tbsp</span>
+                        lemon juice (freshly squeezed)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1/4 tsp</span>
+                        red pepper flakes
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">8</span>
+                        cherry tomatoes (halved)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">2 tbsp</span>
+                        feta cheese (crumbled, optional)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 tbsp</span>
+                        olive oil (extra virgin)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount"></span>
+                        salt (to taste)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount"></span>
+                        black pepper (to taste)
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Instructions</h2>
+                <ol class="instructions-list">
+                    <li>Toast the bread slices in a toaster or on a griddle until golden brown and crispy on both sides.</li>
+                    <li>While bread is toasting, cut avocados in half, remove pit, and scoop flesh into a bowl.</li>
+                    <li>Mash avocados with a fork, adding lemon juice, salt, and pepper. Mash to desired consistency - chunky or smooth.</li>
+                    <li>Spread the mashed avocado generously on each toast slice, making sure to reach the edges.</li>
+                    <li>Top each toast with halved cherry tomatoes and crumbled feta cheese if using.</li>
+                    <li>Drizzle with olive oil and sprinkle with red pepper flakes for a little kick.</li>
+                    <li>Serve immediately while toast is still warm and crispy. Enjoy!</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Nutrition Information</h2>
+                <div class="nutrition-grid">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">280</div>
+                        <div>Calories</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">8g</div>
+                        <div>Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">18g</div>
+                        <div>Fat</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">28g</div>
+                        <div>Carbs</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 1.5rem; color: #4CAF50;">Rich in Nutrients</h3>
+                <ul class="ingredients-list" style="margin-top: 0.5rem;">
+                    <li><strong>Healthy Fats:</strong> 15g - From avocado, supports heart health</li>
+                    <li><strong>Fiber:</strong> 10g - Supports digestive health</li>
+                    <li><strong>Vitamin K:</strong> 30% DV - Important for blood clotting</li>
+                </ul>
+            </div>
+            
+            <button class="add-button" onclick="addToRecipeBox()">
+                📱 Add to My RecipeBox
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        async function addToRecipeBox() {
+            try {
+                // Load the full recipe JSON
+                const response = await fetch('../data/california-avocado-toast.json');
+                const recipeData = await response.json();
+                
+                // Encode the recipe data
+                const encodedRecipe = encodeURIComponent(JSON.stringify(recipeData));
+                
+                // Create the deep link URL
+                const deepLink = `stage4.recipebox-ai-v5://recipe/add?json=${encodedRecipe}`;
+                
+                // Try to open the app
+                window.location.href = deepLink;
+                
+                // Show success message
+                alert('Opening RecipeBox AI app...\n\nIf the app doesn\'t open:\n1. Make sure RecipeBox AI is installed\n2. Try copying the link and opening it in Safari');
+                
+            } catch (error) {
+                console.error('Error loading recipe:', error);
+                alert('Error loading recipe. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

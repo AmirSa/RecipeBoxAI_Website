@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Caesar Salad - RecipeBox AI</title>
+    <meta name="description" content="Classic Caesar salad with homemade dressing, crispy romaine lettuce, croutons, and fresh Parmesan cheese. Perfect for lunch!">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Classic Caesar Salad">
+    <meta property="og:description" content="Classic Caesar salad with creamy homemade dressing and crispy croutons">
+    <meta property="og:image" content="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/classic-caesar-salad.jpg">
+    
+    <!-- Schema.org Recipe Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      "name": "Classic Caesar Salad",
+      "description": "Classic Caesar salad with creamy homemade dressing, crispy romaine lettuce, and fresh Parmesan cheese.",
+      "prepTime": "PT15M",
+      "totalTime": "PT15M",
+      "recipeYield": "4 servings",
+      "recipeCategory": "Lunch",
+      "recipeCuisine": "American",
+      "keywords": "caesar salad, salad, lunch, no cook, vegetarian",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "calories": "240 calories",
+        "proteinContent": "12g",
+        "fatContent": "16g",
+        "carbohydrateContent": "18g"
+      },
+      "recipeIngredient": [
+        "2 heads romaine lettuce (chopped)",
+        "1 cup Parmesan cheese (freshly grated)",
+        "2 cups croutons",
+        "1/2 cup mayonnaise",
+        "2 tbsp lemon juice (freshly squeezed)",
+        "2 cloves garlic (minced)",
+        "1 tsp Dijon mustard",
+        "1 tsp Worcestershire sauce",
+        "1 tsp anchovy paste (optional)",
+        "1/4 cup Parmesan cheese (grated)",
+        "1/2 tsp black pepper (freshly ground)"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToStep",
+          "text": "Wash and thoroughly dry the romaine lettuce. Chop into bite-sized pieces and place in a large salad bowl."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "In a small bowl, whisk together mayonnaise, lemon juice, minced garlic, Dijon mustard, Worcestershire sauce, and anchovy paste (if using)."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Add grated Parmesan cheese and black pepper to the dressing and whisk until smooth and well combined."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Pour dressing over the chopped lettuce and toss gently until every leaf is coated with dressing."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Add croutons and toss again gently to distribute them throughout the salad."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Top with freshly grated Parmesan cheese and additional black pepper if desired."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Serve immediately to keep the lettuce crisp and croutons crunchy. Enjoy!"
+        }
+      ]
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .back-link:hover {
+            opacity: 1;
+        }
+        
+        .hero-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .recipe-meta {
+            display: flex;
+            justify-content: space-around;
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .meta-item {
+            text-align: center;
+        }
+        
+        .meta-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            display: block;
+        }
+        
+        .meta-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            color: #4CAF50;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .section h3 {
+            color: #666;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .notes {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+        
+        .ingredients-list {
+            list-style: none;
+        }
+        
+        .ingredients-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ingredients-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .ingredient-amount {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-right: 0.5rem;
+        }
+        
+        .instructions-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+        
+        .instructions-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+        
+        .instructions-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #4CAF50;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .nutrition-item {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .nutrition-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .add-button {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 2rem 0;
+            transition: transform 0.2s;
+        }
+        
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .add-button:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .recipe-meta {
+                padding: 1rem;
+            }
+            
+            .hero-image {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="../" class="back-link">← Back to All Recipes</a>
+            <h1>Classic Caesar Salad</h1>
+            <p>Classic Caesar salad with creamy homemade dressing and crispy croutons</p>
+        </div>
+        
+        <img src="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/classic-caesar-salad.jpg" 
+             alt="Classic Caesar Salad" 
+             class="hero-image">
+        
+        <div class="content">
+            <div class="recipe-meta">
+                <div class="meta-item">
+                    <span class="meta-value">15</span>
+                    <span class="meta-label">min prep</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">0</span>
+                    <span class="meta-label">min cook</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">4</span>
+                    <span class="meta-label">servings</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">240</span>
+                    <span class="meta-label">calories</span>
+                </div>
+            </div>
+            
+            <div class="tags">
+                <span class="tag">🥗 Lunch</span>
+                <span class="tag">🇺🇸 American</span>
+                <span class="tag">🥗 Vegetarian</span>
+                <span class="tag">❄️ No Cook</span>
+                <span class="tag">🥗 Salad</span>
+                <span class="tag">⭐ Classic</span>
+            </div>
+            
+            <button class="add-button" onclick="addToRecipeBox()">
+                📱 Add to My RecipeBox
+            </button>
+            
+            <div class="notes">
+                <strong>💡 Chef's Notes:</strong><br>
+                For the best Caesar salad, use fresh romaine lettuce and freshly grated Parmesan cheese. The dressing can be made ahead and stored in the refrigerator for up to 3 days. Add grilled chicken for a complete meal.
+            </div>
+            
+            <div class="section">
+                <h2>Ingredients</h2>
+                
+                <h3>For the Salad</h3>
+                <ul class="ingredients-list">
+                    <li>
+                        <span class="ingredient-amount">2 heads</span>
+                        romaine lettuce (chopped)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 cup</span>
+                        Parmesan cheese (freshly grated)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">2 cups</span>
+                        croutons
+                    </li>
+                </ul>
+                
+                <h3>For the Dressing</h3>
+                <ul class="ingredients-list">
+                    <li>
+                        <span class="ingredient-amount">1/2 cup</span>
+                        mayonnaise
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">2 tbsp</span>
+                        lemon juice (freshly squeezed)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">2 cloves</span>
+                        garlic (minced)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 tsp</span>
+                        Dijon mustard
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 tsp</span>
+                        Worcestershire sauce
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 tsp</span>
+                        anchovy paste (optional)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1/4 cup</span>
+                        Parmesan cheese (grated)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1/2 tsp</span>
+                        black pepper (freshly ground)
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Instructions</h2>
+                <ol class="instructions-list">
+                    <li>Wash and thoroughly dry the romaine lettuce. Chop into bite-sized pieces and place in a large salad bowl.</li>
+                    <li>In a small bowl, whisk together mayonnaise, lemon juice, minced garlic, Dijon mustard, Worcestershire sauce, and anchovy paste (if using).</li>
+                    <li>Add grated Parmesan cheese and black pepper to the dressing and whisk until smooth and well combined.</li>
+                    <li>Pour dressing over the chopped lettuce and toss gently until every leaf is coated with dressing.</li>
+                    <li>Add croutons and toss again gently to distribute them throughout the salad.</li>
+                    <li>Top with freshly grated Parmesan cheese and additional black pepper if desired.</li>
+                    <li>Serve immediately to keep the lettuce crisp and croutons crunchy. Enjoy!</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Nutrition Information</h2>
+                <div class="nutrition-grid">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">240</div>
+                        <div>Calories</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">12g</div>
+                        <div>Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">16g</div>
+                        <div>Fat</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">18g</div>
+                        <div>Carbs</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 1.5rem; color: #4CAF50;">Rich in Nutrients</h3>
+                <ul class="ingredients-list" style="margin-top: 0.5rem;">
+                    <li><strong>Vitamin A:</strong> 45% DV - From romaine lettuce, supports eye health</li>
+                    <li><strong>Calcium:</strong> 30% DV - From Parmesan cheese, important for bone health</li>
+                    <li><strong>Vitamin K:</strong> 85% DV - From lettuce, essential for blood clotting</li>
+                </ul>
+            </div>
+            
+            <button class="add-button" onclick="addToRecipeBox()">
+                📱 Add to My RecipeBox
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        async function addToRecipeBox() {
+            try {
+                // Load the full recipe JSON
+                const response = await fetch('../data/classic-caesar-salad.json');
+                const recipeData = await response.json();
+                
+                // Encode the recipe data
+                const encodedRecipe = encodeURIComponent(JSON.stringify(recipeData));
+                
+                // Create the deep link URL
+                const deepLink = `stage4.recipebox-ai-v5://recipe/add?json=${encodedRecipe}`;
+                
+                // Try to open the app
+                window.location.href = deepLink;
+                
+                // Show success message
+                alert('Opening RecipeBox AI app...\n\nIf the app doesn\'t open:\n1. Make sure RecipeBox AI is installed\n2. Try copying the link and opening it in Safari');
+                
+            } catch (error) {
+                console.error('Error loading recipe:', error);
+                alert('Error loading recipe. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

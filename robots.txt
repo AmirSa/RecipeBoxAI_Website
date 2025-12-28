@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Sitemap: https://recipeboxai.app/sitemap.xml
+
+# Disallow authentication pages
+Disallow: /auth/
+
+# Allow all recipe pages
+Allow: /recipes/

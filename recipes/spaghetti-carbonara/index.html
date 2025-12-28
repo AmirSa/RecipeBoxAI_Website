@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spaghetti Carbonara - RecipeBox AI</title>
+    <meta name="description" content="Authentic Italian spaghetti carbonara with crispy pancetta, eggs, and Parmesan cheese. Creamy without cream! Ready in 30 minutes.">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Spaghetti Carbonara">
+    <meta property="og:description" content="Authentic Italian pasta carbonara with pancetta, eggs, and Parmesan">
+    <meta property="og:image" content="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/spaghetti-carbonara.jpg">
+    
+    <!-- Schema.org Recipe Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      "name": "Spaghetti Carbonara",
+      "description": "Authentic Italian spaghetti carbonara with crispy pancetta, eggs, and Parmesan cheese. Traditional recipe with no cream!",
+      "prepTime": "PT10M",
+      "cookTime": "PT20M",
+      "totalTime": "PT30M",
+      "recipeYield": "4 servings",
+      "recipeCategory": "Dinner",
+      "recipeCuisine": "Italian",
+      "keywords": "carbonara, pasta, Italian, dinner, easy",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "calories": "520 calories",
+        "proteinContent": "28g",
+        "fatContent": "24g",
+        "carbohydrateContent": "48g"
+      },
+      "recipeIngredient": [
+        "1 lb spaghetti",
+        "8 oz pancetta (diced)",
+        "4 large eggs (room temperature)",
+        "1 cup Parmesan cheese (freshly grated)",
+        "3 cloves garlic (minced)",
+        "1 tsp black pepper (freshly ground)",
+        "salt for pasta water",
+        "2 tbsp fresh parsley (chopped, for garnish)"
+      ],
+      "recipeInstructions": [
+        {
+          "@type": "HowToStep",
+          "text": "Bring a large pot of salted water to boil. Add spaghetti and cook according to package directions until al dente. Reserve 1 cup of pasta water before draining."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "While pasta cooks, cook diced pancetta in a large skillet over medium heat until crispy, about 8-10 minutes. Add minced garlic in the last minute."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "In a bowl, whisk together eggs, grated Parmesan cheese, and black pepper until well combined. Set aside."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "When pasta is ready, drain and add it to the skillet with pancetta. Remove skillet from heat."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Quickly pour the egg mixture over the hot pasta, tossing continuously to coat. The residual heat will cook the eggs without scrambling them."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "If the sauce seems too thick, add reserved pasta water a little at a time until you reach desired consistency."
+        },
+        {
+          "@type": "HowToStep",
+          "text": "Serve immediately, garnished with extra Parmesan, black pepper, and fresh parsley. Enjoy while hot!"
+        }
+      ]
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        
+        .back-link:hover {
+            opacity: 1;
+        }
+        
+        .hero-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .recipe-meta {
+            display: flex;
+            justify-content: space-around;
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .meta-item {
+            text-align: center;
+        }
+        
+        .meta-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            display: block;
+        }
+        
+        .meta-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            color: #4CAF50;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .notes {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+        
+        .ingredients-list {
+            list-style: none;
+        }
+        
+        .ingredients-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ingredients-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .ingredient-amount {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-right: 0.5rem;
+        }
+        
+        .instructions-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+        
+        .instructions-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+        
+        .instructions-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #4CAF50;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .nutrition-item {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .nutrition-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .add-button {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 2rem 0;
+            transition: transform 0.2s;
+        }
+        
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .add-button:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .recipe-meta {
+                padding: 1rem;
+            }
+            
+            .hero-image {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="../" class="back-link">← Back to All Recipes</a>
+            <h1>Spaghetti Carbonara</h1>
+            <p>Authentic Italian pasta carbonara with pancetta, eggs, and Parmesan</p>
+        </div>
+        
+        <img src="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/spaghetti-carbonara.jpg" 
+             alt="Spaghetti Carbonara" 
+             class="hero-image">
+        
+        <div class="content">
+            <div class="recipe-meta">
+                <div class="meta-item">
+                    <span class="meta-value">10</span>
+                    <span class="meta-label">min prep</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">20</span>
+                    <span class="meta-label">min cook</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">4</span>
+                    <span class="meta-label">servings</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-value">520</span>
+                    <span class="meta-label">calories</span>
+                </div>
+            </div>
+            
+            <div class="tags">
+                <span class="tag">🍝 Dinner</span>
+                <span class="tag">🇮🇹 Italian</span>
+                <span class="tag">🍽️ Regular</span>
+                <span class="tag">⚡ Easy</span>
+                <span class="tag">⭐ Classic</span>
+                <span class="tag">🍝 Pasta</span>
+            </div>
+            
+            <button class="add-button" onclick="addToRecipeBox()">
+                📱 Add to My RecipeBox
+            </button>
+            
+            <div class="notes">
+                <strong>💡 Chef's Notes:</strong><br>
+                The key to perfect carbonara is removing the pan from heat before adding the egg mixture - the residual heat will cook the eggs without scrambling them. Use freshly grated Parmesan for the best flavor. Traditional carbonara doesn't include cream - the creaminess comes from the eggs and cheese.
+            </div>
+            
+            <div class="section">
+                <h2>Ingredients</h2>
+                <ul class="ingredients-list">
+                    <li>
+                        <span class="ingredient-amount">1 lb</span>
+                        spaghetti
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">8 oz</span>
+                        pancetta (diced)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">4</span>
+                        eggs (large, room temperature)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 cup</span>
+                        Parmesan cheese (freshly grated)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">3 cloves</span>
+                        garlic (minced)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">1 tsp</span>
+                        black pepper (freshly ground)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount"></span>
+                        salt (for pasta water)
+                    </li>
+                    <li>
+                        <span class="ingredient-amount">2 tbsp</span>
+                        fresh parsley (chopped, for garnish)
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>Instructions</h2>
+                <ol class="instructions-list">
+                    <li>Bring a large pot of salted water to boil. Add spaghetti and cook according to package directions until al dente. Reserve 1 cup of pasta water before draining.</li>
+                    <li>While pasta cooks, cook diced pancetta in a large skillet over medium heat until crispy, about 8-10 minutes. Add minced garlic in the last minute.</li>
+                    <li>In a bowl, whisk together eggs, grated Parmesan cheese, and black pepper until well combined. Set aside.</li>
+                    <li>When pasta is ready, drain and add it to the skillet with pancetta. Remove skillet from heat.</li>
+                    <li>Quickly pour the egg mixture over the hot pasta, tossing continuously to coat. The residual heat will cook the eggs without scrambling them.</li>
+                    <li>If the sauce seems too thick, add reserved pasta water a little at a time until you reach desired consistency.</li>
+                    <li>Serve immediately, garnished with extra Parmesan, black pepper, and fresh parsley. Enjoy while hot!</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>Nutrition Information</h2>
+                <div class="nutrition-grid">
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">520</div>
+                        <div>Calories</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">28g</div>
+                        <div>Protein</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">24g</div>
+                        <div>Fat</div>
+                    </div>
+                    <div class="nutrition-item">
+                        <div class="nutrition-value">48g</div>
+                        <div>Carbs</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 1.5rem; color: #4CAF50;">Rich in Nutrients</h3>
+                <ul class="ingredients-list" style="margin-top: 0.5rem;">
+                    <li><strong>Protein:</strong> 28g - From eggs and pancetta, essential for muscle building</li>
+                    <li><strong>Calcium:</strong> 35% DV - From Parmesan cheese, supports bone health</li>
+                    <li><strong>B Vitamins:</strong> 20% DV - From eggs and pasta, supports energy metabolism</li>
+                </ul>
+            </div>
+            
+            <button class="add-button" onclick="addToRecipeBox()">
+                📱 Add to My RecipeBox
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        async function addToRecipeBox() {
+            try {
+                // Load the full recipe JSON
+                const response = await fetch('../data/spaghetti-carbonara.json');
+                const recipeData = await response.json();
+                
+                // Encode the recipe data
+                const encodedRecipe = encodeURIComponent(JSON.stringify(recipeData));
+                
+                // Create the deep link URL
+                const deepLink = `stage4.recipebox-ai-v5://recipe/add?json=${encodedRecipe}`;
+                
+                // Try to open the app
+                window.location.href = deepLink;
+                
+                // Show success message
+                alert('Opening RecipeBox AI app...\n\nIf the app doesn\'t open:\n1. Make sure RecipeBox AI is installed\n2. Try copying the link and opening it in Safari');
+                
+            } catch (error) {
+                console.error('Error loading recipe:', error);
+                alert('Error loading recipe. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

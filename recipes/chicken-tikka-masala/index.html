@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chicken Tikka Masala Recipe - RecipeBox AI</title>
+    <meta name="description" content="Creamy and flavorful Indian curry with tender chicken pieces in a spiced tomato sauce. Learn how to make this restaurant-style dish at home.">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Chicken Tikka Masala Recipe">
+    <meta property="og:description" content="Creamy and flavorful Indian curry with tender chicken pieces in a spiced tomato sauce">
+    <meta property="og:image" content="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/chicken-tikka-masala.jpg">
+    <meta property="og:url" content="https://recipeboxai.app/recipes/chicken-tikka-masala/">
+    
+    <link rel="icon" type="image/png" href="../../app-icon.png">
+    
+    <!-- Schema.org Recipe Markup -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Recipe",
+      "name": "Chicken Tikka Masala",
+      "image": ["https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/chicken-tikka-masala.jpg"],
+      "author": {
+        "@type": "Organization",
+        "name": "RecipeBox AI"
+      },
+      "datePublished": "2025-12-27",
+      "description": "Creamy and flavorful Indian curry with tender chicken pieces in a spiced tomato sauce",
+      "prepTime": "PT20M",
+      "cookTime": "PT30M",
+      "totalTime": "PT50M",
+      "recipeYield": "6 servings",
+      "recipeCategory": "Dinner",
+      "recipeCuisine": "Indian",
+      "keywords": "chicken tikka masala, Indian curry, restaurant-style",
+      "nutrition": {
+        "@type": "NutritionInformation",
+        "calories": "420 calories",
+        "proteinContent": "35g",
+        "fatContent": "22g",
+        "carbohydrateContent": "18g"
+      }
+    }
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .recipe-header {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .recipe-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .recipe-header p {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .recipe-meta {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .meta-item strong {
+            color: #667eea;
+        }
+
+        .recipe-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .tag {
+            padding: 6px 15px;
+            background: #f0f4ff;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .add-to-app-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .add-to-app-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .recipe-content {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .recipe-section {
+            margin-bottom: 40px;
+        }
+
+        .recipe-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .recipe-section h3 {
+            font-size: 1.3rem;
+            margin: 20px 0 15px;
+            color: #667eea;
+        }
+
+        .ingredients-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ingredients-list li {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .ingredients-list li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .instructions-list {
+            list-style: none;
+            counter-reset: step-counter;
+            padding: 0;
+        }
+
+        .instructions-list li {
+            counter-increment: step-counter;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            position: relative;
+            padding-left: 70px;
+        }
+
+        .instructions-list li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .nutrition-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .nutrition-item strong {
+            display: block;
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .nutrition-item span {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+
+            .recipe-header, .recipe-content {
+                padding: 25px;
+            }
+
+            .recipe-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .recipe-image {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🍳 RecipeBox AI</h1>
+    </header>
+
+    <div class="container">
+        <a href="../" class="back-link">← Back to All Recipes</a>
+
+        <div class="recipe-header">
+            <h1>Chicken Tikka Masala</h1>
+            <p>Creamy and flavorful Indian curry with tender chicken pieces in a spiced tomato sauce. Best served with basmati rice or naan bread.</p>
+            
+            <div class="recipe-meta">
+                <div class="meta-item">⏱️ <strong>Prep:</strong> 20 min</div>
+                <div class="meta-item">🍳 <strong>Cook:</strong> 30 min</div>
+                <div class="meta-item">🍽️ <strong>Servings:</strong> 6</div>
+                <div class="meta-item">🔥 <strong>Calories:</strong> 420</div>
+            </div>
+
+            <div class="recipe-tags">
+                <span class="tag">Popular</span>
+                <span class="tag">Spicy</span>
+                <span class="tag">Comfort Food</span>
+                <span class="tag">Restaurant-Style</span>
+            </div>
+
+            <button class="add-to-app-btn" onclick="addToRecipeBox()">
+                📲 Add to My RecipeBox
+            </button>
+        </div>
+
+        <img src="https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/chicken-tikka-masala.jpg" 
+             alt="Chicken Tikka Masala" 
+             class="recipe-image">
+
+        <div class="recipe-content">
+            <div class="recipe-section">
+                <h2>Ingredients</h2>
+                
+                <h3>For the Marinade</h3>
+                <ul class="ingredients-list">
+                    <li><strong>2 lbs</strong> chicken breast (cut into bite-sized pieces)</li>
+                    <li><strong>1 cup</strong> plain yogurt</li>
+                    <li><strong>2 tbsp</strong> lemon juice</li>
+                    <li><strong>2 tsp</strong> garam masala</li>
+                    <li><strong>1 tsp</strong> paprika</li>
+                    <li><strong>1 tsp</strong> cumin</li>
+                </ul>
+
+                <h3>For the Sauce</h3>
+                <ul class="ingredients-list">
+                    <li><strong>3 tbsp</strong> butter</li>
+                    <li><strong>1 large</strong> onion (finely chopped)</li>
+                    <li><strong>4 cloves</strong> garlic (minced)</li>
+                    <li><strong>1 tbsp</strong> ginger (freshly grated)</li>
+                    <li><strong>2 cups</strong> tomato sauce</li>
+                    <li><strong>1 cup</strong> heavy cream</li>
+                    <li><strong>1 tbsp</strong> garam masala</li>
+                    <li><strong>1 tsp</strong> paprika</li>
+                    <li><strong>1 tsp</strong> salt (or to taste)</li>
+                    <li><strong>1/4 cup</strong> fresh cilantro (chopped, for garnish)</li>
+                </ul>
+            </div>
+
+            <div class="recipe-section">
+                <h2>Instructions</h2>
+                <ol class="instructions-list">
+                    <li>In a large bowl, combine yogurt, lemon juice, garam masala, paprika, and cumin. Add chicken pieces and mix well to coat. Cover and refrigerate for at least 1 hour (or up to 24 hours for best flavor).</li>
+                    <li>Heat a large skillet over medium-high heat. Add marinated chicken in batches and cook until lightly charred and cooked through, about 8-10 minutes. Remove and set aside.</li>
+                    <li>In the same skillet, melt butter over medium heat. Add chopped onion and sauté until soft and golden, about 5 minutes.</li>
+                    <li>Add minced garlic and grated ginger, stirring constantly for 1 minute until fragrant.</li>
+                    <li>Stir in tomato sauce, garam masala, paprika, and salt. Simmer for 10 minutes, stirring occasionally, until sauce thickens slightly.</li>
+                    <li>Reduce heat to low and stir in heavy cream until well combined. Return cooked chicken to the pan and simmer for 5 more minutes.</li>
+                    <li>Taste and adjust seasoning with salt if needed. Garnish with fresh cilantro and serve hot with basmati rice or naan bread.</li>
+                </ol>
+            </div>
+
+            <div class="recipe-section">
+                <h2>Nutrition Information (per serving)</h2>
+                <div class="nutrition-grid">
+                    <div class="nutrition-item">
+                        <strong>420</strong>
+                        <span>Calories</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <strong>35g</strong>
+                        <span>Protein</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <strong>22g</strong>
+                        <span>Fat</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <strong>18g</strong>
+                        <span>Carbs</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recipe-section">
+                <button class="add-to-app-btn" onclick="addToRecipeBox()" style="width: 100%; font-size: 1.2rem;">
+                    📲 Add to My RecipeBox App
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function addToRecipeBox() {
+            try {
+                // Load the full recipe JSON
+                const response = await fetch('../data/chicken-tikka-masala.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const recipeData = await response.json();
+                
+                // Convert to JSON string and encode for URL
+                const jsonString = JSON.stringify(recipeData);
+                const encodedJson = encodeURIComponent(jsonString);
+                
+                // Create deep link
+                const deepLink = `stage4.recipebox-ai-v5://recipe/add?json=${encodedJson}`;
+                
+                // Try to open the app
+                window.location.href = deepLink;
+                
+                // Show feedback message
+                setTimeout(() => {
+                    alert('Recipe sent to RecipeBox AI! If the app doesn\'t open, please make sure you have RecipeBox AI installed.');
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error loading recipe:', error);
+                
+                // Check if it's a local file protocol issue
+                if (window.location.protocol === 'file:') {
+                    alert('⚠️ Local Testing Required\n\nYou\'re opening this file directly. To test, run a local web server:\n\ncd netlify-deploy\npython3 -m http.server 8000\n\nThen visit: http://localhost:8000/recipes/chicken-tikka-masala/');
+                } else {
+                    alert('Sorry, there was an error loading the recipe. Please try again.');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

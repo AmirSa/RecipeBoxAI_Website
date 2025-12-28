@@ -3,3 +3,7 @@
 
 # Redirect /auth/reset-password to the password reset page
 /auth/reset-password /auth/reset-password/index.html 200
+
+# Redirect all /share/:code URLs to the share handler page
+# The share code will be extracted from the URL path by JavaScript
+/share/* /share/index.html 200

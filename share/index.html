@@ -198,13 +198,16 @@
                 );
                 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch recipe');
+                    const errorText = await response.text();
+                    console.error('API Error:', response.status, errorText);
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
                 }
                 
                 const recipes = await response.json();
+                console.log('Recipes received:', recipes);
                 
                 if (recipes.length === 0) {
-                    showError('Recipe Not Found', 'This recipe may have been deleted or the link has expired.');
+                    showError('Recipe Not Found', 'This recipe may have been deleted, is not public, or the link has expired. Share code: ' + shareCode);
                     return;
                 }
                 
@@ -232,7 +235,7 @@
                 
             } catch (error) {
                 console.error('Error loading recipe:', error);
-                showError('Error Loading Recipe', 'Unable to load the shared recipe. Please try again later.');
+                showError('Error Loading Recipe', `Unable to load the shared recipe. Error: ${error.message}. Share code: ${shareCode}`);
             }
         }
         

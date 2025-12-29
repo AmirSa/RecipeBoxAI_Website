@@ -1,0 +1,175 @@
+---
+interface Ingredient {
+  amount?: string;
+  name: string;
+  note?: string;
+}
+
+interface SectionIngredient {
+  amount?: string | null;
+  unit?: string | null;
+  name: string;
+  preparation?: string | null;
+}
+
+interface Section {
+  title: string;
+  ingredients: SectionIngredient[];
+}
+
+interface Props {
+  ingredients: Ingredient[];
+  servings: number;
+  sections?: Section[];
+}
+
+const { ingredients, servings, sections } = Astro.props;
+
+// Determine if we should show sections (when there are multiple sections with different titles)
+const showSections = sections && sections.length > 1;
+---
+
+<div class="card">
+  <h2 class="card-title">Ingredients</h2>
+  
+  {showSections ? (
+    // Show ingredients grouped by sections
+    sections?.map((section) => (
+      <div class="section">
+        <h3 class="section-title">{section.title}</h3>
+        <ul class="ingredients-list">
+          {section.ingredients.map((ing) => (
+            <li class="ingredient-item">
+              <div class="ingredient-checkbox"></div>
+              <div class="ingredient-text">
+                {(ing.amount || ing.unit) && (
+                  <span class="ingredient-amount">
+                    {[ing.amount, ing.unit].filter(Boolean).join(' ')}
+                  </span>
+                )}
+                <span class="ingredient-name">{ing.name}</span>
+                {ing.preparation && <span class="ingredient-note">{ing.preparation}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  ) : (
+    // Show flat ingredient list
+    <ul class="ingredients-list">
+      {ingredients.map((ingredient) => (
+        <li class="ingredient-item">
+          <div class="ingredient-checkbox"></div>
+          <div class="ingredient-text">
+            {ingredient.amount && <span class="ingredient-amount">{ingredient.amount}</span>}
+            <span class="ingredient-name">{ingredient.name}</span>
+            {ingredient.note && <span class="ingredient-note">{ingredient.note}</span>}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
+<style>
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+  }
+  
+  .section {
+    margin-bottom: 1.5rem;
+  }
+  
+  .section:last-child {
+    margin-bottom: 0;
+  }
+  
+  .section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #8b5cf6;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+
+  
+  .ingredients-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .ingredient-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .ingredient-item:last-child {
+    border-bottom: none;
+  }
+  
+  .ingredient-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .ingredient-checkbox:hover {
+    border-color: #8b5cf6;
+  }
+  
+  .ingredient-checkbox.checked {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+  }
+  
+  .ingredient-text {
+    flex: 1;
+  }
+  
+  .ingredient-amount {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-right: 0.25rem;
+  }
+  
+  .ingredient-name {
+    color: #555;
+  }
+  
+  .ingredient-note {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.ingredient-checkbox').forEach((checkbox) => {
+    checkbox.addEventListener('click', () => {
+      checkbox.classList.toggle('checked');
+    });
+  });
+</script>

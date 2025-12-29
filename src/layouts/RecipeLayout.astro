@@ -1,0 +1,50 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import TopNav from '@components/TopNav.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  recipe: CollectionEntry<'recipes'>['data'];
+  slug: string;
+}
+
+const { recipe, slug } = Astro.props;
+---
+
+<BaseLayout 
+  title={recipe.title} 
+  description={recipe.description}
+  image={recipe.image}
+>
+  <TopNav title={recipe.title} />
+  
+  <div class="container">
+    <div class="recipe-layout">
+      <slot />
+    </div>
+  </div>
+  
+  <style>
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .recipe-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    @media (max-width: 900px) {
+      .recipe-layout {
+        grid-template-columns: 1fr;
+      }
+      
+      .container {
+        padding: 1rem;
+      }
+    }
+  </style>
+</BaseLayout>

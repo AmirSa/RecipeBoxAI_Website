@@ -1,0 +1,201 @@
+---
+interface Props {
+  protein: number;
+  fat: number;
+  carbs: number;
+}
+
+const { protein, fat, carbs } = Astro.props;
+const total = protein + fat + carbs;
+
+// Calculate percentages
+const proteinPercent = Math.round((protein / total) * 100);
+const fatPercent = Math.round((fat / total) * 100);
+const carbsPercent = Math.round((carbs / total) * 100);
+
+// SVG circle calculations (circumference = 2 * PI * radius)
+const circumference = 2 * Math.PI * 40; // radius = 40
+const carbsDash = (carbsPercent / 100) * circumference;
+const fatDash = (fatPercent / 100) * circumference;
+const proteinDash = (proteinPercent / 100) * circumference;
+
+// Offsets for stacking the arcs
+const carbsOffset = 0;
+const fatOffset = -carbsDash;
+const proteinOffset = -(carbsDash + fatDash);
+---
+
+<div class="card">
+  <h2 class="card-title">Macronutrients <span class="subtitle">per serving</span></h2>
+  <div class="macros-container">
+    <div class="macro-chart">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <!-- Background circle -->
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#f0f0f0" stroke-width="12"/>
+        <!-- Carbs (green) -->
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="12"
+          stroke-dasharray={`${carbsDash} ${circumference}`} stroke-dashoffset={carbsOffset}/>
+        <!-- Fat (orange) -->
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#f97316" stroke-width="12"
+          stroke-dasharray={`${fatDash} ${circumference}`} stroke-dashoffset={fatOffset}/>
+        <!-- Protein (blue) -->
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#3b82f6" stroke-width="12"
+          stroke-dasharray={`${proteinDash} ${circumference}`} stroke-dashoffset={proteinOffset}/>
+      </svg>
+      <div class="macro-chart-center">
+        <div class="macro-chart-value">{total}</div>
+        <div class="macro-chart-label">grams</div>
+      </div>
+    </div>
+    <div class="macro-legend">
+      <div class="macro-item">
+        <div class="macro-label">
+          <span class="macro-dot protein"></span>
+          <span class="macro-name">Protein</span>
+        </div>
+        <div class="macro-values">
+          <span class="macro-grams">{protein.toFixed(1)}g</span>
+          <span class="macro-percent">{proteinPercent}%</span>
+        </div>
+      </div>
+      <div class="macro-item">
+        <div class="macro-label">
+          <span class="macro-dot fat"></span>
+          <span class="macro-name">Fat</span>
+        </div>
+        <div class="macro-values">
+          <span class="macro-grams">{fat.toFixed(1)}g</span>
+          <span class="macro-percent">{fatPercent}%</span>
+        </div>
+      </div>
+      <div class="macro-item">
+        <div class="macro-label">
+          <span class="macro-dot carbs"></span>
+          <span class="macro-name">Carbs</span>
+        </div>
+        <div class="macro-values">
+          <span class="macro-grams">{carbs.toFixed(1)}g</span>
+          <span class="macro-percent">{carbsPercent}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+  }
+  
+  .subtitle {
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: #888;
+  }
+  
+  .macros-container {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .macro-chart {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+  }
+  
+  .macro-chart svg {
+    transform: rotate(-90deg);
+  }
+  
+  .macro-chart-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  .macro-chart-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  
+  .macro-chart-label {
+    font-size: 0.7rem;
+    color: #888;
+  }
+  
+  .macro-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+  }
+  
+  .macro-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .macro-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .macro-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  
+  .macro-dot.protein { background: #3b82f6; }
+  .macro-dot.fat { background: #f97316; }
+  .macro-dot.carbs { background: #22c55e; }
+  
+  .macro-name {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  .macro-values {
+    text-align: right;
+  }
+  
+  .macro-grams {
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  
+  .macro-percent {
+    font-size: 0.75rem;
+    color: #888;
+    margin-left: 0.5rem;
+  }
+  
+  @media (max-width: 600px) {
+    .macros-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .macro-chart {
+      align-self: center;
+    }
+  }
+</style>

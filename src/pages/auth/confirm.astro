@@ -1,0 +1,129 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Email Confirmation" description="Confirming your email for RecipeBox AI">
+  <div class="container">
+    <div class="card">
+      <div class="logo">🍳 RecipeBox AI</div>
+      <h2 id="title">Confirming your email...</h2>
+      <div class="spinner" id="spinner"></div>
+      <p id="message">You will be redirected to the app shortly.</p>
+      <a href="#" id="manual-link" class="manual-link" style="display: none;">Open in App</a>
+      <div id="store-links" class="store-links" style="display: none;">
+        <p>Don't have the app yet?</p>
+        <a href="https://apps.apple.com/us/app/recipebox-ai/id6752560797" class="store-link ios">Download for iOS</a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  
+  .container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .logo {
+    font-size: 2em;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 20px;
+  }
+  
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .manual-link {
+    margin-top: 20px;
+    padding: 12px 24px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    display: inline-block;
+    font-weight: 500;
+  }
+  
+  .manual-link:hover {
+    background: #5a6fd8;
+  }
+  
+  .store-links {
+    margin-top: 30px;
+  }
+  
+  .store-link {
+    display: inline-block;
+    margin: 10px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    color: white;
+  }
+  
+  .ios { background: #007AFF; }
+</style>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const tokenHash = urlParams.get('token_hash');
+  const type = urlParams.get('type') || 'signup';
+  
+  const deepLink = `stage4.recipebox-ai-v5://auth/callback?token_hash=${tokenHash}&type=${type}`;
+  
+  const manualLink = document.getElementById('manual-link') as HTMLAnchorElement;
+  manualLink.href = deepLink;
+  
+  function tryOpenApp() {
+    if (!tokenHash) {
+      document.getElementById('title')!.textContent = 'Invalid Link';
+      document.getElementById('message')!.textContent = 'This confirmation link appears to be invalid or expired.';
+      document.getElementById('spinner')!.style.display = 'none';
+      return;
+    }
+    
+    window.location.href = deepLink;
+    
+    setTimeout(() => {
+      document.getElementById('title')!.textContent = 'Open RecipeBox AI';
+      document.getElementById('message')!.textContent = 'Tap the button below to open the app and complete confirmation.';
+      document.getElementById('spinner')!.style.display = 'none';
+      document.getElementById('manual-link')!.style.display = 'inline-block';
+      document.getElementById('store-links')!.style.display = 'block';
+    }, 2000);
+  }
+  
+  tryOpenApp();
+</script>

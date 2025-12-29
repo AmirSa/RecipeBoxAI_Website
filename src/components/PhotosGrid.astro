@@ -1,0 +1,106 @@
+---
+interface Props {
+  photos: string[];
+}
+
+const { photos } = Astro.props;
+---
+
+<div class="card">
+  <div class="photos-header">
+    <h2 class="card-title">Photos</h2>
+    <button class="add-photo-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Photo
+    </button>
+  </div>
+  <div class="photos-grid">
+    {photos.map((photo) => (
+      <div class="photo-item">
+        <img src={photo} alt="Recipe photo" loading="lazy" />
+      </div>
+    ))}
+    <div class="photo-item photo-placeholder">
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0;
+  }
+  
+  .photos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .add-photo-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #8b5cf6;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .photos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .photo-item {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f0f0f0;
+  }
+  
+  .photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 1.5rem;
+  }
+  
+  @media (max-width: 900px) {
+    .photos-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .photos-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

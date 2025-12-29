@@ -1,0 +1,74 @@
+{
+  "title": "California Avocado Toast",
+  "description": "Fresh and healthy avocado toast topped with cherry tomatoes and feta cheese. Perfect for a quick breakfast or brunch!",
+  "image": "https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/california-avocado-toast.jpg",
+  "prepTime": 5,
+  "cookTime": 5,
+  "servings": 2,
+  "calories": 280,
+  "category": "Breakfast",
+  "cuisine": "American",
+  "tags": ["Healthy", "Quick", "Vegetarian", "Breakfast"],
+  "keywords": "avocado toast, breakfast, healthy, quick, vegetarian",
+  
+  "nutrition": {
+    "protein": 8,
+    "fat": 18,
+    "carbs": 28,
+    "fiber": 10
+  },
+  
+  "nutrients": [
+    {
+      "name": "Vitamin K",
+      "value": "30% DV",
+      "description": "Important for blood clotting",
+      "icon": "✦",
+      "color": "yellow"
+    },
+    {
+      "name": "Fiber",
+      "value": "10g",
+      "description": "Supports digestive health",
+      "icon": "↑",
+      "color": "red"
+    },
+    {
+      "name": "Healthy Fats",
+      "value": "15g",
+      "description": "Supports heart health",
+      "icon": "◆",
+      "color": "blue"
+    }
+  ],
+  
+  "ingredients": [
+    { "amount": "4 slices", "name": "bread", "note": "whole grain or sourdough" },
+    { "amount": "2", "name": "avocados", "note": "ripe" },
+    { "amount": "1 tbsp", "name": "lemon juice", "note": "freshly squeezed" },
+    { "amount": "1/4 tsp", "name": "red pepper flakes" },
+    { "amount": "8", "name": "cherry tomatoes", "note": "halved" },
+    { "amount": "2 tbsp", "name": "feta cheese", "note": "crumbled, optional" },
+    { "amount": "1 tbsp", "name": "olive oil", "note": "extra virgin" },
+    { "name": "salt", "note": "to taste" },
+    { "name": "black pepper", "note": "to taste" }
+  ],
+  
+  "instructions": [
+    "Toast the bread slices in a toaster or on a griddle until golden brown and crispy on both sides.",
+    "While bread is toasting, cut avocados in half, remove pit, and scoop flesh into a bowl.",
+    "Mash avocados with a fork, adding lemon juice, salt, and pepper. Mash to desired consistency - chunky or smooth.",
+    "Spread the mashed avocado generously on each toast slice, making sure to reach the edges.",
+    "Top each toast with halved cherry tomatoes and crumbled feta cheese if using.",
+    "Drizzle with olive oil and sprinkle with red pepper flakes for a little kick.",
+    "Serve immediately while toast is still warm and crispy. Enjoy!"
+  ],
+  
+  "overview": "For added flavor, try using a drizzle of balsamic glaze or a sprinkle of everything bagel seasoning. You can also add a poached egg on top for extra protein. This fresh, vibrant dish brings the taste of California straight to your table in under 10 minutes.",
+  
+  "photos": [
+    "https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/california-avocado-toast.jpg",
+    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop",
+    "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=200&h=200&fit=crop"
+  ]
+}

@@ -1,0 +1,79 @@
+---
+interface Props {
+  prepTime: number;
+  cookTime: number;
+  servings: number;
+  calories: number;
+}
+
+const { prepTime, cookTime, servings, calories } = Astro.props;
+---
+
+<div class="stats-row">
+  <div class="stat-item">
+    <span class="stat-icon">⏱️</span>
+    <span class="stat-value">{prepTime}m</span>
+    <span class="stat-label">PREP</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-icon">🔥</span>
+    <span class="stat-value">{cookTime}m</span>
+    <span class="stat-label">COOK</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-icon">👥</span>
+    <span class="stat-value">{servings}</span>
+    <span class="stat-label">SERVINGS</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-icon">⚡</span>
+    <span class="stat-value">{calories}</span>
+    <span class="stat-label">CAL/SERV</span>
+  </div>
+</div>
+
+<style>
+  .stats-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    flex: 1;
+  }
+  
+  .stat-icon {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .stat-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  @media (max-width: 600px) {
+    .stats-row {
+      flex-wrap: wrap;
+    }
+    
+    .stat-item {
+      flex: 1 1 45%;
+    }
+  }
+</style>

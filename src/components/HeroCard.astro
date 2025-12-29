@@ -1,0 +1,28 @@
+---
+interface Props {
+  image: string;
+  alt: string;
+}
+
+const { image, alt } = Astro.props;
+---
+
+<div class="hero-card">
+  <img src={image} alt={alt} class="hero-image" />
+</div>
+
+<style>
+  .hero-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  .hero-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+  }
+</style>

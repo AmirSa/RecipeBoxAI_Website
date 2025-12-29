@@ -1,0 +1,73 @@
+{
+  "title": "Mediterranean Grilled Salmon Salad",
+  "description": "Healthy grilled salmon served over a fresh Mediterranean salad with feta cheese and lemon dressing.",
+  "image": "https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/mediterranean-salmon-salad.jpg",
+  "prepTime": 10,
+  "cookTime": 10,
+  "servings": 4,
+  "calories": 350,
+  "category": "Main Course",
+  "cuisine": "Mediterranean",
+  "tags": ["Healthy", "Quick", "High Protein", "Gluten-Free"],
+  "keywords": "salmon, salad, mediterranean, healthy, grilled, dinner",
+  
+  "nutrition": {
+    "protein": 28,
+    "fat": 22,
+    "carbs": 10,
+    "fiber": 4
+  },
+  
+  "nutrients": [
+    {
+      "name": "Vitamin C",
+      "value": "30% DV",
+      "description": "Supports immune system",
+      "icon": "✦",
+      "color": "yellow"
+    },
+    {
+      "name": "Iron",
+      "value": "2.5mg",
+      "description": "Essential for blood health",
+      "icon": "↑",
+      "color": "red"
+    },
+    {
+      "name": "Omega-3",
+      "value": "2.5g",
+      "description": "Supports heart health and brain function",
+      "icon": "◆",
+      "color": "blue"
+    }
+  ],
+  
+  "ingredients": [
+    { "amount": "4 pieces", "name": "salmon fillets", "note": "skinless" },
+    { "amount": "2 tablespoons", "name": "olive oil" },
+    { "amount": "3 tablespoons", "name": "lemon juice" },
+    { "amount": "6 cups", "name": "mixed salad greens" },
+    { "amount": "1 cup", "name": "cherry tomatoes", "note": "halved" },
+    { "amount": "1 medium", "name": "cucumber", "note": "sliced" },
+    { "amount": "1 cup", "name": "feta cheese", "note": "crumbled" },
+    { "name": "salt", "note": "to taste" },
+    { "name": "black pepper", "note": "to taste" },
+    { "amount": "1 tsp", "name": "dried oregano" }
+  ],
+  
+  "instructions": [
+    "Preheat your grill or grill pan over medium-high heat.",
+    "In a bowl, mix olive oil, lemon juice, salt, black pepper, and dried oregano.",
+    "Brush the salmon fillets with the marinade and let them sit for 5 minutes.",
+    "Place the salmon on the grill and cook for about 4-5 minutes on each side, or until cooked through.",
+    "While the salmon is grilling, assemble the salad by combining mixed greens, cherry tomatoes, cucumber, and feta cheese in a large bowl.",
+    "Once the salmon is cooked, flake it into large pieces and add it to the salad.",
+    "Toss the salad gently and serve immediately."
+  ],
+  
+  "overview": "For added flavor, try marinating the salmon in lemon juice and herbs for 30 minutes before grilling. You can also substitute the salad greens with spinach or arugula. This fresh, vibrant dish brings the taste of the Mediterranean straight to your table in under 20 minutes.",
+  
+  "photos": [
+    "https://usrgdiakvnegybqfhcmb.supabase.co/storage/v1/object/public/recipe-images/mediterranean-salmon-salad.jpg"
+  ]
+}

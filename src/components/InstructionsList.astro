@@ -1,0 +1,72 @@
+---
+interface Props {
+  instructions: string[];
+}
+
+const { instructions } = Astro.props;
+---
+
+<div class="card">
+  <h2 class="card-title">Instructions</h2>
+  <ol class="instructions-list">
+    {instructions.map((instruction, index) => (
+      <li class="instruction-item">
+        <span class="instruction-number">{index + 1}</span>
+        <span class="instruction-text">{instruction}</span>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+  }
+  
+  .instructions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .instruction-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .instruction-number {
+    width: 28px;
+    height: 28px;
+    background: #8b5cf6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  
+  .instruction-text {
+    flex: 1;
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding-top: 3px;
+  }
+</style>

@@ -1,0 +1,344 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import TopNav from '@components/TopNav.astro';
+import HeroCard from '@components/HeroCard.astro';
+import StatsRow from '@components/StatsRow.astro';
+import MacroChart from '@components/MacroChart.astro';
+import NutrientsGrid from '@components/NutrientsGrid.astro';
+import IngredientsList from '@components/IngredientsList.astro';
+import InstructionsList from '@components/InstructionsList.astro';
+import PhotosGrid from '@components/PhotosGrid.astro';
+import { supabase, type SharedRecipe } from '../../lib/supabase';
+
+export async function getStaticPaths() {
+  // Fetch all published recipes from Supabase
+  const { data: recipes, error } = await supabase
+    .from('shared_recipes')
+    .select('*')
+    .eq('is_published', true);
+  
+  if (error) {
+    console.error('Error fetching recipes:', error);
+    return [];
+  }
+  
+  return (recipes || []).map((recipe) => ({
+    params: { slug: recipe.slug },
+    props: { recipe },
+  }));
+}
+
+interface Props {
+  recipe: SharedRecipe;
+}
+
+const { recipe } = Astro.props;
+const slug = recipe.slug;
+
+// Transform Supabase data to component-friendly format
+const ingredients = recipe.sections?.flatMap(section => 
+  section.ingredients.map(ing => ({
+    amount: [ing.amount, ing.unit].filter(Boolean).join(' ') || undefined,
+    name: ing.name,
+    note: ing.preparation || undefined
+  }))
+) || [];
+
+// Handle both possible instruction formats: {instruction: string} or {text: string}
+const instructions = recipe.instructions?.map(inst => 
+  inst.instruction || inst.text || ''
+).filter(Boolean) || [];
+
+// Get tags array (combining tags object values and auto_tags)
+const tagValues = Object.values(recipe.tags || {});
+const allTags = [...tagValues, ...(recipe.auto_tags || [])].slice(0, 6);
+
+// Get first section title as category, or default
+const category = recipe.sections?.[0]?.title || 'Main Dish';
+// Build keywords from tags
+const keywords = allTags.join(', ');
+---
+
+<BaseLayout 
+  title={recipe.title} 
+  description={recipe.description || ''}
+  image={recipe.image_url || '/images/recipe-placeholder.jpg'}
+>
+  <!-- Schema.org Recipe Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    "name": recipe.title,
+    "description": recipe.description || '',
+    "image": recipe.image_url || '',
+    "prepTime": `PT${recipe.prep_time}M`,
+    "cookTime": `PT${recipe.cook_time}M`,
+    "totalTime": `PT${recipe.prep_time + recipe.cook_time}M`,
+    "recipeYield": `${recipe.servings} servings`,
+    "recipeCategory": category,
+    "keywords": keywords,
+    "nutrition": recipe.nutrition ? {
+      "@type": "NutritionInformation",
+      "calories": `${recipe.calories} calories`,
+      "proteinContent": recipe.nutrition.protein ? `${recipe.nutrition.protein}g` : undefined,
+      "fatContent": recipe.nutrition.fat ? `${recipe.nutrition.fat}g` : undefined,
+      "carbohydrateContent": recipe.nutrition.carbs ? `${recipe.nutrition.carbs}g` : undefined
+    } : undefined,
+    "recipeIngredient": ingredients.map(i => 
+      `${i.amount || ''} ${i.name}${i.note ? ` (${i.note})` : ''}`.trim()
+    ),
+    "recipeInstructions": instructions.map(text => ({
+      "@type": "HowToStep",
+      "text": text
+    }))
+  })} />
+
+  <TopNav title={recipe.title} />
+  
+  <div class="container">
+    <div class="recipe-layout">
+      <!-- Left Column -->
+      <div class="left-column">
+        <HeroCard 
+          image={recipe.image_url || '/images/recipe-placeholder.jpg'} 
+          alt={recipe.title} 
+        />
+        
+        <!-- Recipe Title & Tags -->
+        <div class="recipe-header">
+          <h1 class="recipe-title">{recipe.title}</h1>
+          <div class="tags">
+            {allTags.map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+          
+          <StatsRow 
+            prepTime={recipe.prep_time}
+            cookTime={recipe.cook_time}
+            servings={recipe.servings}
+            calories={recipe.calories}
+          />
+          
+          <button class="import-button" id="add-to-recipebox-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Import to RecipeBox AI
+          </button>
+        </div>
+        
+        <!-- Overview -->
+        {recipe.description && (
+          <div class="card">
+            <h2 class="card-title">Overview</h2>
+            <p class="overview-text">{recipe.description}</p>
+          </div>
+        )}
+        
+        {recipe.nutrition && (
+          <MacroChart 
+            protein={recipe.nutrition.protein || 0}
+            fat={recipe.nutrition.fat || 0}
+            carbs={recipe.nutrition.carbs || 0}
+          />
+        )}
+        
+        {recipe.nutrition?.richNutrients && recipe.nutrition.richNutrients.length > 0 && (
+          <NutrientsGrid 
+            nutrients={recipe.nutrition.richNutrients.map(n => ({
+              name: n.name,
+              value: n.amount,
+              description: n.description,
+              icon: n.type === 'vitamin' ? '☀️' : n.type === 'mineral' ? '🔺' : n.type === 'omega' ? '💧' : n.type === 'fiber' ? '🌾' : '✦',
+              color: n.type === 'vitamin' ? 'yellow' : n.type === 'mineral' ? 'red' : n.type === 'omega' ? 'blue' : n.type === 'fiber' ? 'green' : 'yellow'
+            }))}
+          />
+        )}
+      </div>
+      
+      <!-- Right Column -->
+      <div class="right-column">
+        <IngredientsList 
+          ingredients={ingredients}
+          servings={recipe.servings}
+          sections={recipe.sections}
+        />
+        
+        <InstructionsList instructions={instructions} />
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .recipe-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  .left-column, .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .recipe-header {
+    padding: 0;
+  }
+  
+  .recipe-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
+  }
+  
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  
+  .tag {
+    background: #f5f5f5;
+    color: #666;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+  }
+  
+  .overview-text {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+  
+  .import-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    background: #1a1a2e;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+  
+  .import-button:hover {
+    background: #2d2d44;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .import-button svg {
+    flex-shrink: 0;
+  }
+  
+  @media (max-width: 900px) {
+    .recipe-layout {
+      grid-template-columns: 1fr;
+    }
+    
+    .container {
+      padding: 1rem;
+    }
+  }
+</style>
+
+<script define:vars={{ slug, recipe, allTags }}>
+  function addToRecipeBox() {
+    try {
+      // Transform sections to match iOS app format (RecipeSection with RecipeIngredient)
+      const sections = (recipe.sections || []).map(section => ({
+        name: section.name || section.title || 'Main',
+        ingredients: (section.ingredients || []).map(ing => ({
+          name: ing.name || '',
+          amount: ing.amount || '',
+          unit: ing.unit || '',
+          additionalInfo: ing.preparation || ing.additionalInfo || null,
+          section: section.name || section.title || null
+        }))
+      }));
+      
+      // Transform instructions to match iOS app format (RecipeInstruction)
+      const instructions = (recipe.instructions || []).map((inst, index) => ({
+        stepNumber: inst.stepNumber || index + 1,
+        instruction: inst.instruction || inst.text || ''
+      }));
+      
+      // Extract tags object for ExtractedTags format
+      const tags = recipe.tags && typeof recipe.tags === 'object' ? {
+        mealType: recipe.tags.mealType || null,
+        cuisine: recipe.tags.cuisine || null,
+        diet: recipe.tags.diet || null
+      } : null;
+      
+      // Build OpenAIRecipeResponse format
+      const recipeData = {
+        title: recipe.title,
+        prepTime: recipe.prep_time,
+        cookTime: recipe.cook_time,
+        servings: recipe.servings,
+        calories: recipe.calories,
+        notes: recipe.notes || recipe.description || null,
+        sections: sections,
+        instructions: instructions,
+        tags: tags,
+        autoTags: recipe.auto_tags || allTags,
+        nutrition: recipe.nutrition ? {
+          protein: recipe.nutrition.protein || 0,
+          fat: recipe.nutrition.fat || 0,
+          carbs: recipe.nutrition.carbs || 0,
+          richNutrients: recipe.nutrition.richNutrients || []
+        } : null,
+        coverImageURL: recipe.image_url || null
+      };
+      
+      const encodedRecipe = encodeURIComponent(JSON.stringify(recipeData));
+      const deepLink = `stage4.recipebox-ai-v5://recipe/add?json=${encodedRecipe}`;
+      window.location.href = deepLink;
+      
+      setTimeout(() => {
+        alert('Opening RecipeBox AI app...\n\nIf the app doesn\'t open:\n1. Make sure RecipeBox AI is installed\n2. Try copying the link and opening it in Safari');
+      }, 500);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error adding recipe. Please try again.');
+    }
+  }
+  
+  document.getElementById('add-to-recipebox-btn')?.addEventListener('click', addToRecipeBox);
+</script>

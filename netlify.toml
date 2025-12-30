@@ -14,5 +14,5 @@
 
 [[redirects]]
   from = "/share/*"
-  to = "/share/"
+  to = "/share/index.html"
   status = 200

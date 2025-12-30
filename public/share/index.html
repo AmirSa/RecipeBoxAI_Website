@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Recipe - RecipeBox AI</title>
+    
+    <!-- Dynamic meta tags will be set by JavaScript -->
+    <meta property="og:title" content="Shared Recipe - RecipeBox AI">
+    <meta property="og:description" content="Open this recipe in RecipeBox AI">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .recipe-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .recipe-image .placeholder {
+            font-size: 48px;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .recipe-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+        
+        .recipe-meta {
+            display: flex;
+            gap: 16px;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .recipe-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .shared-by {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        
+        .open-app-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .open-app-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .download-section {
+            margin-top: 16px;
+            text-align: center;
+        }
+        
+        .download-text {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .app-store-badge {
+            height: 40px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .error h2 {
+            color: #e74c3c;
+            margin-bottom: 8px;
+        }
+        
+        .error p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading recipe...</p>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://usrgdiakvnegybqfhcmb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NjEyMTMsImV4cCI6MjA3MzQzNzIxM30.dDqM7KevNrOyg-demi11SNIpVOY6Iw-nRatQWySOokg';
+        
+        // Get share code from URL
+        const pathParts = window.location.pathname.split('/');
+        const shareCode = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+        
+        async function loadRecipe() {
+            if (!shareCode || shareCode === 'share') {
+                showError('Invalid Share Link', 'This share link appears to be invalid.');
+                return;
+            }
+            
+            try {
+                // Fetch recipe from Supabase
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/user_shared_recipes?share_code=eq.${shareCode}&select=*`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', response.status, errorText);
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+                
+                const recipes = await response.json();
+                console.log('Recipes received:', recipes);
+                
+                if (recipes.length === 0) {
+                    showError('Recipe Not Found', 'This recipe may have been deleted, is not public, or the link has expired. Share code: ' + shareCode);
+                    return;
+                }
+                
+                const recipe = recipes[0];
+                
+                // Check if expired
+                if (recipe.expires_at && new Date(recipe.expires_at) < new Date()) {
+                    showError('Link Expired', 'This share link has expired.');
+                    return;
+                }
+                
+                // Check max uses
+                if (recipe.max_uses && recipe.current_uses >= recipe.max_uses) {
+                    showError('Max Uses Reached', 'This share link has reached its maximum number of uses.');
+                    return;
+                }
+                
+                // Display recipe
+                displayRecipe(recipe);
+                
+                // Try to open app automatically after a short delay
+                setTimeout(() => {
+                    openInApp();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error loading recipe:', error);
+                showError('Error Loading Recipe', `Unable to load the shared recipe. Error: ${error.message}. Share code: ${shareCode}`);
+            }
+        }
+        
+        function displayRecipe(recipe) {
+            const recipeData = recipe.recipe_data || {};
+            const title = recipe.title || recipeData.title || 'Shared Recipe';
+            const prepTime = recipeData.prepTime || 0;
+            const cookTime = recipeData.cookTime || 0;
+            const servings = recipeData.servings || 0;
+            const calories = recipeData.calories || 0;
+            const ownerEmail = recipe.owner_email;
+            const imageUrl = recipe.image_url;
+            
+            // Update page title
+            document.title = `${title} - RecipeBox AI`;
+            
+            // Update meta tags
+            document.querySelector('meta[property="og:title"]').content = title;
+            document.querySelector('meta[property="og:description"]').content = 
+                `${prepTime + cookTime} min • ${servings} servings • ${calories} cal`;
+            if (imageUrl) {
+                document.querySelector('meta[property="og:image"]').content = imageUrl;
+            }
+            
+            // Build the deep link URL
+            const deepLink = `stage4.recipebox-ai-v5://share/${shareCode}`;
+            
+            const container = document.getElementById('container');
+            container.innerHTML = `
+                <div class="recipe-image">
+                    ${imageUrl 
+                        ? `<img src="${imageUrl}" alt="${title}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🍽️</div>'">`
+                        : '<div class="placeholder">🍽️</div>'
+                    }
+                </div>
+                <div class="content">
+                    <h1 class="recipe-title">${escapeHtml(title)}</h1>
+                    <div class="recipe-meta">
+                        ${prepTime || cookTime ? `<span>⏱️ ${prepTime + cookTime} min</span>` : ''}
+                        ${servings ? `<span>👥 ${servings}</span>` : ''}
+                        ${calories ? `<span>🔥 ${calories} cal</span>` : ''}
+                    </div>
+                    ${ownerEmail ? `<p class="shared-by">Shared by ${escapeHtml(ownerEmail.split('@')[0])}</p>` : ''}
+                    <button class="open-app-btn" onclick="openInApp()">
+                        📲 Open in RecipeBox AI
+                    </button>
+                    <div class="download-section">
+                        <p class="download-text">Don't have the app?</p>
+                        <a href="https://apps.apple.com/app/recipebox-ai/id6670766498" target="_blank">
+                            <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" 
+                                 alt="Download on the App Store" 
+                                 class="app-store-badge">
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function openInApp() {
+            const deepLink = `stage4.recipebox-ai-v5://share/${shareCode}`;
+            window.location.href = deepLink;
+        }
+        
+        function showError(title, message) {
+            const container = document.getElementById('container');
+            container.innerHTML = `
+                <div class="error">
+                    <h2>😕 ${escapeHtml(title)}</h2>
+                    <p>${escapeHtml(message)}</p>
+                    <div style="margin-top: 24px;">
+                        <a href="/" class="open-app-btn" style="display: inline-block; padding: 12px 24px;">
+                            Go to RecipeBox AI
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Load recipe on page load
+        loadRecipe();
+    </script>
+</body>
+</html>

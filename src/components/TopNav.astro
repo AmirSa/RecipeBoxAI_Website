@@ -13,14 +13,6 @@ const { title } = Astro.props;
     </svg>
     {title}
   </a>
-  <div class="nav-actions">
-    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-    </svg>
-    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-    </svg>
-  </div>
 </nav>
 
 <style>
@@ -48,18 +40,5 @@ const { title } = Astro.props;
   .back-button svg {
     width: 20px;
     height: 20px;
-  }
-  
-  .nav-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-  }
-  
-  .nav-icon {
-    width: 24px;
-    height: 24px;
-    color: #666;
-    cursor: pointer;
   }
 </style>

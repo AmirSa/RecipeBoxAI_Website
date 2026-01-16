@@ -22,17 +22,45 @@ export async function getStaticPaths() {
     return [];
   }
   
-  return (recipes || []).map((recipe) => ({
-    params: { slug: recipe.slug },
-    props: { recipe },
-  }));
+  const allRecipes = recipes || [];
+  
+  return allRecipes.map((recipe) => {
+    // Get related recipes (same tags or random if no matches)
+    const recipeTags = [...Object.values(recipe.tags || {}), ...(recipe.auto_tags || [])].map(t => t.toLowerCase());
+    
+    // Find recipes with matching tags, excluding current recipe
+    let relatedRecipes = allRecipes
+      .filter(r => r.slug !== recipe.slug)
+      .map(r => {
+        const rTags = [...Object.values(r.tags || {}), ...(r.auto_tags || [])].map(t => t.toLowerCase());
+        const matchCount = recipeTags.filter(t => rTags.includes(t)).length;
+        return { ...r, matchCount };
+      })
+      .sort((a, b) => b.matchCount - a.matchCount)
+      .slice(0, 12);
+    
+    // If not enough related, add random recipes
+    if (relatedRecipes.length < 6) {
+      const otherRecipes = allRecipes
+        .filter(r => r.slug !== recipe.slug && !relatedRecipes.find(rel => rel.slug === r.slug))
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6 - relatedRecipes.length);
+      relatedRecipes = [...relatedRecipes, ...otherRecipes];
+    }
+    
+    return {
+      params: { slug: recipe.slug },
+      props: { recipe, relatedRecipes },
+    };
+  });
 }
 
 interface Props {
   recipe: SharedRecipe;
+  relatedRecipes: SharedRecipe[];
 }
 
-const { recipe } = Astro.props;
+const { recipe, relatedRecipes } = Astro.props;
 const slug = recipe.slug;
 
 // Transform Supabase data to component-friendly format
@@ -177,6 +205,55 @@ const keywords = allTags.join(', ');
         <InstructionsList instructions={instructions} />
       </div>
     </div>
+    
+    <!-- More Recipes Carousel -->
+    {relatedRecipes && relatedRecipes.length > 0 && (
+      <section class="more-recipes-section">
+        <div class="section-header">
+          <h2 class="section-title">More Recipes You'll Love</h2>
+          <a href="/recipes" class="view-all-link">View All →</a>
+        </div>
+        <div class="carousel-container">
+          <button class="carousel-btn carousel-btn-left" id="carousel-left" aria-label="Scroll left">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div class="carousel-track" id="carousel-track">
+            {relatedRecipes.map((relatedRecipe) => {
+              const relatedTotalTime = relatedRecipe.prep_time + relatedRecipe.cook_time;
+              const relatedTags = [...Object.values(relatedRecipe.tags || {}), ...(relatedRecipe.auto_tags || [])].slice(0, 2);
+              return (
+                <a href={`/recipes/${relatedRecipe.slug}`} class="carousel-card">
+                  <div class="carousel-image-container">
+                    <img 
+                      src={relatedRecipe.image_url || '/images/recipe-placeholder.jpg'} 
+                      alt={relatedRecipe.title}
+                      class="carousel-image"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="carousel-content">
+                    <h3 class="carousel-title">{relatedRecipe.title}</h3>
+                    <p class="carousel-time">{relatedTotalTime} min</p>
+                    <div class="carousel-tags">
+                      {relatedTags.map((tag: string) => (
+                        <span class="carousel-tag">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+          <button class="carousel-btn carousel-btn-right" id="carousel-right" aria-label="Scroll right">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </section>
+    )}
   </div>
 </BaseLayout>
 
@@ -312,6 +389,201 @@ const keywords = allTags.join(', ');
       padding: 1rem;
     }
   }
+  
+  /* More Recipes Carousel */
+  .more-recipes-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+  }
+  
+  .view-all-link {
+    color: #7c3aed;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .view-all-link:hover {
+    color: #6d28d9;
+  }
+  
+  .carousel-container {
+    position: relative;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+  
+  .carousel-track {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 0.5rem 0 1rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s;
+  }
+  
+  .carousel-btn:hover {
+    background: #f5f5f5;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .carousel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .carousel-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #333;
+  }
+  
+  .carousel-btn-left {
+    left: 0;
+  }
+  
+  .carousel-btn-right {
+    right: 0;
+  }
+  
+  .carousel-card {
+    flex: 0 0 auto;
+    width: 220px;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .carousel-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+  
+  .carousel-image-container {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+  
+  .carousel-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  
+  .carousel-card:hover .carousel-image {
+    transform: scale(1.05);
+  }
+  
+  .carousel-content {
+    padding: 0.875rem;
+  }
+  
+  .carousel-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .carousel-time {
+    color: #888;
+    font-size: 0.8rem;
+    margin: 0 0 0.5rem;
+  }
+  
+  .carousel-tags {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+  
+  .carousel-tag {
+    background: #f0f0f0;
+    color: #555;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+  
+  @media (max-width: 900px) {
+    .carousel-btn {
+      display: none;
+    }
+    
+    .carousel-container {
+      margin: 0 -1rem;
+      padding: 0;
+    }
+    
+    .carousel-track {
+      padding: 0.5rem 1rem 1rem;
+    }
+    
+    .carousel-card {
+      width: 180px;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    
+    .carousel-card {
+      width: 160px;
+    }
+  }
 </style>
 
 <script define:vars={{ slug, recipe, allTags }}>
@@ -377,4 +649,34 @@ const keywords = allTags.join(', ');
   }
   
   document.getElementById('add-to-recipebox-btn')?.addEventListener('click', addToRecipeBox);
+  
+  // Carousel navigation
+  document.addEventListener('DOMContentLoaded', () => {
+    const track = document.getElementById('carousel-track');
+    const leftBtn = document.getElementById('carousel-left');
+    const rightBtn = document.getElementById('carousel-right');
+    
+    if (track && leftBtn && rightBtn) {
+      const scrollAmount = 240; // Card width + gap
+      
+      function updateButtons() {
+        leftBtn.disabled = track.scrollLeft <= 0;
+        rightBtn.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 10;
+      }
+      
+      leftBtn.addEventListener('click', () => {
+        track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      });
+      
+      rightBtn.addEventListener('click', () => {
+        track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      });
+      
+      track.addEventListener('scroll', updateButtons);
+      updateButtons();
+      
+      // Update on resize
+      window.addEventListener('resize', updateButtons);
+    }
+  });
 </script>

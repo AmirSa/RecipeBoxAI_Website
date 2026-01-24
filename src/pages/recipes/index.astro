@@ -15,9 +15,27 @@ if (error) {
 }
 
 const recipeList = recipes || [];
+
+// Build ItemList schema for SEO
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "RecipeBox AI Recipes",
+  "description": "Browse all recipes in RecipeBox AI - your AI-powered recipe assistant",
+  "numberOfItems": recipeList.length,
+  "itemListElement": recipeList.slice(0, 50).map((recipe, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "url": `https://recipeboxai.app/recipes/${recipe.slug}/`,
+    "name": recipe.title
+  }))
+};
 ---
 
 <BaseLayout title="All Recipes" description="Browse all recipes in RecipeBox AI">
+  <!-- Schema.org ItemList Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />
+  
   <nav class="top-nav">
     <a href="/" class="back-button">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,7 +222,7 @@ const recipeList = recipes || [];
       </div>
       
       <div class="recipes-grid" id="recipes-grid">
-        {recipeList.map((recipe) => {
+        {recipeList.map((recipe, index) => {
           const tagValues = Object.values(recipe.tags || {}) as string[];
           const autoTags = (recipe.auto_tags || []) as string[];
           const allTags = [...tagValues, ...autoTags];
@@ -215,7 +233,7 @@ const recipeList = recipes || [];
           return (
             <a 
               href={`/recipes/${recipe.slug}`} 
-              class="recipe-card"
+              class={`recipe-card ${index >= 10 ? 'pagination-hidden' : ''}`}
               data-title={recipe.title.toLowerCase()}
               data-description={(recipe.description || '').toLowerCase()}
               data-tags={tagsLower}
@@ -224,13 +242,17 @@ const recipeList = recipes || [];
               data-total-time={totalTime}
               data-calories={recipe.calories}
               data-views={recipe.view_count}
+              data-index={index}
             >
               <div class="recipe-image-container">
                 <img 
                   src={recipe.image_url || '/images/recipe-placeholder.jpg'} 
                   alt={recipe.title} 
                   class="recipe-image" 
-                  loading="lazy" 
+                  loading="lazy"
+                  width="400"
+                  height="300"
+                  decoding="async"
                 />
                 {recipe.is_featured && <span class="featured-badge">⭐ Featured</span>}
               </div>
@@ -254,6 +276,16 @@ const recipeList = recipes || [];
         </svg>
         <p>No recipes found matching your filters.</p>
         <button class="reset-btn" id="reset-filters">Reset Filters</button>
+      </div>
+      
+      <div class="show-more-container" id="show-more-container">
+        <button class="show-more-btn" id="show-more-btn">
+          <span id="show-more-text">Show More Recipes</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <p class="recipes-shown-count" id="recipes-shown-count">Showing <span id="visible-count">10</span> of <span id="total-count">{recipeList.length}</span> recipes</p>
       </div>
     </main>
   </div>
@@ -547,6 +579,58 @@ const recipeList = recipes || [];
     display: none;
   }
   
+  .recipe-card.pagination-hidden {
+    display: none;
+  }
+  
+  /* Show More Button */
+  .show-more-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0 3rem;
+    gap: 0.75rem;
+  }
+  
+  .show-more-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+  }
+  
+  .show-more-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+  }
+  
+  .show-more-btn:active {
+    transform: translateY(0);
+  }
+  
+  .show-more-btn.hidden {
+    display: none;
+  }
+  
+  .show-more-container.hidden {
+    display: none;
+  }
+  
+  .recipes-shown-count {
+    color: #666;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  
   .recipe-image-container {
     position: relative;
     width: 100%;
@@ -766,6 +850,15 @@ const recipeList = recipes || [];
     const mobileFilterToggle = document.getElementById('mobile-filter-toggle');
     const filtersSidebar = document.getElementById('filters-sidebar');
     const mobileOverlay = document.getElementById('mobile-overlay');
+    const showMoreBtn = document.getElementById('show-more-btn');
+    const showMoreContainer = document.getElementById('show-more-container');
+    const visibleCountEl = document.getElementById('visible-count');
+    const totalCountEl = document.getElementById('total-count');
+    
+    // Pagination state
+    const RECIPES_PER_PAGE = 10;
+    let currentlyShown = RECIPES_PER_PAGE;
+    let filteredCards: HTMLElement[] = [];
     
     // Filter state
     let filters = {
@@ -778,7 +871,7 @@ const recipeList = recipes || [];
     };
     
     function filterRecipes() {
-      let visibleCount = 0;
+      filteredCards = [];
       
       recipeCards.forEach(card => {
         const title = card.dataset.title || '';
@@ -814,20 +907,58 @@ const recipeList = recipes || [];
           calories <= parseInt(filters.calories);
         
         if (matchesSearch && matchesMealType && matchesDietary && matchesCuisine && matchesPrepTime && matchesCalories) {
+          filteredCards.push(card);
           card.classList.remove('hidden');
-          visibleCount++;
         } else {
           card.classList.add('hidden');
+          card.classList.add('pagination-hidden');
         }
       });
       
+      // Reset pagination when filters change
+      currentlyShown = RECIPES_PER_PAGE;
+      applyPagination();
+      
       if (recipeCountEl) {
-        recipeCountEl.textContent = visibleCount.toString();
+        recipeCountEl.textContent = filteredCards.length.toString();
       }
       
       if (emptyState && recipesGrid) {
-        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+        emptyState.style.display = filteredCards.length === 0 ? 'block' : 'none';
       }
+    }
+    
+    function applyPagination() {
+      filteredCards.forEach((card, index) => {
+        if (index < currentlyShown) {
+          card.classList.remove('pagination-hidden');
+        } else {
+          card.classList.add('pagination-hidden');
+        }
+      });
+      
+      // Update counts
+      const visibleNow = Math.min(currentlyShown, filteredCards.length);
+      if (visibleCountEl) {
+        visibleCountEl.textContent = visibleNow.toString();
+      }
+      if (totalCountEl) {
+        totalCountEl.textContent = filteredCards.length.toString();
+      }
+      
+      // Show/hide the "Show More" button
+      if (showMoreContainer) {
+        if (filteredCards.length === 0 || currentlyShown >= filteredCards.length) {
+          showMoreContainer.classList.add('hidden');
+        } else {
+          showMoreContainer.classList.remove('hidden');
+        }
+      }
+    }
+    
+    function showMoreRecipes() {
+      currentlyShown += RECIPES_PER_PAGE;
+      applyPagination();
     }
     
     function sortRecipes() {
@@ -935,6 +1066,9 @@ const recipeList = recipes || [];
     clearFiltersBtn?.addEventListener('click', clearAllFilters);
     resetFiltersBtn?.addEventListener('click', clearAllFilters);
     
+    // Show More button
+    showMoreBtn?.addEventListener('click', showMoreRecipes);
+    
     // Mobile filter toggle
     mobileFilterToggle?.addEventListener('click', () => {
       filtersSidebar?.classList.toggle('open');
@@ -945,5 +1079,8 @@ const recipeList = recipes || [];
       filtersSidebar?.classList.remove('open');
       mobileOverlay?.classList.remove('active');
     });
+    
+    // Initialize pagination on page load
+    filterRecipes();
   });
 </script>

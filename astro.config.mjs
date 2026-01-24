@@ -7,5 +7,9 @@ export default defineConfig({
   output: 'static',
   build: {
     format: 'directory'
+  },
+  image: {
+    domains: ['usrgdiakvnegybqfhcmb.supabase.co'],
+    remotePatterns: [{ protocol: 'https' }]
   }
 });

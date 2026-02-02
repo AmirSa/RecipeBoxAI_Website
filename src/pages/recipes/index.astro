@@ -36,9 +36,9 @@ const itemListSchema = {
   <!-- Schema.org ItemList Structured Data -->
   <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />
   
-  <nav class="top-nav">
+  <nav class="top-nav" aria-label="Breadcrumb">
     <a href="/" class="back-button">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
       Home
@@ -47,7 +47,7 @@ const itemListSchema = {
     <div></div>
   </nav>
   
-  <div class="page-container">
+  <main class="page-container">
     <!-- Left Sidebar Filters -->
     <aside class="filters-sidebar" id="filters-sidebar">
       <div class="sidebar-header">
@@ -194,7 +194,7 @@ const itemListSchema = {
     </aside>
     
     <!-- Main Content -->
-    <main class="main-content">
+    <section class="main-content">
       <div class="content-header">
         <p class="results-count">Showing <span id="recipe-count">{recipeList.length}</span> recipes</p>
         <div class="header-actions">
@@ -287,8 +287,8 @@ const itemListSchema = {
         </button>
         <p class="recipes-shown-count" id="recipes-shown-count">Showing <span id="visible-count">10</span> of <span id="total-count">{recipeList.length}</span> recipes</p>
       </div>
-    </main>
-  </div>
+    </section>
+  </main>
   
   <!-- Mobile Filter Toggle -->
   <button class="mobile-filter-toggle" id="mobile-filter-toggle">

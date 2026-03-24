@@ -1,3 +1,9 @@
+# Redirect /auth/callback to the auth callback handler
+/auth/callback /auth/callback/index.html 200
+
+# Redirect /auth/confirmed to the email confirmed page
+/auth/confirmed /auth/confirmed/index.html 200
+
 # Redirect /auth/confirm to the email confirmation page
 /auth/confirm /auth/confirm/index.html 200
 

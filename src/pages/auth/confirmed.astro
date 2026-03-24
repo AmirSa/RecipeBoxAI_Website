@@ -1,0 +1,61 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Email Confirmed" description="Your RecipeBox AI email has been confirmed">
+  <div class="container">
+    <div class="card">
+      <div class="logo">🍳 RecipeBox AI</div>
+      <div class="checkmark">✅</div>
+      <h2>Email Confirmed!</h2>
+      <p>Go back to the app and sign in.</p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+
+  .container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .logo {
+    font-size: 2em;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 20px;
+  }
+
+  .checkmark {
+    font-size: 3em;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: #666;
+    font-size: 1.1em;
+  }
+</style>

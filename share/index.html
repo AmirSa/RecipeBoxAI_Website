@@ -175,6 +175,11 @@
         const SUPABASE_URL = 'https://usrgdiakvnegybqfhcmb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NjEyMTMsImV4cCI6MjA3MzQzNzIxM30.dDqM7KevNrOyg-demi11SNIpVOY6Iw-nRatQWySOokg';
         
+        // Platform detection
+        const ua = navigator.userAgent || '';
+        const isIOS = /iPhone|iPad|iPod/i.test(ua);
+        const isAndroid = /Android/i.test(ua);
+        
         // Get share code from URL
         const pathParts = window.location.pathname.split('/');
         const shareCode = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
@@ -261,7 +266,28 @@
             }
             
             // Build the deep link URL
-            const deepLink = `stage4.recipebox-ai-v5://share/${shareCode}`;
+            const deepLink = getDeepLink();
+            
+            // Store links per platform
+            const appStoreLink = 'https://apps.apple.com/app/recipebox-ai/id6670766498';
+            const playStoreLink = 'https://play.google.com/store/apps/details?id=com.recipeboxai.android';
+            
+            let storeBadgeHtml;
+            if (isAndroid) {
+                storeBadgeHtml = `
+                    <a href="${playStoreLink}" target="_blank">
+                        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" 
+                             alt="Get it on Google Play" 
+                             style="height: 60px;">
+                    </a>`;
+            } else {
+                storeBadgeHtml = `
+                    <a href="${appStoreLink}" target="_blank">
+                        <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" 
+                             alt="Download on the App Store" 
+                             class="app-store-badge">
+                    </a>`;
+            }
             
             const container = document.getElementById('container');
             container.innerHTML = `
@@ -284,18 +310,21 @@
                     </button>
                     <div class="download-section">
                         <p class="download-text">Don't have the app?</p>
-                        <a href="https://apps.apple.com/app/recipebox-ai/id6670766498" target="_blank">
-                            <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" 
-                                 alt="Download on the App Store" 
-                                 class="app-store-badge">
-                        </a>
+                        ${storeBadgeHtml}
                     </div>
                 </div>
             `;
         }
         
+        function getDeepLink() {
+            if (isAndroid) {
+                return `com.recipeboxai.android://share/${shareCode}`;
+            }
+            return `stage4.recipebox-ai-v5://share/${shareCode}`;
+        }
+        
         function openInApp() {
-            const deepLink = `stage4.recipebox-ai-v5://share/${shareCode}`;
+            const deepLink = getDeepLink();
             window.location.href = deepLink;
         }
         

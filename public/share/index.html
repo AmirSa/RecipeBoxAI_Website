@@ -170,7 +170,40 @@
         </div>
     </div>
 
+    <!-- DEBUG PANEL -->
+    <div id="debugPanel" style="
+        position: fixed; bottom: 0; left: 0; right: 0; 
+        max-height: 40vh; overflow-y: auto; 
+        background: rgba(0,0,0,0.9); color: #0f0; 
+        font-family: monospace; font-size: 11px; 
+        padding: 8px; z-index: 9999; 
+        white-space: pre-wrap; word-break: break-all;
+        display: none;
+    "></div>
+    <button id="debugToggle" onclick="toggleDebug()" style="
+        position: fixed; bottom: 8px; right: 8px; 
+        z-index: 10000; background: #333; color: #0f0; 
+        border: 1px solid #0f0; border-radius: 4px; 
+        padding: 4px 8px; font-family: monospace; font-size: 11px;
+        cursor: pointer;
+    ">🐛 Debug</button>
+
     <script>
+        // === DEBUG HELPERS ===
+        const debugPanel = document.getElementById('debugPanel');
+        let debugVisible = false;
+        function toggleDebug() {
+            debugVisible = !debugVisible;
+            debugPanel.style.display = debugVisible ? 'block' : 'none';
+        }
+        function dbg(msg) {
+            const ts = new Date().toISOString().slice(11, 23);
+            const line = `[${ts}] ${msg}`;
+            console.log(line);
+            debugPanel.textContent += line + '\n';
+            debugPanel.scrollTop = debugPanel.scrollHeight;
+        }
+
         // Supabase configuration
         const SUPABASE_URL = 'https://usrgdiakvnegybqfhcmb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NjEyMTMsImV4cCI6MjA3MzQzNzIxM30.dDqM7KevNrOyg-demi11SNIpVOY6Iw-nRatQWySOokg';
@@ -179,22 +212,29 @@
         const ua = navigator.userAgent || '';
         const isIOS = /iPhone|iPad|iPod/i.test(ua);
         const isAndroid = /Android/i.test(ua);
+        dbg('Platform: ' + (isIOS ? 'iOS' : isAndroid ? 'Android' : 'Other') + ' | UA: ' + ua.substring(0, 80));
         
         // Get share code from URL
         const pathParts = window.location.pathname.split('/');
         const shareCode = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+        dbg('URL: ' + window.location.href);
+        dbg('pathname: ' + window.location.pathname);
+        dbg('pathParts: ' + JSON.stringify(pathParts));
+        dbg('shareCode: "' + shareCode + '"');
         
         async function loadRecipe() {
             if (!shareCode || shareCode === 'share') {
+                dbg('❌ INVALID share code — empty or "share"');
                 showError('Invalid Share Link', 'This share link appears to be invalid.');
                 return;
             }
             
             try {
+                const apiUrl = `${SUPABASE_URL}/rest/v1/user_shared_recipes?share_code=eq.${shareCode}&select=*`;
+                dbg('📡 Fetching: ' + apiUrl);
+                
                 // Fetch recipe from Supabase
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/user_shared_recipes?share_code=eq.${shareCode}&select=*`,
-                    {
+                const response = await fetch(apiUrl, {
                         headers: {
                             'apikey': SUPABASE_ANON_KEY,
                             'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -202,16 +242,30 @@
                     }
                 );
                 
+                dbg('📡 Response status: ' + response.status + ' ' + response.statusText);
+                
                 if (!response.ok) {
                     const errorText = await response.text();
+                    dbg('❌ API Error body: ' + errorText);
                     console.error('API Error:', response.status, errorText);
                     throw new Error(`API Error ${response.status}: ${errorText}`);
                 }
                 
                 const recipes = await response.json();
+                dbg('✅ Recipes received: ' + recipes.length + ' row(s)');
+                if (recipes.length > 0) {
+                    const r = recipes[0];
+                    dbg('   title: ' + r.title);
+                    dbg('   share_code: ' + r.share_code);
+                    dbg('   expires_at: ' + r.expires_at);
+                    dbg('   max_uses: ' + r.max_uses + ' | current_uses: ' + r.current_uses);
+                    dbg('   image_url: ' + (r.image_url || '(none)'));
+                    dbg('   recipe_data keys: ' + (r.recipe_data ? Object.keys(r.recipe_data).join(', ') : '(null)'));
+                }
                 console.log('Recipes received:', recipes);
                 
                 if (recipes.length === 0) {
+                    dbg('❌ No recipes found for share code: ' + shareCode);
                     showError('Recipe Not Found', 'This recipe may have been deleted, is not public, or the link has expired. Share code: ' + shareCode);
                     return;
                 }
@@ -220,25 +274,31 @@
                 
                 // Check if expired
                 if (recipe.expires_at && new Date(recipe.expires_at) < new Date()) {
+                    dbg('❌ Link expired: expires_at=' + recipe.expires_at + ' now=' + new Date().toISOString());
                     showError('Link Expired', 'This share link has expired.');
                     return;
                 }
                 
                 // Check max uses
                 if (recipe.max_uses && recipe.current_uses >= recipe.max_uses) {
+                    dbg('❌ Max uses reached: ' + recipe.current_uses + '/' + recipe.max_uses);
                     showError('Max Uses Reached', 'This share link has reached its maximum number of uses.');
                     return;
                 }
+                
+                dbg('✅ Recipe valid — displaying...');
                 
                 // Display recipe
                 displayRecipe(recipe);
                 
                 // Try to open app automatically after a short delay
+                dbg('⏳ Will attempt deep link in 1s...');
                 setTimeout(() => {
                     openInApp();
                 }, 1000);
                 
             } catch (error) {
+                dbg('❌ EXCEPTION: ' + error.message + '\n' + error.stack);
                 console.error('Error loading recipe:', error);
                 showError('Error Loading Recipe', `Unable to load the shared recipe. Error: ${error.message}. Share code: ${shareCode}`);
             }
@@ -325,6 +385,8 @@
         
         function openInApp() {
             const deepLink = getDeepLink();
+            dbg('🔗 Opening deep link: ' + deepLink);
+            dbg('   window.location.href = deepLink');
             window.location.href = deepLink;
         }
         

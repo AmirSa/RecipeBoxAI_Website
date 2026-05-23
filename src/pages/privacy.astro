@@ -2,167 +2,387 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Privacy Policy" description="Privacy Policy for RecipeBox AI">
-  <div class="page-container">
-    <div class="container">
-      <header class="header">
-        <h1>Privacy Policy</h1>
-        <p>RecipeBox AI</p>
-      </header>
-      
-      <div class="content">
-        <div class="last-updated">
-          Last Updated: December 2024
-        </div>
-        
-        <h2>1. Introduction</h2>
-        <p>RecipeBox AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application.</p>
-        
-        <h2>2. Information We Collect</h2>
-        <h3>2.1 Information You Provide</h3>
-        <ul>
-          <li><strong>Account Information:</strong> Email address and password when you create an account</li>
-          <li><strong>Recipe Data:</strong> Recipes you save, create, or import into the app</li>
-          <li><strong>User Preferences:</strong> Dietary preferences, tags, and customization settings</li>
-        </ul>
-        
-        <h3>2.2 Automatically Collected Information</h3>
-        <ul>
-          <li><strong>Usage Data:</strong> How you interact with the app (features used, time spent)</li>
-          <li><strong>Device Information:</strong> Device type, operating system version</li>
-          <li><strong>Crash Reports:</strong> Technical error data to improve stability</li>
-        </ul>
-        
-        <h2>3. How We Use Your Information</h2>
-        <ul>
-          <li>Provide and maintain the RecipeBox AI service</li>
-          <li>Sync your recipes across devices</li>
-          <li>Generate AI-powered nutrition insights and recipe transformations</li>
-          <li>Improve app functionality and user experience</li>
-          <li>Send important service-related notifications</li>
-        </ul>
-        
-        <h2>4. Data Storage and Security</h2>
-        <p>Your data is stored securely using industry-standard encryption. Recipe data is synced via Supabase, a secure cloud database platform. We implement appropriate technical and organizational measures to protect your personal information.</p>
-        
-        <h2>5. Third-Party Services</h2>
-        <p>We use the following third-party services:</p>
-        <ul>
-          <li><strong>Supabase:</strong> Cloud database and authentication</li>
-          <li><strong>OpenAI:</strong> AI-powered features (recipe analysis, transformations)</li>
-          <li><strong>RevenueCat:</strong> Subscription management</li>
-          <li><strong>Apple Sign In:</strong> Optional authentication</li>
-          <li><strong>Google Sign In:</strong> Optional authentication</li>
-        </ul>
-        
-        <h2>6. Your Rights</h2>
-        <p>You have the right to:</p>
-        <ul>
-          <li>Access your personal data</li>
-          <li>Export your recipes</li>
-          <li>Delete your account and all associated data</li>
-          <li>Opt out of non-essential data collection</li>
-        </ul>
-        
-        <h2>7. Data Retention</h2>
-        <p>We retain your data as long as your account is active. You can delete your account at any time from the app settings, which will remove all your personal data from our servers within 30 days.</p>
-        
-        <h2>8. Children's Privacy</h2>
-        <p>RecipeBox AI is not intended for children under 13. We do not knowingly collect personal information from children under 13.</p>
-        
-        <h2>9. Changes to This Policy</h2>
-        <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy in the app and updating the "Last Updated" date.</p>
-        
-        <h2>10. Contact Us</h2>
-        <p>If you have questions about this Privacy Policy, please contact us at:</p>
-        <p><strong>Email:</strong> <a href="mailto:hello@recipeboxai.app">hello@recipeboxai.app</a></p>
-        
-        <div class="back-link">
-          <a href="/">← Back to Home</a>
-        </div>
+<BaseLayout title="Privacy Policy" description="Privacy Policy for RecipeBox AI — your recipes, your data, your rules.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ─── Nav ─── -->
+  <nav class="rb-nav">
+    <div class="container inner">
+      <a class="brand" href="/">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </a>
+      <ul>
+        <li><a href="/#features">Features</a></li>
+        <li><a href="/recipes/">Recipes</a></li>
+        <li><a href="/#reviews">Reviews</a></li>
+      </ul>
+      <a class="download" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
+        Download
+      </a>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <div class="crumb">
+      <a href="/">Home</a>
+      <span class="sep">/</span>
+      <span style="color: var(--ink);">Privacy</span>
+    </div>
+
+    <header class="page-head">
+      <div class="eyebrow">Legal</div>
+      <h1 class="display">Your recipes.<br><em>Your privacy.</em></h1>
+      <div class="meta">
+        <span class="dot"></span>
+        <b>Last updated</b>
+        <span class="updated">December 2024</span>
+        <span style="opacity: 0.3;">·</span>
+        <span class="updated">Reading time ~ 4 min</span>
       </div>
+    </header>
+
+    <div class="layout">
+
+      <aside class="toc">
+        <h3>Contents</h3>
+        <ol>
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#collect">Information we collect</a></li>
+          <li><a href="#use">How we use it</a></li>
+          <li><a href="#storage">Storage & security</a></li>
+          <li><a href="#third-party">Third-party services</a></li>
+          <li><a href="#rights">Your rights</a></li>
+          <li><a href="#retention">Data retention</a></li>
+          <li><a href="#children">Children's privacy</a></li>
+          <li><a href="#changes">Changes to this policy</a></li>
+          <li><a href="#contact">Contact us</a></li>
+        </ol>
+      </aside>
+
+      <main class="policy">
+
+        <div class="section" id="intro">
+          <h2><span class="num">01</span>Introduction</h2>
+          <p>RecipeBox AI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application.</p>
+          <p>In plain English: your recipes belong to you. We don't sell your data, we don't show you ads, and we collect only what's needed to make the app work.</p>
+        </div>
+
+        <div class="section" id="collect">
+          <h2><span class="num">02</span>Information we collect</h2>
+
+          <h3>Information you provide</h3>
+          <ul>
+            <li><span><b>Account information.</b> Email address and password when you create an account.</span></li>
+            <li><span><b>Recipe data.</b> Recipes you save, create, or import into the app.</span></li>
+            <li><span><b>User preferences.</b> Dietary preferences, tags, and customization settings.</span></li>
+          </ul>
+
+          <h3>Automatically collected</h3>
+          <ul>
+            <li><span><b>Usage data.</b> How you interact with the app — features used, time spent.</span></li>
+            <li><span><b>Device information.</b> Device type and operating system version.</span></li>
+            <li><span><b>Crash reports.</b> Technical error data to improve stability.</span></li>
+          </ul>
+        </div>
+
+        <div class="section" id="use">
+          <h2><span class="num">03</span>How we use your information</h2>
+          <ul>
+            <li><span>Provide and maintain the RecipeBox AI service.</span></li>
+            <li><span>Sync your recipes across your devices.</span></li>
+            <li><span>Generate AI-powered nutrition insights and recipe transformations.</span></li>
+            <li><span>Improve app functionality and user experience.</span></li>
+            <li><span>Send important service-related notifications.</span></li>
+          </ul>
+        </div>
+
+        <div class="section" id="storage">
+          <h2><span class="num">04</span>Data storage & security</h2>
+          <p>Your data is stored securely using industry-standard encryption. Recipe data is synced via <b>Supabase</b>, a secure cloud database platform. We implement appropriate technical and organisational measures to protect your personal information.</p>
+        </div>
+
+        <div class="section" id="third-party">
+          <h2><span class="num">05</span>Third-party services</h2>
+          <p>We use the following services to operate the app. Each is governed by its own privacy policy.</p>
+          <div class="third-party-grid">
+            <div class="tp-card">
+              <div class="name">Supabase</div>
+              <div class="for">Cloud database & authentication</div>
+            </div>
+            <div class="tp-card">
+              <div class="name">OpenAI</div>
+              <div class="for">AI-powered recipe analysis & transformations</div>
+            </div>
+            <div class="tp-card">
+              <div class="name">RevenueCat</div>
+              <div class="for">Subscription management</div>
+            </div>
+            <div class="tp-card">
+              <div class="name">Apple Sign In</div>
+              <div class="for">Optional authentication</div>
+            </div>
+            <div class="tp-card">
+              <div class="name">Google Sign In</div>
+              <div class="for">Optional authentication</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="rights">
+          <h2><span class="num">06</span>Your rights</h2>
+          <p>You're always in control of your data. From the app settings you can:</p>
+          <div class="rights-grid">
+            <div class="right-cell">
+              <div class="ico-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+              </div>
+              <div class="txt">
+                <h4>Access your data</h4>
+                <p>See everything we hold on you in one place.</p>
+              </div>
+            </div>
+            <div class="right-cell">
+              <div class="ico-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+              <div class="txt">
+                <h4>Export your recipes</h4>
+                <p>Download a copy of your full recipe library.</p>
+              </div>
+            </div>
+            <div class="right-cell">
+              <div class="ico-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+              </div>
+              <div class="txt">
+                <h4>Delete your account</h4>
+                <p>Wipe your account and all associated data.</p>
+              </div>
+            </div>
+            <div class="right-cell">
+              <div class="ico-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 15a4 4 0 008 0"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              </div>
+              <div class="txt">
+                <h4>Opt out</h4>
+                <p>Turn off non-essential data collection at any time.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="retention">
+          <h2><span class="num">07</span>Data retention</h2>
+          <p>We retain your data as long as your account is active. You can delete your account at any time from the app settings — all personal data is removed from our servers within <b>30 days</b>.</p>
+        </div>
+
+        <div class="section" id="children">
+          <h2><span class="num">08</span>Children's privacy</h2>
+          <p>RecipeBox AI is not intended for children under 13. We do not knowingly collect personal information from children under 13.</p>
+        </div>
+
+        <div class="section" id="changes">
+          <h2><span class="num">09</span>Changes to this policy</h2>
+          <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy in the app and updating the "Last updated" date at the top of this page.</p>
+        </div>
+
+        <div class="section" id="contact">
+          <h2><span class="num">10</span>Contact us</h2>
+          <p>If you have any questions about this Privacy Policy or how we handle your data, get in touch.</p>
+          <div class="contact-card">
+            <div class="left">
+              <h3>Questions about your privacy?</h3>
+              <p>We answer every email — usually within a day or two.</p>
+            </div>
+            <a class="email" href="mailto:hello@recipeboxai.app">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              hello@recipeboxai.app
+            </a>
+          </div>
+        </div>
+
+        <div class="end-divider">
+          <span>— End of policy —</span>
+          <a href="/">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back to home
+          </a>
+        </div>
+
+      </main>
     </div>
   </div>
+
+  <footer class="rb-footer">
+    <div class="container row">
+      <a class="brand" href="/">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </a>
+      <div class="links">
+        <a href="mailto:hello@recipeboxai.app">Support</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="https://twitter.com/RecipeBoxAI">Twitter</a>
+      </div>
+      <div class="copy">© 2026 RecipeBox AI</div>
+    </div>
+  </footer>
+
+  <script is:inline>
+    (function() {
+      const sections = [...document.querySelectorAll('.section[id]')];
+      const tocLinks = [...document.querySelectorAll('aside.toc a')];
+      function onScroll() {
+        const y = window.scrollY + 120;
+        let active = sections[0]?.id;
+        for (const s of sections) if (s.offsetTop <= y) active = s.id;
+        tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + active));
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
 </BaseLayout>
 
-<style>
-  .page-container {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+<style is:global>
+  :root {
+    --bg: #f0eee9;
+    --bg-2: #e9e6df;
+    --ink: #0a0a0a;
+    --ink-2: #2a2a2c;
+    --muted: #6e6e73;
+    --line: rgba(10,10,10,0.08);
+    --line-2: rgba(10,10,10,0.04);
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   }
-  
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.45; scroll-behavior: smooth; }
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: #0a0a0a; color: #fff; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 56px; }
+  .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
+  .display em { font-style: italic; font-weight: 400; }
+  .eyebrow { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+
+  /* Nav */
+  nav.rb-nav { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); background: color-mix(in srgb, var(--bg) 86%, transparent); border-bottom: 1px solid var(--line-2); }
+  nav.rb-nav .inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  nav.rb-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; font-size: 17px; color: var(--ink); }
+  nav.rb-nav .brand .app-ico { width: 30px; height: 30px; border-radius: 7px; box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+  nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
+  nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  nav.rb-nav ul a:hover { color: var(--ink); }
+  nav.rb-nav .download { height: 38px; padding: 0 16px; border-radius: 999px; background: #0a0a0a; color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+
+  /* Crumb */
+  .crumb { padding: 24px 0 0; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .crumb a:hover { color: var(--ink); }
+  .crumb .sep { opacity: 0.5; }
+
+  /* Header */
+  header.page-head { padding: 32px 0 56px; }
+  header.page-head .eyebrow { margin-bottom: 16px; }
+  header.page-head h1 { font-size: 96px; margin: 0; max-width: 14ch; }
+  header.page-head .meta { margin-top: 28px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 14px 18px; background: #fff; border: 1px solid var(--line-2); border-radius: 999px; max-width: max-content; font-size: 13px; color: var(--ink-2); }
+  header.page-head .meta .updated { color: var(--muted); }
+  header.page-head .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: #1f8a5b; }
+  header.page-head .meta b { font-weight: 600; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 80px; padding-bottom: 96px; align-items: start; }
+
+  aside.toc { position: sticky; top: 88px; align-self: start; }
+  aside.toc h3 { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; counter-reset: toc; }
+  aside.toc a { display: flex; gap: 12px; padding: 8px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.35; color: var(--ink-2); transition: background 100ms ease, color 100ms ease; }
+  aside.toc a::before { counter-increment: toc; content: counter(toc, decimal-leading-zero); font-family: var(--serif); font-size: 12.5px; color: var(--muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  aside.toc a:hover { background: var(--bg-2); color: var(--ink); }
+  aside.toc a.active { background: #0a0a0a; color: #fff; }
+  aside.toc a.active::before { color: rgba(255,255,255,0.6); }
+
+  /* Body */
+  main.policy { max-width: 760px; min-width: 0; }
+  .section { padding: 36px 0; border-top: 1px solid var(--line); scroll-margin-top: 80px; }
+  .section:first-child { padding-top: 0; border-top: 0; }
+  .section h2 { font-family: var(--serif); font-size: 36px; font-weight: 500; letter-spacing: -0.025em; margin: 0 0 18px; line-height: 1.05; display: flex; align-items: baseline; gap: 16px; }
+  .section h2 .num { font-family: var(--serif); font-style: italic; font-weight: 400; color: var(--muted); font-size: 22px; min-width: 36px; }
+  .section h3 { font-family: var(--sans); font-size: 13px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink); margin: 28px 0 12px; }
+  .section p { font-size: 17px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; max-width: 60ch; letter-spacing: -0.005em; text-wrap: pretty; }
+  .section ul { list-style: none; padding: 0; margin: 16px 0; }
+  .section ul li { position: relative; padding: 12px 0; font-size: 16px; line-height: 1.5; color: var(--ink-2); border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 14px 1fr; gap: 14px; align-items: baseline; }
+  .section ul li:last-child { border-bottom: 0; }
+  .section ul li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); margin-top: 8px; }
+  .section ul li b { color: var(--ink); font-weight: 600; }
+  .section a.inline { font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: rgba(10,10,10,0.3); text-underline-offset: 3px; }
+  .section a.inline:hover { text-decoration-color: var(--ink); }
+
+  /* Third party cards */
+  .third-party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .tp-card { padding: 18px; background: #fff; border: 1px solid var(--line-2); border-radius: 16px; }
+  .tp-card .name { font-family: var(--serif); font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+  .tp-card .for { font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+  /* Rights chips */
+  .rights-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 18px; }
+  .right-cell { display: flex; gap: 14px; padding: 18px 20px; background: #fff; border: 1px solid var(--line-2); border-radius: 16px; align-items: flex-start; }
+  .right-cell .ico-wrap { width: 36px; height: 36px; border-radius: 10px; background: var(--bg); display: grid; place-items: center; flex-shrink: 0; }
+  .right-cell .ico-wrap svg { width: 18px; height: 18px; }
+  .right-cell .txt h4 { margin: 0; font-size: 14.5px; font-weight: 600; letter-spacing: -0.005em; }
+  .right-cell .txt p { margin: 4px 0 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+  /* Contact card */
+  .contact-card { margin-top: 24px; padding: 28px 32px; border-radius: 22px; background: #0a0a0a; color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .contact-card .left h3 { font-family: var(--serif); font-size: 26px; font-weight: 500; letter-spacing: -0.02em; margin: 0; color: #fff; text-transform: none; }
+  .contact-card .left p { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,0.6); }
+  .contact-card a.email { padding: 12px 20px; border-radius: 999px; background: #fff; color: #0a0a0a; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+
+  /* End divider */
+  .end-divider { margin: 56px 0 0; padding: 32px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+  .end-divider a { padding: 10px 16px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  .end-divider a:hover { border-color: rgba(10,10,10,0.3); }
+
+  /* Footer */
+  footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+  footer.rb-footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  footer.rb-footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
+  footer.rb-footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+  footer.rb-footer .links { display: flex; gap: 24px; font-size: 14px; }
+  footer.rb-footer .links a { color: rgba(255,255,255,0.6); }
+  footer.rb-footer .links a:hover { color: #fff; }
+  footer.rb-footer .copy { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .container { padding: 0 32px; }
+    header.page-head h1 { font-size: 72px; }
+    .layout { grid-template-columns: 220px 1fr; gap: 48px; }
+    .rights-grid { grid-template-columns: 1fr; }
+    .third-party-grid { grid-template-columns: 1fr; }
   }
-  
-  .header {
-    background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
-    color: white;
-    padding: 40px 30px;
-    text-align: center;
-  }
-  
-  .header h1 {
-    font-size: 2.5em;
-    font-weight: 700;
-    margin-bottom: 10px;
-  }
-  
-  .content {
-    padding: 40px 30px;
-  }
-  
-  .last-updated {
-    background: #f8f9fa;
-    padding: 15px 20px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    border-left: 4px solid #4ECDC4;
-    font-weight: 500;
-  }
-  
-  h2 {
-    color: #2c3e50;
-    font-size: 1.4em;
-    margin: 30px 0 15px 0;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #e9ecef;
-  }
-  
-  h3 {
-    color: #34495e;
-    font-size: 1.2em;
-    margin: 25px 0 12px 0;
-  }
-  
-  p, li {
-    margin-bottom: 12px;
-  }
-  
-  ul {
-    padding-left: 30px;
-    margin: 15px 0;
-  }
-  
-  a {
-    color: #667eea;
-  }
-  
-  .back-link {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-  }
-  
-  .back-link a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 500;
+  @media (max-width: 760px) {
+    .container { padding: 0 22px; }
+    nav.rb-nav ul { display: none; }
+    header.page-head { padding: 24px 0 36px; }
+    header.page-head h1 { font-size: 44px; line-height: 1; }
+    header.page-head .meta { font-size: 12px; padding: 12px 16px; }
+    .layout { grid-template-columns: 1fr; gap: 24px; padding-bottom: 56px; }
+    aside.toc { position: static; max-height: none; }
+    aside.toc ol { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .section { padding: 28px 0; }
+    .section h2 { font-size: 28px; flex-wrap: wrap; gap: 10px; }
+    .section h2 .num { font-size: 18px; }
+    .section p, .section ul li { font-size: 15.5px; }
+    .contact-card { padding: 22px; flex-direction: column; align-items: flex-start; }
+    footer.rb-footer .row { flex-direction: column; align-items: flex-start; gap: 18px; }
   }
 </style>

@@ -3,453 +3,735 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Recipes - RecipeBox AI</title>
-    <meta name="description" content="Discover our collection of delicious, tested recipes. From quick weeknight dinners to special occasion meals, find your next favorite dish.">
-    
+    <title>Recipes — RecipeBox AI</title>
+    <meta name="description" content="Browse our hand-curated collection of recipes — Italian, Korean, French, weeknight quick, weekend slow. Tap any recipe to add it straight to your RecipeBox.">
+
     <!-- Open Graph -->
-    <meta property="og:title" content="Browse Recipes - RecipeBox AI">
-    <meta property="og:description" content="Discover our collection of delicious recipes and add them directly to your RecipeBox AI app.">
+    <meta property="og:title" content="Recipes — RecipeBox AI">
+    <meta property="og:description" content="Browse our hand-curated collection of recipes. Tap any recipe to add it straight to your RecipeBox.">
     <meta property="og:image" content="https://recipeboxai.app/app-icon.png">
     <meta property="og:url" content="https://recipeboxai.app/recipes/">
-    
+
     <link rel="icon" type="image/png" href="../app-icon.png">
-    
+    <link rel="apple-touch-icon" href="../app-icon.png">
+    <meta name="theme-color" content="#f0eee9">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #f0eee9;
+            --bg-2: #e9e6df;
+            --ink: #0a0a0a;
+            --ink-2: #2a2a2c;
+            --muted: #6e6e73;
+            --line: rgba(10,10,10,0.08);
+            --line-2: rgba(10,10,10,0.04);
+            --serif: "Fraunces", Georgia, serif;
+            --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
         }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+        body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+        ::selection { background: #0a0a0a; color: #fff; }
+        img { display: block; max-width: 100%; }
+        a { color: inherit; text-decoration: none; }
+        button { font: inherit; cursor: pointer; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
+        .container { max-width: 1440px; margin: 0 auto; padding: 0 56px; }
+        .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
+        .display em { font-style: italic; font-weight: 400; }
+        .lead { font-family: var(--sans); font-size: 19px; line-height: 1.45; color: var(--ink-2); letter-spacing: -0.01em; text-wrap: pretty; }
+
+        /* ─── Nav ─── */
+        nav.top {
+            position: sticky; top: 0; z-index: 50;
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+            background: color-mix(in srgb, var(--bg) 86%, transparent);
+            border-bottom: 1px solid var(--line-2);
         }
+        nav.top .inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+        nav.top .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; font-size: 17px; color: var(--ink); }
+        nav.top .brand .app-ico { width: 30px; height: 30px; border-radius: 7px; box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+        nav.top ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
+        nav.top ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+        nav.top ul a.current { color: var(--ink); }
+        nav.top ul a:hover { color: var(--ink); }
+        nav.top .download { height: 38px; padding: 0 16px; border-radius: 999px; background: #0a0a0a; color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
 
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        /* ─── Crumb + Header ─── */
+        .crumb { padding: 24px 0 0; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+        .crumb a:hover { color: var(--ink); }
+        .crumb .sep { opacity: 0.5; }
+
+        header.page-head { padding: 22px 0 36px; display: flex; justify-content: space-between; align-items: end; gap: 40px; flex-wrap: wrap; }
+        header.page-head .left { max-width: 720px; }
+        header.page-head h1 { font-size: 96px; margin: 0; }
+        header.page-head .lead { margin-top: 16px; max-width: 50ch; }
+        header.page-head .right { display: flex; flex-direction: column; gap: 8px; align-items: end; }
+        header.page-head .count { font-family: var(--serif); font-size: 56px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+        header.page-head .count-label { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+
+        /* ─── Layout ─── */
+        .layout { display: grid; grid-template-columns: 280px 1fr; gap: 56px; padding-bottom: 96px; }
+        aside.filters { position: sticky; top: 88px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 8px; }
+        aside.filters::-webkit-scrollbar { width: 6px; }
+        aside.filters::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+
+        .filter-group { padding: 22px 0; border-bottom: 1px solid var(--line); }
+        .filter-group:first-child { padding-top: 0; }
+        .filter-group:last-child { border-bottom: 0; }
+        .filter-group h3 {
+            font-family: var(--sans); font-size: 11px; font-weight: 700;
+            letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink);
+            margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center;
         }
-
-        header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
+        .filter-group h3 .clear {
+            font-size: 11px; letter-spacing: 0.4px; text-transform: none; color: var(--muted);
+            font-weight: 500; cursor: pointer; background: none; border: 0; padding: 0;
+            display: none;
         }
+        .filter-group h3 .clear.show { display: inline; }
+        .filter-group h3 .clear:hover { color: var(--ink); }
 
-        header p {
-            opacity: 0.9;
+        .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .pill {
+            padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 500;
+            background: transparent; border: 1px solid var(--line); color: var(--ink-2);
+            cursor: pointer; letter-spacing: -0.005em;
+            transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
         }
+        .pill:hover { border-color: rgba(10,10,10,0.25); color: var(--ink); }
+        .pill.active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
+        .clear-all {
+            margin-top: 20px; padding: 12px 16px; border-radius: 999px;
+            border: 1px solid var(--line); background: transparent;
+            font-size: 13px; font-weight: 600; color: var(--ink-2); width: 100%;
+            display: none; align-items: center; justify-content: center; gap: 8px;
         }
+        .clear-all.show { display: inline-flex; }
+        .clear-all:hover { border-color: rgba(10,10,10,0.3); color: var(--ink); }
 
-        .filter-bar {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
+        /* ─── Main ─── */
+        main.results { min-width: 0; }
+        .toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--line);
+            gap: 24px; flex-wrap: wrap;
         }
-
-        .filter-bar label {
-            font-weight: 600;
-            margin-right: 10px;
+        .toolbar .showing { font-size: 14px; color: var(--muted); }
+        .toolbar .showing b { color: var(--ink); font-weight: 700; }
+        .toolbar .right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .toolbar .sort-label { font-size: 13px; color: var(--muted); }
+        .search-wrap {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: transparent; border: 1px solid var(--line);
+            border-radius: 999px; padding: 8px 16px;
         }
-
-        .filter-bar select, .filter-bar input {
-            padding: 8px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 5px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
+        .search-wrap svg { color: var(--muted); flex-shrink: 0; }
+        .search-wrap input {
+            border: 0; outline: 0; background: transparent;
+            font-family: var(--sans); font-size: 13.5px; color: var(--ink);
+            width: 180px;
         }
-
-        .filter-bar select:focus, .filter-bar input:focus {
-            border-color: #667eea;
-        }
-
-        .recipe-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-        }
-
-        .recipe-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
+        .search-wrap input::placeholder { color: var(--muted); }
+        .sort-select {
+            appearance: none; -webkit-appearance: none;
+            background: transparent; border: 1px solid var(--line);
+            padding: 10px 38px 10px 14px; border-radius: 999px;
+            font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--ink);
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.2' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>");
+            background-repeat: no-repeat; background-position: right 14px center;
             cursor: pointer;
         }
+        .view-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+        .view-toggle button { border: 0; background: transparent; padding: 6px 10px; border-radius: 999px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+        .view-toggle button.on { background: #0a0a0a; color: #fff; }
 
-        .recipe-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        /* ─── Featured strip ─── */
+        .featured {
+            margin-bottom: 36px; padding: 28px; background: #fff;
+            border: 1px solid var(--line-2); border-radius: 28px;
+            display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; align-items: center;
+            overflow: hidden;
         }
+        .featured .copy h2 { font-family: var(--serif); font-size: 40px; line-height: 1; letter-spacing: -0.03em; margin: 0; font-weight: 500; }
+        .featured .copy p { margin: 14px 0 0; font-size: 15px; line-height: 1.5; color: var(--muted); max-width: 44ch; }
+        .featured .copy .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #b13fe8; margin-bottom: 10px; }
+        .featured .copy .row { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+        .featured .copy .chip { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--bg); color: var(--ink-2); border: 1px solid var(--line); }
+        .featured .copy .chip.ai { background: linear-gradient(90deg,#4d7cff,#b13fe8); color: #fff; border-color: transparent; }
+        .featured .photo { aspect-ratio: 5/4; border-radius: 18px; overflow: hidden; position: relative; }
+        .featured .photo img { width: 100%; height: 100%; object-fit: cover; }
 
-        .recipe-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
+        /* ─── Grid ─── */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .card { background: transparent; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform 200ms ease; cursor: pointer; color: var(--ink); }
+        .card:hover { transform: translateY(-3px); }
+        .card .img-wrap { aspect-ratio: 4/3; border-radius: 22px; overflow: hidden; position: relative; background: var(--bg-2); }
+        .card .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+        .card:hover .img-wrap img { transform: scale(1.04); }
+        .card .save {
+            position: absolute; top: 12px; right: 12px;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            display: grid; place-items: center; color: var(--ink);
+            border: 0; cursor: pointer; z-index: 2;
         }
-
-        .recipe-card-content {
-            padding: 20px;
+        .card .save svg { width: 18px; height: 18px; }
+        .card .save:hover { background: #fff; }
+        .card .save.on { background: #0a0a0a; color: #fff; }
+        .card .src-tag {
+            position: absolute; bottom: 12px; left: 12px;
+            padding: 4px 10px; border-radius: 999px;
+            background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+            color: var(--ink);
         }
+        .card .body { padding: 16px 4px 4px; display: flex; flex-direction: column; gap: 10px; }
+        .card .meta-row { display: flex; gap: 10px; font-size: 12px; color: var(--muted); align-items: center; flex-wrap: wrap; }
+        .card .meta-row .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+        .card h3 { font-family: var(--serif); font-size: 22px; line-height: 1.1; font-weight: 500; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+        .card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+        .card .tag { padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; border: 1px solid var(--line); color: var(--ink-2); }
+        .card .tag.diet-vegetarian { color: #2d6a3f; border-color: rgba(45,106,63,0.22); background: rgba(45,106,63,0.06); }
+        .card .tag.diet-vegan { color: #1f8a5b; border-color: rgba(31,138,91,0.22); background: rgba(31,138,91,0.06); }
+        .card .tag.diet-healthy { color: #4d7cff; border-color: rgba(77,124,255,0.22); background: rgba(77,124,255,0.06); }
+        .card .tag.diet-glutenfree { color: #8a5a30; border-color: rgba(138,90,48,0.22); background: rgba(138,90,48,0.06); }
 
-        .recipe-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            color: #333;
+        /* ─── List view ─── */
+        .grid.list { grid-template-columns: 1fr; gap: 12px; }
+        .grid.list .card { flex-direction: row; gap: 18px; padding: 12px; border: 1px solid var(--line-2); background: #fff; border-radius: 18px; }
+        .grid.list .card:hover { transform: none; border-color: rgba(10,10,10,0.18); }
+        .grid.list .card .img-wrap { width: 180px; flex-shrink: 0; aspect-ratio: 4/3; border-radius: 14px; }
+        .grid.list .card .body { padding: 8px 4px 4px; flex: 1; min-width: 0; }
+        .grid.list .card .save { top: 8px; right: 8px; width: 30px; height: 30px; }
+        .grid.list .card .src-tag { bottom: 8px; left: 8px; }
+
+        /* ─── Pagination ─── */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 56px; flex-wrap: wrap; }
+        .pagination button {
+            height: 40px; min-width: 40px; padding: 0 14px; border-radius: 999px;
+            background: transparent; border: 1px solid var(--line); color: var(--ink-2);
+            font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
         }
+        .pagination button:hover:not(:disabled):not(.gap) { border-color: rgba(10,10,10,0.3); color: var(--ink); }
+        .pagination button.on { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+        .pagination button.gap { border: 0; padding: 0 6px; cursor: default; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .recipe-card p {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            line-height: 1.5;
+        /* ─── States ─── */
+        .state-card {
+            grid-column: 1 / -1; padding: 56px 28px; text-align: center;
+            background: #fff; border: 1px solid var(--line-2); border-radius: 22px;
         }
+        .state-card h3 { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 8px; }
+        .state-card p { margin: 0; color: var(--muted); font-size: 15px; }
+        .state-card.error { background: #fff3cd; border-color: #ffd54a; }
+        .state-card.error h3 { color: #856404; }
 
-        .recipe-meta {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+        /* Loading skeleton */
+        .skeleton .img-wrap { background: linear-gradient(90deg, var(--bg-2) 0%, #ddd9d0 50%, var(--bg-2) 100%); background-size: 200% 100%; animation: skel 1.4s ease-in-out infinite; }
+        .skeleton h3, .skeleton .meta-row { background: var(--bg-2); height: 14px; border-radius: 4px; color: transparent; }
+        .skeleton h3 { height: 22px; width: 80%; }
+        @keyframes skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ─── Footer ─── */
+        footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+        footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+        footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
+        footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+        footer .links { display: flex; gap: 24px; font-size: 14px; }
+        footer .links a { color: rgba(255,255,255,0.6); }
+        footer .links a:hover { color: #fff; }
+        footer .copy { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+        /* ─── Responsive ─── */
+        @media (max-width: 1100px) {
+            .container { padding: 0 32px; }
+            header.page-head h1 { font-size: 72px; }
+            .layout { grid-template-columns: 240px 1fr; gap: 32px; }
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            .featured { grid-template-columns: 1fr; }
+            .featured .photo { aspect-ratio: 16/9; }
         }
-
-        .recipe-meta span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .recipe-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #f0f4ff;
-            color: #667eea;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 40px 20px;
-            background: #fff;
-            margin-top: 60px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-
-        .footer a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.5rem;
-            }
-
-            .recipe-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
+        @media (max-width: 760px) {
+            .container { padding: 0 22px; }
+            nav.top ul { display: none; }
+            header.page-head { padding: 16px 0 24px; }
+            header.page-head h1 { font-size: 48px; line-height: 1; }
+            header.page-head .right { align-items: start; }
+            header.page-head .count { font-size: 40px; }
+            .layout { grid-template-columns: 1fr; gap: 24px; padding-bottom: 56px; }
+            aside.filters { position: static; max-height: none; overflow-y: visible; padding-right: 0; }
+            .filter-group { padding: 16px 0; }
+            .grid { grid-template-columns: 1fr; }
+            .toolbar { gap: 14px; }
+            .toolbar .right { gap: 10px; width: 100%; }
+            .search-wrap { flex: 1; min-width: 0; }
+            .search-wrap input { width: 100%; }
+            .grid.list .card { flex-direction: column; }
+            .grid.list .card .img-wrap { width: 100%; }
+            footer .row { flex-direction: column; align-items: flex-start; gap: 18px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>🍳 RecipeBox AI Recipe Collection</h1>
-        <p>Discover delicious recipes and add them directly to your app</p>
+
+<!-- ─── Nav ─── -->
+<nav class="top">
+    <div class="container inner">
+        <a class="brand" href="../">
+            <img class="app-ico" src="../app-icon.png" alt="">
+            RecipeBox AI
+        </a>
+        <ul>
+            <li><a href="../#features">Features</a></li>
+            <li><a class="current" href="./">Recipes</a></li>
+            <li><a href="../#reviews">Reviews</a></li>
+        </ul>
+        <a class="download" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
+            Download
+        </a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="crumb">
+        <a href="../">Home</a>
+        <span class="sep">/</span>
+        <span style="color: var(--ink);">Recipes</span>
+    </div>
+
+    <header class="page-head">
+        <div class="left">
+            <h1 class="display">Every recipe.<br><em>One place.</em></h1>
+            <p class="lead">Browse our hand-curated collection — Italian, Korean, French, weeknight quick, weekend slow. Tap any recipe to add it straight to your RecipeBox.</p>
+        </div>
+        <div class="right">
+            <div class="count" id="total-count">—</div>
+            <div class="count-label">Recipes in collection</div>
+        </div>
     </header>
 
-    <div class="container">
-        <div class="filter-bar">
-            <div>
-                <label for="search">Search:</label>
-                <input type="text" id="search" placeholder="Search recipes...">
-            </div>
-            <div>
-                <label for="mealType">Meal Type:</label>
-                <select id="mealType">
-                    <option value="">All</option>
-                    <option value="Breakfast">Breakfast</option>
-                    <option value="Lunch">Lunch</option>
-                    <option value="Dinner">Dinner</option>
-                    <option value="Dessert">Dessert</option>
-                    <option value="Snacks">Snacks</option>
-                </select>
-            </div>
-            <div>
-                <label for="cuisine">Cuisine:</label>
-                <select id="cuisine">
-                    <option value="">All</option>
-                    <option value="American">American</option>
-                    <option value="Italian">Italian</option>
-                    <option value="Indian">Indian</option>
-                    <option value="Asian">Asian</option>
-                    <option value="Mexican">Mexican</option>
-                </select>
-            </div>
-            <div>
-                <label for="diet">Diet:</label>
-                <select id="diet">
-                    <option value="">All</option>
-                    <option value="Vegetarian">Vegetarian</option>
-                    <option value="Vegan">Vegan</option>
-                    <option value="Regular">Regular</option>
-                </select>
-            </div>
-        </div>
+    <div class="layout">
 
-        <div class="recipe-grid" id="recipeGrid">
-            <!-- Recipes will be loaded here -->
-        </div>
-    </div>
+        <!-- ─── Sidebar filters ─── -->
+        <aside class="filters" id="filters">
+            <!-- groups injected by JS -->
+        </aside>
 
-    <div class="footer">
-        <p>© 2025 RecipeBox AI. <a href="../">Back to Home</a> | <a href="../privacy/">Privacy Policy</a></p>
-    </div>
-
-    <script>
-        // Supabase configuration
-        const SUPABASE_URL = 'https://usrgdiakvnegybqfhcmb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NjEyMTMsImV4cCI6MjA3MzQzNzIxM30.dDqM7KevNrOyg-demi11SNIpVOY6Iw-nRatQWySOokg';
-        
-        // Toggle this to switch between Supabase and local JSON
-        const USE_SUPABASE = true;
-        
-        let allRecipes = [];
-
-        // Load recipes from Supabase
-        async function loadRecipesFromSupabase(filters = {}) {
-            const params = {
-                p_limit: 50,
-                p_offset: 0
-            };
-            
-            if (filters.mealType) params.p_meal_type = filters.mealType;
-            if (filters.cuisine) params.p_cuisine = filters.cuisine;
-            if (filters.diet) params.p_diet = filters.diet;
-            if (filters.search) params.p_search = filters.search;
-            
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_shared_recipes_list`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(params)
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Supabase error: ${response.status}`);
-            }
-            
-            const recipes = await response.json();
-            
-            // Transform Supabase format to display format
-            return recipes.map(r => ({
-                slug: r.slug,
-                title: r.title,
-                description: r.description || `Delicious ${r.title}`,
-                prepTime: r.prep_time,
-                cookTime: r.cook_time,
-                totalTime: r.prep_time + r.cook_time,
-                servings: r.servings,
-                calories: r.calories,
-                mealType: r.tags?.mealType || '',
-                cuisine: r.tags?.cuisine || '',
-                diet: r.tags?.diet || '',
-                tags: [
-                    r.tags?.mealType,
-                    r.tags?.cuisine,
-                    ...(r.auto_tags || [])
-                ].filter(Boolean),
-                image: r.image_path || r.image_url || `https://via.placeholder.com/600x400/667eea/ffffff?text=${encodeURIComponent(r.title)}`,
-                isFeatured: r.is_featured,
-                viewCount: r.view_count,
-                addCount: r.add_count
-            }));
-        }
-
-        // Load recipes from local JSON (fallback)
-        async function loadRecipesFromJSON() {
-            const response = await fetch('./data/recipes-master.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.json();
-        }
-
-        // Load recipes
-        async function loadRecipes() {
-            try {
-                if (USE_SUPABASE) {
-                    allRecipes = await loadRecipesFromSupabase();
-                } else {
-                    allRecipes = await loadRecipesFromJSON();
-                }
-                displayRecipes(allRecipes);
-            } catch (error) {
-                console.error('Error loading recipes:', error);
-                
-                // Try fallback to local JSON if Supabase fails
-                if (USE_SUPABASE) {
-                    console.log('Supabase failed, trying local JSON fallback...');
-                    try {
-                        allRecipes = await loadRecipesFromJSON();
-                        displayRecipes(allRecipes);
-                        return;
-                    } catch (fallbackError) {
-                        console.error('Fallback also failed:', fallbackError);
-                    }
-                }
-                
-                // Show helpful error message
-                const isFileProtocol = window.location.protocol === 'file:';
-                const errorHTML = isFileProtocol 
-                    ? `<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fff3cd; border-radius: 10px; border: 2px solid #ffc107;">
-                        <h3 style="color: #856404; margin-bottom: 15px;">⚠️ Local Testing Required</h3>
-                        <p style="color: #856404; margin-bottom: 20px;">You're opening this file directly. Browsers block local file requests for security.</p>
-                        <div style="text-align: left; max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px;">
-                            <p style="font-weight: 600; margin-bottom: 10px;">To test locally, run a web server:</p>
-                            <code style="display: block; background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 10px; font-family: monospace;">
-                                cd netlify-deploy<br>
-                                python3 -m http.server 8000
-                            </code>
-                            <p style="margin-top: 15px;">Then visit: <a href="http://localhost:8000/recipes/" style="color: #667eea; font-weight: 600;">http://localhost:8000/recipes/</a></p>
-                        </div>
-                    </div>`
-                    : `<p style="grid-column: 1/-1; text-align: center; padding: 40px; background: #f8d7da; border-radius: 10px; color: #721c24;">
-                        Error loading recipes. Please try again later or contact support.
-                    </p>`;
-                
-                document.getElementById('recipeGrid').innerHTML = errorHTML;
-            }
-        }
-
-        // Display recipes
-        function displayRecipes(recipes) {
-            const grid = document.getElementById('recipeGrid');
-            
-            if (recipes.length === 0) {
-                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px;">No recipes found matching your criteria.</p>';
-                return;
-            }
-
-            grid.innerHTML = recipes.map(recipe => `
-                <div class="recipe-card" onclick="window.location.href='./${recipe.slug}/'">
-                    <img src="${recipe.image}" alt="${recipe.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/600x400/667eea/ffffff?text=Recipe'">
-                    <div class="recipe-card-content">
-                        <h3>${recipe.title}</h3>
-                        <p>${recipe.description}</p>
-                        <div class="recipe-meta">
-                            <span>⏱️ ${recipe.totalTime} min</span>
-                            <span>🍽️ ${recipe.servings} servings</span>
-                            <span>🔥 ${recipe.calories} cal</span>
-                        </div>
-                        <div class="recipe-tags">
-                            ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                        </div>
+        <!-- ─── Main results ─── -->
+        <main class="results">
+            <div class="featured">
+                <div class="copy">
+                    <div class="eyebrow">Powered by AI</div>
+                    <h2>Can't find what you're looking for?</h2>
+                    <p>Tell our AI what's in your fridge — or your mood, your goal, your dietary needs — and we'll generate the perfect recipe just for you.</p>
+                    <div class="row">
+                        <a class="chip ai" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">+ Generate a recipe</a>
+                        <span class="chip">chicken thigh</span>
+                        <span class="chip">rice</span>
+                        <span class="chip">ginger</span>
                     </div>
                 </div>
-            `).join('');
+                <div class="photo">
+                    <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&q=80&auto=format&fit=crop" alt="" loading="lazy">
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="showing">Showing <b id="showing-count">—</b> of <b id="total-showing">—</b> recipes</div>
+                <div class="right">
+                    <div class="search-wrap">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                        <input type="search" id="search" placeholder="Search recipes…" autocomplete="off">
+                    </div>
+                    <span class="sort-label">Sort</span>
+                    <select class="sort-select" id="sort">
+                        <option value="Recommended">Recommended</option>
+                        <option value="Newest">Newest</option>
+                        <option value="Prep Time">Prep Time</option>
+                        <option value="Calories">Calories</option>
+                    </select>
+                    <div class="view-toggle" id="view-toggle">
+                        <button class="on" data-view="grid">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                            Grid
+                        </button>
+                        <button data-view="list">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M4 6h.01M4 12h.01M4 18h.01"/></svg>
+                            List
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid" id="grid"></div>
+
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+</div>
+
+<footer>
+    <div class="container row">
+        <div class="brand">
+            <img class="app-ico" src="../app-icon.png" alt="">
+            RecipeBox AI
+        </div>
+        <div class="links">
+            <a href="mailto:hello@recipeboxai.app">Support</a>
+            <a href="../privacy/">Privacy</a>
+            <a href="../terms/">Terms</a>
+            <a href="https://twitter.com/RecipeBoxAI">Twitter</a>
+        </div>
+        <div class="copy">© 2026 RecipeBox AI</div>
+    </div>
+</footer>
+
+<script>
+// ─────────── Supabase / data ───────────
+const SUPABASE_URL = 'https://usrgdiakvnegybqfhcmb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzcmdkaWFrdm5lZ3licWZoY21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NjEyMTMsImV4cCI6MjA3MzQzNzIxM30.dDqM7KevNrOyg-demi11SNIpVOY6Iw-nRatQWySOokg';
+const USE_SUPABASE = true;
+const PAGE_SIZE = 12;
+
+// ─────────── Filter schema (from design) ───────────
+const FILTERS = [
+    { name: 'meal',    label: 'Meal type', opts: ['All', 'Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snacks'], default: 'All' },
+    { name: 'diet',    label: 'Dietary',   opts: ['All', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Healthy'], default: 'All' },
+    { name: 'cuisine', label: 'Cuisine',   opts: ['All', 'Italian', 'Mexican', 'Asian', 'American', 'Indian', 'French', 'Mediterranean', 'Korean', 'Japanese', 'Thai', 'British', 'Moroccan', 'Middle Eastern'], default: 'All' },
+    { name: 'time',    label: 'Prep time', opts: ['Any', 'Under 15 min', 'Under 30 min', 'Under 60 min'], default: 'Any' },
+    { name: 'cals',    label: 'Calories',  opts: ['Any', 'Under 300', 'Under 500', 'Under 700'], default: 'Any' },
+];
+
+// ─────────── State ───────────
+const state = {
+    meal: 'All', diet: 'All', cuisine: 'All', time: 'Any', cals: 'Any',
+    search: '', sort: 'Recommended', view: 'grid', page: 1,
+    saved: new Set(JSON.parse(localStorage.getItem('rb-saved') || '[]')),
+    allRecipes: [],
+};
+
+// ─────────── Icons ───────────
+const ICON = {
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+    heartFill: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+    timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>',
+    x: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    arrow: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+};
+
+// ─────────── Data fetching ───────────
+async function loadRecipesFromSupabase() {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_shared_recipes_list`, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_limit: 200, p_offset: 0 }),
+    });
+    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
+    const recipes = await response.json();
+    return recipes.map(r => normalize(r));
+}
+
+async function loadRecipesFromJSON() {
+    const response = await fetch('./data/recipes-master.json');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data.map(r => normalize(r));
+}
+
+function normalize(r) {
+    const prep = r.prep_time ?? r.prepTime ?? 0;
+    const cook = r.cook_time ?? r.cookTime ?? 0;
+    return {
+        slug: r.slug,
+        title: r.title,
+        description: r.description || '',
+        prepTime: prep,
+        cookTime: cook,
+        totalTime: (prep || 0) + (cook || 0) || r.totalTime || 0,
+        servings: r.servings,
+        calories: r.calories,
+        mealType: r.tags?.mealType || r.mealType || '',
+        cuisine:  r.tags?.cuisine  || r.cuisine  || '',
+        diet:     r.tags?.diet     || r.diet     || 'Standard',
+        autoTags: r.auto_tags || r.autoTags || [],
+        image: r.image_path || r.image_url || r.image || '',
+        isFeatured: r.is_featured || r.isFeatured || false,
+    };
+}
+
+// ─────────── Filtering / sorting ───────────
+function applyFilters() {
+    let list = state.allRecipes.slice();
+
+    if (state.search) {
+        const q = state.search.toLowerCase();
+        list = list.filter(r =>
+            (r.title && r.title.toLowerCase().includes(q)) ||
+            (r.description && r.description.toLowerCase().includes(q))
+        );
+    }
+    if (state.meal !== 'All')    list = list.filter(r => r.mealType === state.meal);
+    if (state.diet !== 'All')    list = list.filter(r => r.diet === state.diet);
+    if (state.cuisine !== 'All') list = list.filter(r => r.cuisine === state.cuisine);
+    if (state.time !== 'Any') {
+        const cap = state.time === 'Under 15 min' ? 15 : state.time === 'Under 30 min' ? 30 : 60;
+        list = list.filter(r => r.totalTime && r.totalTime <= cap);
+    }
+    if (state.cals !== 'Any') {
+        const cap = state.cals === 'Under 300' ? 300 : state.cals === 'Under 500' ? 500 : 700;
+        list = list.filter(r => r.calories && r.calories <= cap);
+    }
+
+    if (state.sort === 'Prep Time') list.sort((a, b) => (a.totalTime || 9999) - (b.totalTime || 9999));
+    else if (state.sort === 'Calories') list.sort((a, b) => (a.calories || 9999) - (b.calories || 9999));
+    else if (state.sort === 'Newest') list.reverse();
+
+    return list;
+}
+
+// ─────────── Rendering ───────────
+function renderFilters() {
+    const aside = document.getElementById('filters');
+    aside.innerHTML = FILTERS.map(f => {
+        const cur = state[f.name];
+        const active = cur !== f.default;
+        return `
+            <div class="filter-group">
+                <h3>
+                    ${f.label}
+                    <button class="clear ${active ? 'show' : ''}" data-clear="${f.name}">Clear</button>
+                </h3>
+                <div class="pill-row">
+                    ${f.opts.map(o => `
+                        <button class="pill ${cur === o ? 'active' : ''}" data-filter="${f.name}" data-value="${o}">${o}</button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('') + `<button class="clear-all ${hasAnyFilter() ? 'show' : ''}" id="clear-all">${ICON.x} Clear all filters</button>`;
+}
+
+function hasAnyFilter() {
+    return state.meal !== 'All' || state.diet !== 'All' || state.cuisine !== 'All' || state.time !== 'Any' || state.cals !== 'Any';
+}
+
+function dietClassName(d) {
+    return (d || '').toLowerCase().replace(/[^a-z]/g, '');
+}
+
+function renderCard(r) {
+    const dietCls = dietClassName(r.diet);
+    const showDietTag = r.diet && r.diet !== 'Standard' && r.diet !== '';
+    const isSaved = state.saved.has(r.slug);
+    const placeholder = `https://via.placeholder.com/600x400/e9e6df/0a0a0a?text=${encodeURIComponent((r.title || 'Recipe').slice(0, 24))}`;
+    const img = r.image || placeholder;
+    return `
+        <a class="card" href="./${r.slug}/">
+            <div class="img-wrap">
+                <img src="${img}" alt="${escapeHtml(r.title)}" loading="lazy" onerror="this.src='${placeholder}'">
+                <button class="save ${isSaved ? 'on' : ''}" data-save="${r.slug}" aria-label="Save recipe">${isSaved ? ICON.heartFill : ICON.heart}</button>
+                ${r.cuisine ? `<div class="src-tag">${escapeHtml(r.cuisine)}</div>` : ''}
+            </div>
+            <div class="body">
+                <h3>${escapeHtml(r.title)}</h3>
+                <div class="meta-row">
+                    ${r.totalTime ? `<span style="display:inline-flex;align-items:center;gap:4px;">${ICON.timer} ${r.totalTime} min</span>` : ''}
+                    ${r.totalTime && r.calories ? '<span class="dot"></span>' : ''}
+                    ${r.calories ? `<span>${r.calories} kcal</span>` : ''}
+                    ${(r.totalTime || r.calories) && showDietTag ? '<span class="dot"></span>' : ''}
+                    ${showDietTag ? `<span>${escapeHtml(r.diet)}</span>` : ''}
+                </div>
+                ${showDietTag ? `<div class="tags"><span class="tag diet-${dietCls}">${escapeHtml(r.diet)}</span></div>` : ''}
+            </div>
+        </a>
+    `;
+}
+
+function renderResults() {
+    const filtered = applyFilters();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (state.page > totalPages) state.page = totalPages;
+    const start = (state.page - 1) * PAGE_SIZE;
+    const slice = filtered.slice(start, start + PAGE_SIZE);
+
+    document.getElementById('showing-count').textContent = filtered.length.toLocaleString();
+    document.getElementById('total-showing').textContent = state.allRecipes.length.toLocaleString();
+
+    const grid = document.getElementById('grid');
+    grid.className = 'grid' + (state.view === 'list' ? ' list' : '');
+
+    if (slice.length === 0) {
+        grid.innerHTML = `<div class="state-card"><h3>No recipes match these filters</h3><p>Try clearing some filters or changing your search.</p></div>`;
+    } else {
+        grid.innerHTML = slice.map(renderCard).join('');
+    }
+
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    const pag = document.getElementById('pagination');
+    if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+    const p = state.page;
+    const pages = [];
+    const push = n => pages.push(n);
+    push(1);
+    if (p > 3) push('…');
+    for (let i = Math.max(2, p - 1); i <= Math.min(totalPages - 1, p + 1); i++) push(i);
+    if (p < totalPages - 2) push('…');
+    if (totalPages > 1) push(totalPages);
+
+    pag.innerHTML = `
+        <button data-page="prev" ${p === 1 ? 'disabled' : ''}>← Prev</button>
+        ${pages.map(n => n === '…'
+            ? `<button class="gap" disabled>…</button>`
+            : `<button class="${n === p ? 'on' : ''}" data-page="${n}">${n}</button>`
+        ).join('')}
+        <button data-page="next" ${p === totalPages ? 'disabled' : ''}>Next ${ICON.arrow}</button>
+    `;
+}
+
+function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// ─────────── Event wiring ───────────
+function wireEvents() {
+    document.getElementById('filters').addEventListener('click', e => {
+        const pill = e.target.closest('[data-filter]');
+        if (pill) {
+            const name = pill.dataset.filter;
+            state[name] = pill.dataset.value;
+            state.page = 1;
+            renderFilters();
+            renderResults();
+            return;
         }
-
-        // Filter recipes - now fetches from Supabase with filters
-        async function filterRecipes() {
-            const search = document.getElementById('search').value;
-            const mealType = document.getElementById('mealType').value;
-            const cuisine = document.getElementById('cuisine').value;
-            const diet = document.getElementById('diet').value;
-
-            if (USE_SUPABASE) {
-                try {
-                    const recipes = await loadRecipesFromSupabase({
-                        search: search || null,
-                        mealType: mealType || null,
-                        cuisine: cuisine || null,
-                        diet: diet || null
-                    });
-                    displayRecipes(recipes);
-                } catch (error) {
-                    console.error('Error filtering recipes:', error);
-                    // Fall back to client-side filtering
-                    clientSideFilter(search, mealType, cuisine, diet);
-                }
-            } else {
-                clientSideFilter(search, mealType, cuisine, diet);
-            }
+        const clear = e.target.closest('[data-clear]');
+        if (clear) {
+            const name = clear.dataset.clear;
+            const f = FILTERS.find(x => x.name === name);
+            state[name] = f.default;
+            state.page = 1;
+            renderFilters();
+            renderResults();
+            return;
         }
-        
-        // Client-side filtering fallback
-        function clientSideFilter(search, mealType, cuisine, diet) {
-            const searchLower = search.toLowerCase();
-            const filtered = allRecipes.filter(recipe => {
-                const matchesSearch = !search || 
-                    recipe.title.toLowerCase().includes(searchLower) || 
-                    recipe.description.toLowerCase().includes(searchLower);
-                const matchesMealType = !mealType || recipe.mealType === mealType;
-                const matchesCuisine = !cuisine || recipe.cuisine === cuisine;
-                const matchesDiet = !diet || recipe.diet === diet;
-
-                return matchesSearch && matchesMealType && matchesCuisine && matchesDiet;
-            });
-
-            displayRecipes(filtered);
+        if (e.target.closest('#clear-all')) {
+            FILTERS.forEach(f => state[f.name] = f.default);
+            state.page = 1;
+            renderFilters();
+            renderResults();
         }
+    });
 
-        // Debounce helper
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
+    // Save toggle (delegated on grid)
+    document.getElementById('grid').addEventListener('click', e => {
+        const save = e.target.closest('[data-save]');
+        if (!save) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const slug = save.dataset.save;
+        if (state.saved.has(slug)) state.saved.delete(slug); else state.saved.add(slug);
+        localStorage.setItem('rb-saved', JSON.stringify([...state.saved]));
+        save.classList.toggle('on');
+        save.innerHTML = state.saved.has(slug) ? ICON.heartFill : ICON.heart;
+    });
+
+    // Pagination
+    document.getElementById('pagination').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-page]');
+        if (!btn || btn.disabled) return;
+        const v = btn.dataset.page;
+        const totalPages = Math.max(1, Math.ceil(applyFilters().length / PAGE_SIZE));
+        if (v === 'prev') state.page = Math.max(1, state.page - 1);
+        else if (v === 'next') state.page = Math.min(totalPages, state.page + 1);
+        else state.page = parseInt(v, 10);
+        renderResults();
+        window.scrollTo({ top: document.querySelector('main.results').offsetTop - 80, behavior: 'smooth' });
+    });
+
+    // Search
+    let searchTimer;
+    document.getElementById('search').addEventListener('input', e => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            state.search = e.target.value.trim();
+            state.page = 1;
+            renderResults();
+        }, 200);
+    });
+
+    // Sort
+    document.getElementById('sort').addEventListener('change', e => {
+        state.sort = e.target.value;
+        state.page = 1;
+        renderResults();
+    });
+
+    // View toggle
+    document.getElementById('view-toggle').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-view]');
+        if (!btn) return;
+        state.view = btn.dataset.view;
+        document.querySelectorAll('#view-toggle button').forEach(b => b.classList.toggle('on', b === btn));
+        renderResults();
+    });
+}
+
+// ─────────── Init ───────────
+async function init() {
+    renderFilters();
+    // Skeleton state
+    const grid = document.getElementById('grid');
+    grid.innerHTML = Array.from({ length: 6 }).map(() => `
+        <div class="card skeleton">
+            <div class="img-wrap"></div>
+            <div class="body"><h3>&nbsp;</h3><div class="meta-row">&nbsp;</div></div>
+        </div>
+    `).join('');
+
+    try {
+        state.allRecipes = USE_SUPABASE ? await loadRecipesFromSupabase() : await loadRecipesFromJSON();
+    } catch (err) {
+        console.error('Supabase load failed, trying local JSON:', err);
+        try {
+            state.allRecipes = await loadRecipesFromJSON();
+        } catch (err2) {
+            console.error('Local JSON load also failed:', err2);
+            const isFile = window.location.protocol === 'file:';
+            grid.innerHTML = isFile
+                ? `<div class="state-card error">
+                       <h3>⚠ Local testing requires a web server</h3>
+                       <p>Run <code>python3 -m http.server 8000</code> in <code>netlify-deploy/</code>, then open <a href="http://localhost:8000/recipes/">http://localhost:8000/recipes/</a></p>
+                   </div>`
+                : `<div class="state-card error"><h3>Couldn't load recipes</h3><p>Please try again later.</p></div>`;
+            return;
         }
+    }
 
-        // Event listeners with debouncing for search
-        document.getElementById('search').addEventListener('input', debounce(filterRecipes, 300));
-        document.getElementById('mealType').addEventListener('change', filterRecipes);
-        document.getElementById('cuisine').addEventListener('change', filterRecipes);
-        document.getElementById('diet').addEventListener('change', filterRecipes);
+    document.getElementById('total-count').textContent = state.allRecipes.length.toLocaleString();
+    renderResults();
+}
 
-        // Initialize
-        loadRecipes();
-    </script>
+wireEvents();
+init();
+</script>
+
 </body>
 </html>

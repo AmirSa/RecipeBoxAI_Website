@@ -1,0 +1,219 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Cookbooks" description="Your RecipeBox AI cookbooks on the web.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="robots" content="noindex">
+
+  <nav class="rb-nav">
+    <div class="container inner">
+      <a class="brand" href="/">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </a>
+      <ul>
+        <li><a href="/#features">Features</a></li>
+        <li><a href="/recipes/">Recipes</a></li>
+        <li><a href="/my/recipes/">My Recipes</a></li>
+        <li><a class="current" href="/my/cookbooks/">Cookbooks</a></li>
+        <li><a href="/account/">Account</a></li>
+      </ul>
+      <div class="nav-account" id="nav-account" hidden>
+        <a class="who" id="nav-email" href="/account/"></a>
+        <button class="signout" id="signout-btn" type="button">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="page-head">
+      <div class="left">
+        <div class="eyebrow">Synced from your phone</div>
+        <h1 class="display">Your<br><em>cookbooks.</em></h1>
+        <p class="lead">Collections you've curated in the RecipeBox AI app — every cookbook, on every device.</p>
+      </div>
+      <div class="right">
+        <div class="count" id="head-count">–</div>
+        <div class="count-label">Cookbooks</div>
+      </div>
+    </header>
+
+    <main id="cb-body">
+      <div class="grid">
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w60"></div><div class="sk-line w30"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w70"></div><div class="sk-line w35"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w55"></div><div class="sk-line w30"></div></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="rb-footer">
+    <div class="container row">
+      <div class="brand"><img class="app-ico" src="/app-icon.png" alt="">RecipeBox AI</div>
+      <div class="links">
+        <a href="mailto:hello@recipeboxai.app">Support</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="https://twitter.com/RecipeBoxAI">Twitter</a>
+      </div>
+      <div class="copy">© 2026 RecipeBox AI</div>
+    </div>
+  </footer>
+
+  <script>
+    import {
+      requireSession, signOut, escapeHtml, fetchCookbooksWithCounts,
+      type CookbookWithCount,
+    } from '@/lib/account';
+
+    const body = document.getElementById('cb-body') as HTMLElement;
+    const headCount = document.getElementById('head-count') as HTMLElement;
+
+    function cardHtml(c: CookbookWithCount): string {
+      const initial = escapeHtml((c.name || 'C').slice(0, 1).toUpperCase());
+      return `
+        <a class="cb-card" href="/my/cookbooks/view/?id=${encodeURIComponent(c.id)}">
+          <div class="cb-cover">
+            ${c.cover
+              ? `<img src="${escapeHtml(c.cover)}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cb-ph',textContent:'${initial}'}))">`
+              : `<div class="cb-ph">${initial}</div>`}
+          </div>
+          <div class="cb-body">
+            <h3>${escapeHtml(c.name)}</h3>
+            ${c.description ? `<p class="cb-desc">${escapeHtml(c.description)}</p>` : ''}
+            <span class="cb-count">${c.count} recipe${c.count === 1 ? '' : 's'}</span>
+          </div>
+        </a>`;
+    }
+
+    function showError(message: string) {
+      body.innerHTML = `
+        <div class="state-card">
+          <h3>Couldn't load your cookbooks</h3>
+          <p>${escapeHtml(message)}</p>
+          <button class="state-btn" id="retry-btn">Try again</button>
+        </div>`;
+      document.getElementById('retry-btn')?.addEventListener('click', () => location.reload());
+    }
+
+    async function load() {
+      const session = await requireSession();
+      if (!session) return;
+      (document.getElementById('nav-email') as HTMLElement).textContent = session.user.email ?? '';
+      (document.getElementById('nav-account') as HTMLElement).hidden = false;
+      document.getElementById('signout-btn')?.addEventListener('click', () => signOut());
+
+      const cookbooks = await fetchCookbooksWithCounts();
+      headCount.textContent = String(cookbooks.length);
+
+      if (cookbooks.length === 0) {
+        body.innerHTML = `
+          <div class="state-card">
+            <h3>No cookbooks yet</h3>
+            <p>Create cookbooks in the RecipeBox AI app to group your recipes into collections — they'll sync here automatically.</p>
+            <a class="state-btn" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">Get the app</a>
+          </div>`;
+        return;
+      }
+      body.innerHTML = `<div class="grid">${cookbooks.map(cardHtml).join('')}</div>`;
+    }
+
+    load().catch((err) => showError(err instanceof Error ? err.message : 'Something went wrong.'));
+  </script>
+</BaseLayout>
+
+<style is:global>
+  :root {
+    --bg: #f0eee9; --bg-2: #e9e6df; --ink: #0a0a0a; --ink-2: #2a2a2c; --muted: #6e6e73;
+    --line: rgba(10,10,10,0.08); --line-2: rgba(10,10,10,0.04);
+    --serif: "Fraunces", Georgia, serif; --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.45; }
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: #0a0a0a; color: #fff; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 56px; }
+  .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
+  .display em { font-style: italic; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+  .lead { font-size: 19px; line-height: 1.45; color: var(--ink-2); letter-spacing: -0.01em; }
+
+  nav.rb-nav { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); background: color-mix(in srgb, var(--bg) 86%, transparent); border-bottom: 1px solid var(--line-2); }
+  nav.rb-nav .inner { display: flex; align-items: center; justify-content: space-between; height: 64px; max-width: 1200px; }
+  nav.rb-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; font-size: 17px; color: var(--ink); }
+  nav.rb-nav .brand .app-ico { width: 30px; height: 30px; border-radius: 7px; box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+  nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
+  nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
+  .nav-account { display: flex; align-items: center; gap: 12px; }
+  .nav-account .who { font-size: 12.5px; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-account a.who:hover { color: var(--ink); }
+  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink); }
+
+  header.page-head { padding: 40px 0 36px; display: flex; justify-content: space-between; align-items: end; gap: 40px; flex-wrap: wrap; }
+  header.page-head .left { max-width: 680px; }
+  header.page-head h1 { font-size: 80px; margin: 14px 0 0; }
+  header.page-head .lead { margin-top: 16px; max-width: 46ch; }
+  header.page-head .right { display: flex; flex-direction: column; gap: 8px; align-items: end; }
+  header.page-head .count { font-family: var(--serif); font-size: 56px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  header.page-head .count-label { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+
+  main#cb-body { padding-bottom: 96px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+  .cb-card { border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform 200ms ease; color: var(--ink); }
+  .cb-card:hover { transform: translateY(-3px); }
+  .cb-cover { aspect-ratio: 3/2; border-radius: 22px; overflow: hidden; background: var(--bg-2); }
+  .cb-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .cb-card:hover .cb-cover img { transform: scale(1.04); }
+  .cb-ph { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 64px; font-weight: 500; color: rgba(10,10,10,0.18); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
+  .cb-body { padding: 16px 4px 4px; }
+  .cb-body h3 { font-family: var(--serif); font-size: 24px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 6px; line-height: 1.12; text-wrap: balance; }
+  .cb-desc { font-size: 13.5px; color: var(--ink-2); margin: 0 0 8px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cb-count { font-size: 12px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+
+  .state-card { padding: 72px 28px; text-align: center; background: #fff; border: 1px solid var(--line-2); border-radius: 22px; }
+  .state-card h3 { font-family: var(--serif); font-size: 32px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .state-card p { margin: 0 auto; color: var(--muted); font-size: 15px; max-width: 46ch; }
+  .state-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: 24px; height: 46px; padding: 0 24px; border-radius: 999px; background: #0a0a0a; color: #fff; border: 0; font-size: 14px; font-weight: 600; }
+  .state-btn:hover { background: #1a1a1a; }
+
+  .sk-card { border-radius: 22px; }
+  .sk-img { aspect-ratio: 3/2; border-radius: 22px; }
+  .sk-line { height: 14px; border-radius: 7px; margin-top: 12px; }
+  .sk-line.w70 { width: 70%; } .sk-line.w60 { width: 60%; } .sk-line.w55 { width: 55%; }
+  .sk-line.w35 { width: 35%; } .sk-line.w30 { width: 30%; }
+  .sk-img, .sk-line { background: linear-gradient(90deg, var(--bg-2) 25%, #e0dcd2 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+  footer.rb-footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; max-width: 1200px; }
+  footer.rb-footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 16px; }
+  footer.rb-footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+  footer.rb-footer .links { display: flex; gap: 24px; font-size: 14px; }
+  footer.rb-footer .links a { color: rgba(255,255,255,0.6); }
+  footer.rb-footer .links a:hover { color: #fff; }
+  footer.rb-footer .copy { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 760px) {
+    .container { padding: 0 22px; }
+    nav.rb-nav ul { display: none; }
+    .nav-account .who { display: none; }
+    header.page-head { padding: 24px 0 24px; }
+    header.page-head h1 { font-size: 48px; }
+    header.page-head .right { align-items: start; }
+    header.page-head .count { font-size: 40px; }
+    .grid { grid-template-columns: 1fr; }
+    footer.rb-footer .row { flex-direction: column; align-items: flex-start; gap: 18px; }
+  }
+</style>

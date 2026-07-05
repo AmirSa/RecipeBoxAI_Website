@@ -462,6 +462,8 @@ export interface CookbookWithCount {
   name: string;
   description: string | null;
   image_url: string | null;
+  /** Best available cover: the cookbook's own image, else a member recipe's photo. */
+  cover: string | null;
   count: number;
 }
 
@@ -472,20 +474,44 @@ export async function fetchCookbooksWithCounts(): Promise<CookbookWithCount[]> {
       .select('id, name, description, image_url, created_at')
       .is('deleted_at', null)
       .order('created_at', { ascending: false }),
-    supabase.from('cookbook_recipes').select('cookbook_id'),
+    supabase.from('cookbook_recipes').select('cookbook_id, recipe_id'),
   ]);
   // Surface a real failure instead of silently rendering "0 cookbooks" (which
   // is indistinguishable from a genuinely empty account and hides bugs).
   if (cbRes.error) throw new Error(cbRes.error.message);
+
+  const links = (linksRes.data ?? []) as { cookbook_id: string; recipe_id: string }[];
   const counts = new Map<string, number>();
-  for (const row of (linksRes.data ?? []) as { cookbook_id: string }[]) {
-    counts.set(row.cookbook_id, (counts.get(row.cookbook_id) ?? 0) + 1);
+  for (const row of links) counts.set(row.cookbook_id, (counts.get(row.cookbook_id) ?? 0) + 1);
+
+  // Cover fallback: like the apps' collage, use a member recipe's photo when
+  // the cookbook has no image of its own.
+  const imageByRecipe = new Map<string, string>();
+  const recipeIds = [...new Set(links.map((l) => l.recipe_id))];
+  if (recipeIds.length > 0) {
+    const { data: imgRows } = await supabase
+      .from('recipes')
+      .select('id, image_url')
+      .in('id', recipeIds)
+      .is('deleted_at', null)
+      .not('image_url', 'is', null);
+    for (const r of (imgRows ?? []) as { id: string; image_url: string }[]) {
+      imageByRecipe.set(r.id, r.image_url);
+    }
   }
+  const memberCover = new Map<string, string>();
+  for (const l of links) {
+    if (memberCover.has(l.cookbook_id)) continue;
+    const img = imageByRecipe.get(l.recipe_id);
+    if (img) memberCover.set(l.cookbook_id, img);
+  }
+
   return ((cbRes.data ?? []) as Record<string, any>[]).map((c) => ({
     id: c.id,
     name: c.name || 'Untitled cookbook',
     description: c.description ?? null,
     image_url: c.image_url ?? null,
+    cover: c.image_url ?? memberCover.get(c.id) ?? null,
     count: counts.get(c.id) ?? 0,
   }));
 }

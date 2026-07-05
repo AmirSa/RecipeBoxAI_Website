@@ -337,7 +337,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       const navAccount = document.getElementById('nav-account') as HTMLElement;
       (document.getElementById('nav-email') as HTMLElement).textContent = session.user.email ?? '';
       navAccount.hidden = false;
-      document.getElementById('signout-btn')?.addEventListener('click', signOut);
+      document.getElementById('signout-btn')?.addEventListener('click', () => signOut());
 
       const id = new URLSearchParams(window.location.search).get('id');
       if (!id) {

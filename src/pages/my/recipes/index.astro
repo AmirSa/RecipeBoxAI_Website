@@ -240,7 +240,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
         state.sort = (e.target as HTMLSelectElement).value;
         renderResults();
       });
-      document.getElementById('signout-btn')?.addEventListener('click', signOut);
+      document.getElementById('signout-btn')?.addEventListener('click', () => signOut());
     }
 
     async function load() {

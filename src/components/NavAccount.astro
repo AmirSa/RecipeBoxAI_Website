@@ -10,7 +10,7 @@
 </div>
 
 <script>
-  import { supabase } from '@/lib/account';
+  import { supabase, signOut } from '@/lib/account';
 
   supabase.auth.getSession().then(({ data: { session } }) => {
     if (!session) return;
@@ -22,10 +22,8 @@
     if (account) account.hidden = false;
   });
 
-  document.getElementById('signout-btn')?.addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
-  });
+  // Sign out and return to the home page (this button lives on public pages).
+  document.getElementById('signout-btn')?.addEventListener('click', () => signOut('/'));
 </script>
 
 <style>

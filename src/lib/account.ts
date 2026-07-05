@@ -348,7 +348,30 @@ export async function requireSession() {
   return session;
 }
 
-export async function signOut() {
-  await supabase.auth.signOut();
-  window.location.href = '/login/';
+/**
+ * Sign out and go to `dest`.
+ *
+ * `supabase.auth.signOut()` (default global scope) can hang forever on a
+ * navigator Web Lock — the token is never cleared and the promise never
+ * resolves, so the user appears stuck logged in. We therefore:
+ *   1. clear the persisted session synchronously (the source of truth), and
+ *   2. hard-navigate, which tears down the page and releases every lock,
+ * without ever awaiting the SDK call. A local-scope signOut is fired in the
+ * background as a courtesy (revokes nothing server-side; a web logout only
+ * needs to forget this browser's session).
+ */
+export function signOut(dest = '/login/') {
+  try {
+    supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('sb-') && k.endsWith('-auth-token')) localStorage.removeItem(k);
+    }
+  } catch {
+    /* ignore */
+  }
+  window.location.href = dest;
 }

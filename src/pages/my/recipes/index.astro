@@ -1,0 +1,427 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="My Recipes" description="Your RecipeBox AI recipe library on the web.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="robots" content="noindex">
+
+  <!-- ─── Nav ─── -->
+  <nav class="rb-nav">
+    <div class="container inner">
+      <a class="brand" href="/">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </a>
+      <ul>
+        <li><a href="/#features">Features</a></li>
+        <li><a href="/recipes/">Recipes</a></li>
+        <li><a class="current" href="/my/recipes/">My Recipes</a></li>
+      </ul>
+      <div class="nav-account" id="nav-account" hidden>
+        <span class="who" id="nav-email"></span>
+        <button class="signout" id="signout-btn">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="page-head">
+      <div class="left">
+        <div class="eyebrow">Synced from your phone</div>
+        <h1 class="display">Your recipes.<br><em>Everywhere.</em></h1>
+        <p class="lead">Everything you've saved in the RecipeBox AI app, right here in your browser — always in sync.</p>
+      </div>
+      <div class="right">
+        <div class="count" id="head-count">–</div>
+        <div class="count-label">Recipes in your library</div>
+      </div>
+    </header>
+
+    <main class="results">
+      <div class="toolbar" id="toolbar" hidden>
+        <div class="filter-pills" id="filter-pills"></div>
+        <div class="right">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="search" placeholder="Search your recipes…" autocomplete="off">
+          </div>
+          <span class="sort-label">Sort</span>
+          <select class="sort-select" id="sort">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="alpha">A–Z</option>
+            <option value="time">Quickest</option>
+            <option value="calories">Calories</option>
+            <option value="rating">Top rated</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid" id="grid">
+        <!-- skeletons while loading -->
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w70"></div><div class="sk-line w40"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w60"></div><div class="sk-line w35"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w75"></div><div class="sk-line w45"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w55"></div><div class="sk-line w30"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w65"></div><div class="sk-line w40"></div></div>
+        <div class="sk-card"><div class="sk-img"></div><div class="sk-line w70"></div><div class="sk-line w35"></div></div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="rb-footer">
+    <div class="container row">
+      <div class="brand">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </div>
+      <div class="links">
+        <a href="mailto:hello@recipeboxai.app">Support</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="https://twitter.com/RecipeBoxAI">Twitter</a>
+      </div>
+      <div class="copy">© 2026 RecipeBox AI</div>
+    </div>
+  </footer>
+
+  <script>
+    import {
+      supabase, requireSession, signOut, escapeHtml, tagHex,
+      type UserRecipeRow, type UserTagRow,
+    } from '@/lib/account';
+
+    const ICON = {
+      timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>',
+      heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
+    };
+
+    interface CardModel {
+      id: string;
+      title: string;
+      totalTime: number;
+      calories: number;
+      rating: number;
+      isFavorite: boolean;
+      image: string | null;
+      createdAt: number;
+      tagIds: string[];
+    }
+
+    const state = {
+      all: [] as CardModel[],
+      tags: [] as UserTagRow[],
+      search: '',
+      sort: 'newest',
+      filter: 'all' as string, // 'all' | 'favorites' | tag id
+    };
+
+    const grid = document.getElementById('grid') as HTMLElement;
+    const toolbar = document.getElementById('toolbar') as HTMLElement;
+    const pillsEl = document.getElementById('filter-pills') as HTMLElement;
+    const headCount = document.getElementById('head-count') as HTMLElement;
+
+    function placeholderCard(title: string) {
+      return `<div class="ph"><span>${escapeHtml((title || 'R').slice(0, 1).toUpperCase())}</span></div>`;
+    }
+
+    function renderCard(r: CardModel) {
+      const tags = r.tagIds
+        .map((id) => state.tags.find((t) => t.id === id))
+        .filter((t): t is UserTagRow => !!t)
+        .slice(0, 3);
+      return `
+        <a class="card" href="/my/recipes/view/?id=${encodeURIComponent(r.id)}">
+          <div class="img-wrap">
+            ${r.image
+              ? `<img src="${escapeHtml(r.image)}" alt="${escapeHtml(r.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${escapeHtml((r.title || 'R').slice(0, 1).toUpperCase())}'}))">`
+              : placeholderCard(r.title)}
+            ${r.isFavorite ? `<div class="fav" title="Favorite">${ICON.heart}</div>` : ''}
+            ${r.rating > 0 ? `<div class="rating">${ICON.star} ${r.rating}</div>` : ''}
+          </div>
+          <div class="body">
+            <h3>${escapeHtml(r.title)}</h3>
+            <div class="meta-row">
+              ${r.totalTime > 0 ? `<span class="mt">${ICON.timer} ${r.totalTime} min</span>` : ''}
+              ${r.totalTime > 0 && r.calories > 0 ? '<span class="dot"></span>' : ''}
+              ${r.calories > 0 ? `<span>${r.calories} kcal</span>` : ''}
+            </div>
+            ${tags.length ? `<div class="tags">${tags.map((t) => {
+              const hex = tagHex(t.color);
+              return `<span class="tag" style="color:${hex}; border-color:${hex}40; background:${hex}12;"><span class="sw" style="background:${hex};"></span>${escapeHtml(t.name)}</span>`;
+            }).join('')}</div>` : ''}
+          </div>
+        </a>`;
+    }
+
+    function applyFilters(): CardModel[] {
+      let list = state.all.slice();
+      if (state.filter === 'favorites') list = list.filter((r) => r.isFavorite);
+      else if (state.filter !== 'all') list = list.filter((r) => r.tagIds.includes(state.filter));
+      if (state.search) {
+        const q = state.search.toLowerCase();
+        list = list.filter((r) => r.title.toLowerCase().includes(q));
+      }
+      switch (state.sort) {
+        case 'oldest':   list.sort((a, b) => a.createdAt - b.createdAt); break;
+        case 'alpha':    list.sort((a, b) => a.title.localeCompare(b.title)); break;
+        case 'time':     list.sort((a, b) => (a.totalTime || 9999) - (b.totalTime || 9999)); break;
+        case 'calories': list.sort((a, b) => (a.calories || 9999) - (b.calories || 9999)); break;
+        case 'rating':   list.sort((a, b) => b.rating - a.rating || b.createdAt - a.createdAt); break;
+        default:         list.sort((a, b) => b.createdAt - a.createdAt);
+      }
+      return list;
+    }
+
+    function renderPills() {
+      const favCount = state.all.filter((r) => r.isFavorite).length;
+      const usedTagIds = new Set(state.all.flatMap((r) => r.tagIds));
+      const tags = state.tags.filter((t) => usedTagIds.has(t.id));
+      pillsEl.innerHTML = [
+        `<button class="pill ${state.filter === 'all' ? 'active' : ''}" data-filter="all">All</button>`,
+        favCount > 0 ? `<button class="pill ${state.filter === 'favorites' ? 'active' : ''}" data-filter="favorites">♥ Favorites</button>` : '',
+        ...tags.map((t) => {
+          const hex = tagHex(t.color);
+          const active = state.filter === t.id;
+          return `<button class="pill tag-pill ${active ? 'active' : ''}" data-filter="${escapeHtml(t.id)}"><span class="sw" style="background:${active ? '#fff' : hex};"></span>${escapeHtml(t.name)}</button>`;
+        }),
+      ].join('');
+    }
+
+    function renderResults() {
+      const list = applyFilters();
+      if (state.all.length === 0) {
+        grid.innerHTML = `
+          <div class="state-card">
+            <h3>Your library is empty</h3>
+            <p>Save your first recipe in the RecipeBox AI app — a link, a photo, or a video — and it will appear here.</p>
+            <a class="state-btn" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">Get the app</a>
+          </div>`;
+        return;
+      }
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="state-card"><h3>No matches</h3><p>Try a different search or filter.</p></div>`;
+        return;
+      }
+      grid.innerHTML = list.map(renderCard).join('');
+    }
+
+    function showError(message: string) {
+      grid.innerHTML = `
+        <div class="state-card">
+          <h3>Couldn't load your recipes</h3>
+          <p>${escapeHtml(message)}</p>
+          <button class="state-btn" id="retry-btn">Try again</button>
+        </div>`;
+      document.getElementById('retry-btn')?.addEventListener('click', () => window.location.reload());
+    }
+
+    function wire() {
+      pillsEl.addEventListener('click', (e) => {
+        const pill = (e.target as HTMLElement).closest('[data-filter]') as HTMLElement | null;
+        if (!pill) return;
+        state.filter = pill.dataset.filter!;
+        renderPills();
+        renderResults();
+      });
+      let t: ReturnType<typeof setTimeout>;
+      (document.getElementById('search') as HTMLInputElement).addEventListener('input', (e) => {
+        clearTimeout(t);
+        t = setTimeout(() => {
+          state.search = (e.target as HTMLInputElement).value.trim();
+          renderResults();
+        }, 150);
+      });
+      (document.getElementById('sort') as HTMLSelectElement).addEventListener('change', (e) => {
+        state.sort = (e.target as HTMLSelectElement).value;
+        renderResults();
+      });
+      document.getElementById('signout-btn')?.addEventListener('click', signOut);
+    }
+
+    async function load() {
+      const session = await requireSession();
+      if (!session) return;
+
+      const navAccount = document.getElementById('nav-account') as HTMLElement;
+      (document.getElementById('nav-email') as HTMLElement).textContent = session.user.email ?? '';
+      navAccount.hidden = false;
+
+      const [recipesRes, tagsRes] = await Promise.all([
+        supabase
+          .from('recipes')
+          .select('id, title, prep_time, cook_time, total_time, servings, calories, is_favorite, rating, image_url, created_at, recipe_tags(tag_id)')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('tags')
+          .select('id, name, color')
+          .is('deleted_at', null)
+          .order('name'),
+      ]);
+
+      if (recipesRes.error) {
+        showError(recipesRes.error.message);
+        return;
+      }
+
+      state.tags = (tagsRes.data ?? []) as UserTagRow[];
+      state.all = ((recipesRes.data ?? []) as unknown as UserRecipeRow[]).map((r) => ({
+        id: r.id,
+        title: r.title || 'Untitled recipe',
+        totalTime: r.total_time || (r.prep_time || 0) + (r.cook_time || 0),
+        calories: r.calories || 0,
+        rating: r.rating || 0,
+        isFavorite: !!r.is_favorite,
+        image: r.image_url,
+        createdAt: r.created_at ? Date.parse(r.created_at) : 0,
+        tagIds: (r.recipe_tags ?? []).map((t) => t.tag_id),
+      }));
+
+      headCount.textContent = String(state.all.length);
+      toolbar.hidden = state.all.length === 0;
+      renderPills();
+      renderResults();
+      wire();
+    }
+
+    load().catch((err) => showError(err instanceof Error ? err.message : 'Something went wrong.'));
+  </script>
+</BaseLayout>
+
+<style is:global>
+  :root {
+    --bg: #f0eee9;
+    --bg-2: #e9e6df;
+    --ink: #0a0a0a;
+    --ink-2: #2a2a2c;
+    --muted: #6e6e73;
+    --line: rgba(10,10,10,0.08);
+    --line-2: rgba(10,10,10,0.04);
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.45; }
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: #0a0a0a; color: #fff; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+
+  .container { max-width: 1440px; margin: 0 auto; padding: 0 56px; }
+  .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
+  .display em { font-style: italic; font-weight: 400; }
+  .eyebrow { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
+  .lead { font-size: 19px; line-height: 1.45; color: var(--ink-2); letter-spacing: -0.01em; text-wrap: pretty; }
+
+  /* Nav */
+  nav.rb-nav { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); background: color-mix(in srgb, var(--bg) 86%, transparent); border-bottom: 1px solid var(--line-2); }
+  nav.rb-nav .inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  nav.rb-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; font-size: 17px; color: var(--ink); }
+  nav.rb-nav .brand .app-ico { width: 30px; height: 30px; border-radius: 7px; box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+  nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
+  nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
+  .nav-account { display: flex; align-items: center; gap: 12px; }
+  .nav-account .who { font-size: 12.5px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink); }
+
+  /* Header */
+  header.page-head { padding: 40px 0 36px; display: flex; justify-content: space-between; align-items: end; gap: 40px; flex-wrap: wrap; }
+  header.page-head .left { max-width: 720px; }
+  header.page-head h1 { font-size: 88px; margin: 14px 0 0; }
+  header.page-head .lead { margin-top: 16px; max-width: 48ch; }
+  header.page-head .right { display: flex; flex-direction: column; gap: 8px; align-items: end; }
+  header.page-head .count { font-family: var(--serif); font-size: 56px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  header.page-head .count-label { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+
+  /* Toolbar */
+  main.results { padding-bottom: 96px; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--line); gap: 20px; flex-wrap: wrap; }
+  .toolbar .right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .toolbar .sort-label { font-size: 13px; color: var(--muted); }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; background: transparent; border: 1px solid var(--line); color: var(--ink-2); letter-spacing: -0.005em; transition: background 100ms ease, color 100ms ease, border-color 100ms ease; display: inline-flex; align-items: center; gap: 7px; }
+  .pill:hover { border-color: rgba(10,10,10,0.25); color: var(--ink); }
+  .pill.active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+  .pill .sw { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .search-wrap { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; }
+  .search-wrap svg { color: var(--muted); flex-shrink: 0; }
+  .search-wrap input { border: 0; outline: 0; background: transparent; font-family: var(--sans); font-size: 13.5px; color: var(--ink); width: 200px; }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .sort-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid var(--line); padding: 10px 38px 10px 14px; border-radius: 999px; font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: var(--ink); background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.2' stroke-linecap='round'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+
+  /* Grid + cards */
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .card { background: transparent; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform 200ms ease; cursor: pointer; color: var(--ink); }
+  .card:hover { transform: translateY(-3px); }
+  .card .img-wrap { aspect-ratio: 4/3; border-radius: 22px; overflow: hidden; position: relative; background: var(--bg-2); }
+  .card .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .card:hover .img-wrap img { transform: scale(1.04); }
+  .card .img-wrap .ph { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 72px; font-weight: 500; color: rgba(10,10,10,0.18); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
+  .card .fav { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: grid; place-items: center; color: #e0533d; }
+  .card .rating { position: absolute; bottom: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); font-size: 11.5px; font-weight: 700; color: var(--ink); display: inline-flex; align-items: center; gap: 5px; }
+  .card .rating svg { color: #d9a514; }
+  .card .body { padding: 16px 4px 4px; display: flex; flex-direction: column; gap: 10px; }
+  .card h3 { font-family: var(--serif); font-size: 22px; line-height: 1.1; font-weight: 500; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  .card .meta-row { display: flex; gap: 10px; font-size: 12px; color: var(--muted); align-items: center; flex-wrap: wrap; }
+  .card .meta-row .mt { display: inline-flex; align-items: center; gap: 4px; }
+  .card .meta-row .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+  .card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+  .card .tag { padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; border: 1px solid; display: inline-flex; align-items: center; gap: 5px; }
+  .card .tag .sw { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Skeletons */
+  .sk-card { border-radius: 22px; }
+  .sk-img { aspect-ratio: 4/3; border-radius: 22px; }
+  .sk-line { height: 14px; border-radius: 7px; margin-top: 12px; }
+  .sk-line.w70 { width: 70%; } .sk-line.w60 { width: 60%; } .sk-line.w75 { width: 75%; }
+  .sk-line.w55 { width: 55%; } .sk-line.w65 { width: 65%; }
+  .sk-line.w40 { width: 40%; } .sk-line.w35 { width: 35%; } .sk-line.w45 { width: 45%; } .sk-line.w30 { width: 30%; }
+  .sk-img, .sk-line { background: linear-gradient(90deg, var(--bg-2) 25%, #e0dcd2 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* States */
+  .state-card { grid-column: 1 / -1; padding: 72px 28px; text-align: center; background: #fff; border: 1px solid var(--line-2); border-radius: 22px; }
+  .state-card h3 { font-family: var(--serif); font-size: 32px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .state-card p { margin: 0 auto; color: var(--muted); font-size: 15px; max-width: 46ch; }
+  .state-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: 24px; height: 46px; padding: 0 24px; border-radius: 999px; background: #0a0a0a; color: #fff; border: 0; font-size: 14px; font-weight: 600; }
+  .state-btn:hover { background: #1a1a1a; }
+
+  /* Footer */
+  footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+  footer.rb-footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  footer.rb-footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
+  footer.rb-footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+  footer.rb-footer .links { display: flex; gap: 24px; font-size: 14px; }
+  footer.rb-footer .links a { color: rgba(255,255,255,0.6); }
+  footer.rb-footer .links a:hover { color: #fff; }
+  footer.rb-footer .copy { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .container { padding: 0 32px; }
+    header.page-head h1 { font-size: 64px; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 760px) {
+    .container { padding: 0 22px; }
+    nav.rb-nav ul { display: none; }
+    .nav-account .who { display: none; }
+    header.page-head { padding: 24px 0 24px; }
+    header.page-head h1 { font-size: 46px; line-height: 1; }
+    header.page-head .right { align-items: start; }
+    header.page-head .count { font-size: 40px; }
+    .toolbar .right { gap: 10px; width: 100%; }
+    .search-wrap { flex: 1; min-width: 0; }
+    .search-wrap input { width: 100%; }
+    .grid { grid-template-columns: 1fr; }
+    footer.rb-footer .row { flex-direction: column; align-items: flex-start; gap: 18px; }
+  }
+</style>

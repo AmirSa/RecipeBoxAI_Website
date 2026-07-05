@@ -3,7 +3,9 @@ import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://recipeboxai.app',
-  integrations: [sitemap()],
+  integrations: [sitemap({
+    filter: (page) => !page.includes('/login/') && !page.includes('/my/'),
+  })],
   output: 'static',
   build: {
     format: 'directory'

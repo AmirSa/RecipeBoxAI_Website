@@ -1,0 +1,574 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Recipe" description="View a recipe from your RecipeBox AI library.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="robots" content="noindex">
+
+  <!-- ─── Nav ─── -->
+  <nav class="rb-nav">
+    <div class="container inner">
+      <a class="brand" href="/">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </a>
+      <ul>
+        <li><a href="/#features">Features</a></li>
+        <li><a href="/recipes/">Recipes</a></li>
+        <li><a class="current" href="/my/recipes/">My Recipes</a></li>
+      </ul>
+      <div class="nav-account" id="nav-account" hidden>
+        <span class="who" id="nav-email"></span>
+        <button class="signout" id="signout-btn">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" id="app">
+    <!-- skeleton while loading -->
+    <div class="crumb"><a href="/my/recipes/">My Recipes</a><span class="sep">/</span><span class="sk-inline"></span></div>
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="sk-line" style="width: 30%;"></div>
+          <div class="sk-title"></div>
+          <div class="sk-line" style="width: 80%;"></div>
+          <div class="sk-line" style="width: 55%;"></div>
+        </div>
+        <div class="sk-img"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="rb-footer">
+    <div class="container row">
+      <div class="brand">
+        <img class="app-ico" src="/app-icon.png" alt="">
+        RecipeBox AI
+      </div>
+      <div class="links">
+        <a href="mailto:hello@recipeboxai.app">Support</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="https://twitter.com/RecipeBoxAI">Twitter</a>
+      </div>
+      <div class="copy">© 2026 RecipeBox AI</div>
+    </div>
+  </footer>
+
+  <script>
+    import {
+      supabase, requireSession, signOut, escapeHtml, tagHex,
+      parseIngredientSections, parseInstructions, parseNutrition,
+      type UserRecipeRow, type UserTagRow, type WireNutrition,
+    } from '@/lib/account';
+
+    const app = document.getElementById('app') as HTMLElement;
+
+    const ICON = {
+      heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+      starFill: '<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
+      star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="15" height="15"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
+      link: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+      check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
+    };
+
+    function showState(title: string, body: string, backLabel = 'Back to My Recipes') {
+      app.innerHTML = `
+        <div class="page-state">
+          <h2>${escapeHtml(title)}</h2>
+          <p>${escapeHtml(body)}</p>
+          <a class="state-btn" href="/my/recipes/">${escapeHtml(backLabel)}</a>
+        </div>`;
+    }
+
+    function formatDate(iso: string | null): string {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function starsHtml(rating: number): string {
+      return Array.from({ length: 5 }, (_, i) => (i < rating ? ICON.starFill : ICON.star)).join('');
+    }
+
+    // Nutrition rows beyond the macro chart, in app display order.
+    const NUTRIENT_LABELS: [keyof WireNutrition, string, string][] = [
+      ['fiber', 'Fiber', 'g'],
+      ['sugar', 'Sugar', 'g'],
+      ['saturated_fat', 'Saturated fat', 'g'],
+      ['cholesterol', 'Cholesterol', 'mg'],
+      ['sodium', 'Sodium', 'mg'],
+      ['potassium', 'Potassium', 'mg'],
+      ['calcium', 'Calcium', 'mg'],
+      ['iron', 'Iron', 'mg'],
+      ['vitamin_a', 'Vitamin A', ''],
+      ['vitamin_c', 'Vitamin C', 'mg'],
+    ];
+
+    function fmtAmount(v: number, unit: string): string {
+      const rounded = Math.round(v * 10) / 10;
+      const n = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+      return unit ? `${n}${unit}` : n;
+    }
+
+    function render(recipe: UserRecipeRow, tags: UserTagRow[]) {
+      const title = recipe.title || 'Untitled recipe';
+      document.title = `${title} - RecipeBox AI`;
+
+      const sections = parseIngredientSections(recipe.ingredient_sections);
+      const steps = parseInstructions(recipe.instructions);
+      const nutrition = parseNutrition(recipe.detailed_nutrition);
+
+      const totalTime = recipe.total_time || (recipe.prep_time || 0) + (recipe.cook_time || 0);
+      const cookLabel = totalTime <= 30 ? 'weeknight quick' : totalTime <= 60 ? 'easy dinner' : 'weekend project';
+
+      const protein = Math.round(nutrition?.protein ?? 0);
+      const carbs = Math.round(nutrition?.carbs ?? 0);
+      const fat = Math.round(nutrition?.fat ?? 0);
+      const totalMacros = protein + carbs + fat;
+      const calFromMacros = protein * 4 + carbs * 4 + fat * 9;
+      const pct = (g: number, kcal: number) => (calFromMacros > 0 ? Math.round((g * kcal / calFromMacros) * 100) : 0);
+      const proteinPct = pct(protein, 4);
+      const carbsPct = pct(carbs, 4);
+      const fatPct = pct(fat, 9);
+
+      const nutrientRows = NUTRIENT_LABELS
+        .map(([key, label, unit]) => {
+          const v = nutrition?.[key];
+          return typeof v === 'number' && v > 0 ? { label, text: fmtAmount(v, unit) } : null;
+        })
+        .filter((r): r is { label: string; text: string } => !!r);
+
+      const tagChips = tags.map((t) => {
+        const hex = tagHex(t.color);
+        return `<span class="tag" style="color:${hex}; border-color:${hex}40; background:${hex}12;"><span class="sw" style="background:${hex};"></span>${escapeHtml(t.name)}</span>`;
+      }).join('');
+
+      const created = formatDate(recipe.created_at);
+      // Only web sources get a link — original_url can hold app-internal
+      // schemes (e.g. discover://…) that mean nothing in a browser.
+      const sourceUrl = /^https?:\/\//i.test(recipe.original_url ?? '') ? recipe.original_url : null;
+      const sourceHost = (() => {
+        if (!sourceUrl) return null;
+        try { return new URL(sourceUrl).hostname.replace(/^www\./, ''); } catch { return null; }
+      })();
+
+      app.innerHTML = `
+        <div class="crumb">
+          <a href="/my/recipes/">My Recipes</a>
+          <span class="sep">/</span>
+          <span style="color: var(--ink);">${escapeHtml(title)}</span>
+        </div>
+
+        <section class="hero">
+          <div class="hero-grid">
+            <div>
+              ${tagChips ? `<div class="tags">${tagChips}</div>` : ''}
+              <h1 class="display hero-h1">${escapeHtml(title)}</h1>
+              <div class="meta-line">
+                ${recipe.rating > 0 ? `<span class="stars">${starsHtml(recipe.rating)}</span>` : ''}
+                ${recipe.is_favorite ? `<span class="fav-chip">${ICON.heart} Favorite</span>` : ''}
+                ${recipe.source_name ? `<span>From <b>${escapeHtml(recipe.source_name)}</b></span>` : ''}
+                ${created ? `<span>Saved ${escapeHtml(created)}</span>` : ''}
+              </div>
+              ${recipe.notes ? `<p class="overview">${escapeHtml(recipe.notes)}</p>` : ''}
+            </div>
+            <div class="hero-img-wrap">
+              ${recipe.image_url
+                ? `<img src="${escapeHtml(recipe.image_url)}" alt="${escapeHtml(title)}" onerror="this.parentElement.classList.add('ph');this.remove();">`
+                : `<div class="ph-mark">${escapeHtml(title.slice(0, 1).toUpperCase())}</div>`}
+            </div>
+          </div>
+        </section>
+
+        <div class="stats">
+          <div class="label-col">A ${totalTime}-minute<br><em>${escapeHtml(cookLabel)}</em></div>
+          ${recipe.prep_time > 0 ? `<div class="stat"><div class="k">Prep</div><div class="v">${recipe.prep_time}<span class="u">min</span></div></div>` : ''}
+          ${recipe.cook_time > 0 ? `<div class="stat"><div class="k">Cook</div><div class="v">${recipe.cook_time}<span class="u">min</span></div></div>` : ''}
+          <div class="stat"><div class="k">Serves</div><div class="v">${recipe.servings || 1}</div></div>
+          ${recipe.calories > 0 ? `<div class="stat"><div class="k">Per serving</div><div class="v">${recipe.calories}<span class="u">kcal</span></div></div>` : ''}
+          <div class="cta-col">
+            <a class="btn-secondary" href="/my/recipes/">← Back to library</a>
+          </div>
+        </div>
+
+        <div class="body-layout">
+          <aside class="side">
+            ${totalMacros > 0 ? `
+              <div class="card-base">
+                <h3>Macros · per serving</h3>
+                <div class="macro-total">
+                  <div class="big">${totalMacros}<span style="font-size:14px; color:var(--muted);">g</span></div>
+                  <div class="small">total macronutrients</div>
+                </div>
+                <div class="macro-bar">
+                  <div class="seg-p" style="width:${proteinPct}%;"></div>
+                  <div class="seg-c" style="width:${carbsPct}%;"></div>
+                  <div class="seg-f" style="width:${fatPct}%;"></div>
+                </div>
+                <div class="macro-list">
+                  <div class="macro-row"><div class="lhs"><span class="dot p"></span>Protein</div><div><span class="v">${protein}g</span><span class="pct">${proteinPct}%</span></div></div>
+                  <div class="macro-row"><div class="lhs"><span class="dot c"></span>Carbs</div><div><span class="v">${carbs}g</span><span class="pct">${carbsPct}%</span></div></div>
+                  <div class="macro-row"><div class="lhs"><span class="dot f"></span>Fat</div><div><span class="v">${fat}g</span><span class="pct">${fatPct}%</span></div></div>
+                </div>
+              </div>` : ''}
+
+            ${nutrientRows.length > 0 ? `
+              <div class="card-base">
+                <h3>Nutrition · per serving</h3>
+                <div class="nutr-list">
+                  ${nutrientRows.map((n, i) => `
+                    <div class="nutr-row"><span class="name">${escapeHtml(n.label)}</span><span class="dv">${escapeHtml(n.text)}</span></div>
+                    ${i < nutrientRows.length - 1 ? '<hr class="nutr-divider">' : ''}`).join('')}
+                </div>
+              </div>` : ''}
+
+            ${sourceUrl ? `
+              <div class="card-base">
+                <h3>Source</h3>
+                <a class="source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">
+                  ${ICON.link}
+                  <span>${escapeHtml(recipe.source_name || sourceHost || 'Original recipe')}</span>
+                </a>
+              </div>` : ''}
+
+            <div class="cta-card">
+              <h3>Cook it from your phone</h3>
+              <p>This recipe lives in your RecipeBox — open the app for cooking mode, AI transformations, and grocery lists.</p>
+              <a class="btn" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">Open RecipeBox AI</a>
+            </div>
+          </aside>
+
+          <main class="recipe-main">
+            ${sections.length > 0 ? `
+              <div class="section">
+                <h2>Ingredients</h2>
+                <div class="servings-bar" id="servings-bar">
+                  <button data-step="-1" aria-label="Fewer servings">−</button>
+                  <div class="num"><span id="servings-num">${recipe.servings || 1}</span><span> servings</span></div>
+                  <button data-step="1" aria-label="More servings">+</button>
+                </div>
+                ${sections.map((section, sIdx) => `
+                  ${section.header ? `<div class="group-head">${escapeHtml(section.header)}</div>` : ''}
+                  <ul class="ing-list">
+                    ${section.ingredients.map((ing, iIdx) => {
+                      const amountNum = parseFloat(String(ing.amount ?? ''));
+                      const isNumeric = !isNaN(amountNum) && amountNum > 0;
+                      const extra = ing.additionalInfo ? `, ${ing.additionalInfo}` : '';
+                      return `
+                        <li>
+                          <button class="check" data-check="s${sIdx}-i${iIdx}" aria-label="Mark ingredient">${ICON.check}</button>
+                          <span class="qty" data-base-amount="${isNumeric ? amountNum : ''}" data-unit="${escapeHtml(ing.unit ?? '')}">${isNumeric ? `${amountNum}${ing.unit ? ' ' + escapeHtml(ing.unit) : ''}` : escapeHtml(ing.amount ?? '')}</span>
+                          <span class="name">${escapeHtml(ing.name)}${escapeHtml(extra)}</span>
+                        </li>`;
+                    }).join('')}
+                  </ul>`).join('')}
+              </div>` : ''}
+
+            ${steps.length > 0 ? `
+              <div class="section">
+                <h2>Method</h2>
+                <ol class="step-list" id="step-list">
+                  ${steps.map((s, i) => `
+                    <li>
+                      <div class="n">${String(i + 1).padStart(2, '0')}</div>
+                      <div class="txt">${escapeHtml(s)}</div>
+                    </li>`).join('')}
+                </ol>
+              </div>` : ''}
+
+            ${sections.length === 0 && steps.length === 0 ? `
+              <div class="page-state" style="padding: 56px 28px;">
+                <h2>No details yet</h2>
+                <p>This recipe doesn't have ingredients or steps stored. Open it in the app to add them.</p>
+              </div>` : ''}
+          </main>
+        </div>`;
+
+      wireInteractions(recipe.servings || 1);
+    }
+
+    function wireInteractions(baseServings: number) {
+      const numEl = document.getElementById('servings-num');
+      const bar = document.getElementById('servings-bar');
+      let current = baseServings;
+
+      function format(n: number): string {
+        const rounded = Math.round(n * 100) / 100;
+        return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+      }
+
+      bar?.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('button[data-step]') as HTMLElement | null;
+        if (!btn || !numEl) return;
+        current = Math.max(1, current + parseInt(btn.dataset.step!, 10));
+        numEl.textContent = String(current);
+        const scale = current / baseServings;
+        document.querySelectorAll<HTMLElement>('.qty').forEach((el) => {
+          const base = parseFloat(el.dataset.baseAmount || '');
+          if (!isNaN(base) && base > 0) {
+            const unit = el.dataset.unit || '';
+            el.textContent = format(base * scale) + (unit ? ' ' + unit : '');
+          }
+        });
+      });
+
+      document.querySelectorAll('[data-check]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('on');
+          btn.closest('li')?.classList.toggle('done');
+        });
+      });
+
+      document.querySelectorAll('#step-list li').forEach((li) => {
+        li.addEventListener('click', () => li.classList.toggle('done'));
+        (li as HTMLElement).style.cursor = 'pointer';
+      });
+    }
+
+    async function load() {
+      const session = await requireSession();
+      if (!session) return;
+
+      const navAccount = document.getElementById('nav-account') as HTMLElement;
+      (document.getElementById('nav-email') as HTMLElement).textContent = session.user.email ?? '';
+      navAccount.hidden = false;
+      document.getElementById('signout-btn')?.addEventListener('click', signOut);
+
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (!id) {
+        showState('Recipe not found', 'This link is missing a recipe id.');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*, recipe_tags(tag_id)')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (error) {
+        showState("Couldn't load this recipe", error.message);
+        return;
+      }
+      if (!data) {
+        showState('Recipe not found', "This recipe doesn't exist in your library — it may have been deleted on another device.");
+        return;
+      }
+
+      const recipe = data as unknown as UserRecipeRow;
+      const tagIds = (recipe.recipe_tags ?? []).map((t) => t.tag_id);
+      let tags: UserTagRow[] = [];
+      if (tagIds.length > 0) {
+        const { data: tagRows } = await supabase
+          .from('tags')
+          .select('id, name, color')
+          .in('id', tagIds)
+          .is('deleted_at', null);
+        tags = (tagRows ?? []) as UserTagRow[];
+      }
+
+      render(recipe, tags);
+    }
+
+    load().catch((err) => showState('Something went wrong', err instanceof Error ? err.message : 'Please try again.'));
+  </script>
+</BaseLayout>
+
+<style is:global>
+  :root {
+    --bg: #f0eee9;
+    --bg-2: #e9e6df;
+    --ink: #0a0a0a;
+    --ink-2: #2a2a2c;
+    --muted: #6e6e73;
+    --line: rgba(10,10,10,0.08);
+    --line-2: rgba(10,10,10,0.04);
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.45; }
+  body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: #0a0a0a; color: #fff; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 0 56px; }
+  .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
+  .display em { font-style: italic; font-weight: 400; }
+
+  /* Nav */
+  nav.rb-nav { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); background: color-mix(in srgb, var(--bg) 86%, transparent); border-bottom: 1px solid var(--line-2); }
+  nav.rb-nav .inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  nav.rb-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; font-size: 17px; color: var(--ink); }
+  nav.rb-nav .brand .app-ico { width: 30px; height: 30px; border-radius: 7px; box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+  nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
+  nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
+  .nav-account { display: flex; align-items: center; gap: 12px; }
+  .nav-account .who { font-size: 12.5px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink); }
+
+  /* Crumb */
+  .crumb { padding: 24px 0 16px; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .crumb a:hover { color: var(--ink); }
+  .crumb .sep { opacity: 0.5; }
+
+  /* Hero */
+  .hero { padding: 12px 0 48px; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
+  .hero .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
+  .hero .tag { padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid; display: inline-flex; align-items: center; gap: 6px; }
+  .hero .tag .sw { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .hero-h1 { font-size: 64px; margin: 0; }
+  .hero .meta-line { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 24px; font-size: 13px; color: var(--muted); }
+  .hero .meta-line b { color: var(--ink); font-weight: 600; }
+  .hero .meta-line .stars { display: inline-flex; gap: 2px; color: #d9a514; }
+  .hero .meta-line .fav-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: #e0533d; border: 1px solid rgba(224,83,61,0.25); background: rgba(224,83,61,0.07); }
+  .hero .overview { margin: 24px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink-2); letter-spacing: -0.01em; max-width: 52ch; text-wrap: pretty; white-space: pre-line; }
+  .hero-img-wrap { aspect-ratio: 4/5; border-radius: 28px; overflow: hidden; background: var(--bg-2); position: relative; }
+  .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-img-wrap .ph-mark, .hero-img-wrap.ph::after { content: ''; width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 120px; font-weight: 500; color: rgba(10,10,10,0.15); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
+
+  /* Stats strip */
+  .stats { padding: 28px 32px; background: #fff; border: 1px solid var(--line-2); border-radius: 24px; display: grid; grid-template-columns: 1.5fr repeat(4, 1fr) 1.4fr; align-items: center; gap: 20px; }
+  .stats .label-col { font-family: var(--serif); font-style: italic; font-size: 22px; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
+  .stats .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stats .stat .k { font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+  .stats .stat .v { font-family: var(--serif); font-size: 36px; line-height: 1; font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stats .stat .v .u { font-family: var(--sans); font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 3px; }
+  .stats .cta-col { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+  .btn-secondary { height: 48px; padding: 0 22px; border-radius: 999px; background: transparent; color: var(--ink); border: 1px solid var(--line); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; transition: border-color 140ms ease; }
+  .btn-secondary:hover { border-color: rgba(10,10,10,0.35); }
+
+  /* Body */
+  .body-layout { display: grid; grid-template-columns: 320px 1fr; gap: 64px; padding: 80px 0; align-items: start; }
+  aside.side { position: sticky; top: 88px; align-self: start; display: flex; flex-direction: column; gap: 20px; }
+  main.recipe-main { min-width: 0; }
+
+  .card-base { background: #fff; border: 1px solid var(--line-2); border-radius: 20px; padding: 24px; }
+  .card-base h3 { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin: 0 0 16px; }
+
+  .macro-total { display: flex; align-items: baseline; gap: 10px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .macro-total .big { font-family: var(--serif); font-size: 48px; line-height: 1; font-weight: 500; letter-spacing: -0.03em; }
+  .macro-total .small { font-size: 12px; color: var(--muted); }
+  .macro-bar { height: 8px; border-radius: 999px; overflow: hidden; display: flex; background: var(--bg-2); margin: 8px 0 14px; }
+  .macro-bar .seg-p { background: #4d7cff; }
+  .macro-bar .seg-c { background: #f5a524; }
+  .macro-bar .seg-f { background: #b13fe8; }
+  .macro-list { display: flex; flex-direction: column; gap: 10px; }
+  .macro-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+  .macro-row .lhs { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 500; }
+  .macro-row .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .macro-row .dot.p { background: #4d7cff; }
+  .macro-row .dot.c { background: #f5a524; }
+  .macro-row .dot.f { background: #b13fe8; }
+  .macro-row .v { font-family: var(--serif); font-size: 16px; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .macro-row .pct { color: var(--muted); font-size: 12px; margin-left: 6px; }
+
+  .nutr-list { display: flex; flex-direction: column; gap: 12px; }
+  .nutr-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+  .nutr-row .name { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .nutr-row .dv { font-family: var(--serif); font-size: 16px; font-weight: 500; letter-spacing: -0.01em; }
+  .nutr-divider { border: 0; border-top: 1px solid var(--line); margin: 6px 0; }
+
+  .source-link { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .source-link:hover { text-decoration: underline; }
+  .source-link svg { color: var(--muted); flex-shrink: 0; }
+
+  .cta-card { background: #0a0a0a; color: #fff; border-radius: 20px; padding: 24px; }
+  .cta-card h3 { font-family: var(--serif); font-size: 22px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; margin: 0; color: #fff; }
+  .cta-card p { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.65); margin: 8px 0 16px; }
+  .cta-card .btn { width: 100%; height: 44px; border-radius: 999px; background: #fff; color: #0a0a0a; border: 0; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+  /* Main sections */
+  .section { margin-bottom: 56px; }
+  .section h2 { font-family: var(--serif); font-size: 44px; font-weight: 500; letter-spacing: -0.03em; margin: 0 0 22px; line-height: 1; }
+  .section .group-head { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin: 24px 0 10px; }
+
+  .ing-list { list-style: none; padding: 0; margin: 0; }
+  .ing-list li { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; color: var(--ink); letter-spacing: -0.005em; }
+  .ing-list li:last-child { border-bottom: 0; }
+  .ing-list .name { flex: 1; }
+  .ing-list .check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--line); background: #fff; display: grid; place-items: center; flex-shrink: 0; cursor: pointer; transition: background 100ms ease, border-color 100ms ease; padding: 0; }
+  .ing-list .check.on { background: #0a0a0a; border-color: #0a0a0a; }
+  .ing-list .check svg { width: 14px; height: 14px; color: transparent; }
+  .ing-list .check.on svg { color: #fff; }
+  .ing-list .qty { font-family: var(--serif); font-weight: 500; font-size: 15px; color: var(--muted); min-width: 88px; font-variant-numeric: tabular-nums; }
+  .ing-list li.done .name { text-decoration: line-through; color: var(--muted); }
+
+  .servings-bar { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; padding: 6px; background: #fff; border: 1px solid var(--line); border-radius: 999px; }
+  .servings-bar button { width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--ink); font-size: 18px; font-weight: 600; display: grid; place-items: center; }
+  .servings-bar button:hover { background: var(--bg); }
+  .servings-bar .num { font-family: var(--serif); font-size: 18px; font-weight: 500; min-width: 110px; text-align: center; padding: 0 8px; }
+  .servings-bar .num span:last-child { color: var(--muted); font-size: 13px; font-family: var(--sans); font-weight: 500; margin-left: 4px; }
+
+  .step-list { list-style: none; padding: 0; margin: 0; }
+  .step-list li { display: grid; grid-template-columns: 56px 1fr; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--line); }
+  .step-list li:last-child { border-bottom: 0; }
+  .step-list .n { font-family: var(--serif); font-size: 44px; font-weight: 500; line-height: 0.9; letter-spacing: -0.03em; color: var(--muted); }
+  .step-list .txt { font-size: 17px; line-height: 1.55; color: var(--ink); letter-spacing: -0.005em; padding-top: 6px; }
+  .step-list li.done .n { color: var(--ink); }
+  .step-list li.done .txt { color: var(--muted); }
+
+  /* Skeletons + states */
+  .sk-inline { display: inline-block; width: 120px; height: 12px; border-radius: 6px; }
+  .sk-title { height: 120px; border-radius: 16px; margin: 20px 0; }
+  .sk-line { height: 16px; border-radius: 8px; margin-top: 14px; }
+  .sk-img { aspect-ratio: 4/5; border-radius: 28px; }
+  .sk-inline, .sk-title, .sk-line, .sk-img { background: linear-gradient(90deg, var(--bg-2) 25%, #e0dcd2 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .page-state { margin: 64px auto 96px; max-width: 560px; padding: 72px 40px; text-align: center; background: #fff; border: 1px solid var(--line-2); border-radius: 28px; }
+  .page-state h2 { font-family: var(--serif); font-size: 36px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .page-state p { margin: 0 auto; color: var(--muted); font-size: 15px; max-width: 42ch; }
+  .state-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: 24px; height: 46px; padding: 0 24px; border-radius: 999px; background: #0a0a0a; color: #fff; font-size: 14px; font-weight: 600; }
+  .state-btn:hover { background: #1a1a1a; }
+
+  /* Footer */
+  footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+  footer.rb-footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+  footer.rb-footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
+  footer.rb-footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+  footer.rb-footer .links { display: flex; gap: 24px; font-size: 14px; }
+  footer.rb-footer .links a { color: rgba(255,255,255,0.6); }
+  footer.rb-footer .links a:hover { color: #fff; }
+  footer.rb-footer .copy { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .container { padding: 0 32px; }
+    .hero-grid { gap: 40px; }
+    .hero-h1 { font-size: 52px; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 24px; }
+    .stats .label-col { grid-column: 1 / -1; font-size: 18px; }
+    .stats .cta-col { grid-column: 1 / -1; }
+    .body-layout { grid-template-columns: 1fr; gap: 40px; padding: 56px 0; }
+    aside.side { position: static; }
+  }
+  @media (max-width: 760px) {
+    .container { padding: 0 22px; }
+    nav.rb-nav ul { display: none; }
+    .nav-account .who { display: none; }
+    .hero-grid { grid-template-columns: 1fr; gap: 28px; }
+    .hero-h1 { font-size: 40px; }
+    .hero .overview { font-size: 16px; margin-top: 18px; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .section h2 { font-size: 34px; }
+    .step-list li { grid-template-columns: 44px 1fr; gap: 16px; padding: 20px 0; }
+    .step-list .n { font-size: 36px; }
+    .step-list .txt { font-size: 16px; }
+    .ing-list li { gap: 10px; font-size: 15px; flex-wrap: wrap; }
+    .ing-list .qty { min-width: 70px; font-size: 14px; }
+    .hero-img-wrap { aspect-ratio: 4/3; }
+    footer.rb-footer .row { flex-direction: column; align-items: flex-start; gap: 18px; }
+  }
+</style>

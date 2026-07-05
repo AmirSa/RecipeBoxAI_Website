@@ -154,6 +154,177 @@ export function escapeHtml(value: unknown): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Saving a shared (Discover) recipe into the user's library.
+// Mirrors the Android app's SharedRecipeMappers.toRecipeEntity + push and the
+// gate in SubscriptionRepository.canCreateRecipe: pro → unlimited, free →
+// recipe_count < FREE_TIER_LIMIT + bonus_recipe_slots. After an insert the
+// apps bump user_profiles.recipe_count and recipes_from_discover; so do we.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const FREE_TIER_LIMIT = 10;
+
+export interface SharedSaveIngredient {
+  name?: string | null;
+  amount?: string | null;
+  unit?: string | null;
+  preparation?: string | null;
+  additionalInfo?: string | null;
+  originalText?: string | null;
+}
+
+export interface SharedSaveSection {
+  name?: string | null;
+  title?: string | null;
+  ingredients?: SharedSaveIngredient[];
+}
+
+export interface SharedSaveData {
+  slug: string;
+  title: string;
+  notes?: string | null;
+  prep_time?: number;
+  cook_time?: number;
+  servings?: number;
+  calories?: number;
+  image_url?: string | null;
+  sections?: SharedSaveSection[];
+  instructions?: unknown[];
+  nutrition?: Record<string, unknown> | null;
+}
+
+export interface SaveGate {
+  allowed: boolean;
+  tier: string;
+  used: number;
+  limit: number;
+}
+
+export async function getSaveGate(userId: string): Promise<SaveGate> {
+  const [profileRes, countRes] = await Promise.all([
+    supabase
+      .from('user_profiles')
+      .select('subscription_tier, bonus_recipe_slots')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('recipes')
+      .select('id', { count: 'exact', head: true })
+      .is('deleted_at', null),
+  ]);
+  const tier = profileRes.data?.subscription_tier ?? 'free';
+  const limit = FREE_TIER_LIMIT + (profileRes.data?.bonus_recipe_slots ?? 0);
+  const used = countRes.count ?? 0;
+  return { allowed: tier === 'pro' || used < limit, tier, used, limit };
+}
+
+// Wire key → accepted source keys (shared recipes may carry either casing).
+const WIRE_NUTRIENTS: [string, string[]][] = [
+  ['protein', ['protein']],
+  ['fat', ['fat']],
+  ['carbs', ['carbs']],
+  ['fiber', ['fiber']],
+  ['sugar', ['sugar']],
+  ['sodium', ['sodium']],
+  ['cholesterol', ['cholesterol']],
+  ['saturated_fat', ['saturated_fat', 'saturatedFat']],
+  ['potassium', ['potassium']],
+  ['vitamin_a', ['vitamin_a', 'vitaminA']],
+  ['vitamin_c', ['vitamin_c', 'vitaminC']],
+  ['calcium', ['calcium']],
+  ['iron', ['iron']],
+];
+
+function wireNutritionString(nutrition: Record<string, unknown> | null | undefined): string | null {
+  if (!nutrition) return null;
+  const out: Record<string, number> = {};
+  for (const [wireKey, sourceKeys] of WIRE_NUTRIENTS) {
+    for (const key of sourceKeys) {
+      const v = nutrition[key];
+      if (typeof v === 'number' && isFinite(v) && v > 0) {
+        out[wireKey] = v;
+        break;
+      }
+    }
+  }
+  return Object.keys(out).length > 0 ? JSON.stringify(out) : null;
+}
+
+/**
+ * Insert the shared recipe as a new row in the user's `recipes` table and
+ * bump the profile counters. Returns the new recipe id. The mobile apps pull
+ * it on their next full sync exactly like a row created by the other app.
+ */
+export async function saveSharedRecipeToLibrary(userId: string, shared: SharedSaveData): Promise<string> {
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  const sections = (shared.sections ?? []).map((s) => ({
+    header: s.name ?? s.title ?? '',
+    ingredients: (s.ingredients ?? []).map((i) => ({
+      name: i.name ?? '',
+      amount: i.amount ?? '',
+      unit: i.unit ?? '',
+      originalText: i.preparation ?? i.additionalInfo ?? i.originalText ?? '',
+    })),
+  }));
+
+  const instructions = (shared.instructions ?? [])
+    .map((st) => (typeof st === 'string' ? st : ((st as Record<string, unknown>)?.instruction ?? (st as Record<string, unknown>)?.text ?? '')))
+    .map((s) => String(s).trim())
+    .filter(Boolean)
+    .join('\n');
+
+  const prep = shared.prep_time ?? 0;
+  const cook = shared.cook_time ?? 0;
+
+  const { error } = await supabase.from('recipes').insert({
+    id,
+    user_id: userId,
+    title: shared.title,
+    original_url: `discover://${shared.slug}`,
+    source_name: 'Discover',
+    notes: shared.notes || null,
+    prep_time: prep,
+    cook_time: cook,
+    total_time: prep + cook,
+    servings: shared.servings ?? 4,
+    calories: shared.calories ?? 0,
+    is_favorite: false,
+    rating: 0,
+    image_url: shared.image_url || null,
+    ingredient_sections: sections.length > 0 ? JSON.stringify(sections) : null,
+    instructions: instructions || null,
+    detailed_nutrition: wireNutritionString(shared.nutrition),
+    created_at: now,
+    updated_at: now,
+  });
+  if (error) throw new Error(error.message);
+
+  // Best-effort counter bump (mirrors the apps' incrementRecipeCount; the
+  // apps reconcile recipe_count on sign-in so a miss here self-heals).
+  try {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('recipe_count, recipes_from_discover')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (profile) {
+      await supabase
+        .from('user_profiles')
+        .update({
+          recipe_count: (profile.recipe_count ?? 0) + 1,
+          recipes_from_discover: (profile.recipes_from_discover ?? 0) + 1,
+        })
+        .eq('user_id', userId);
+    }
+  } catch {
+    // non-fatal
+  }
+
+  return id;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Auth
 // ─────────────────────────────────────────────────────────────────────────────
 

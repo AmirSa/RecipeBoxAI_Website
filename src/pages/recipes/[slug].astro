@@ -99,6 +99,22 @@ const cookLabel = totalTime <= 30 ? 'weeknight quick' : totalTime <= 60 ? 'an ho
 
 // ── Rich nutrients ──
 const richNutrients = recipe.nutrition?.richNutrients || [];
+
+// ── Payload for the client-side "Save to library" flow ──
+const saveData = {
+  slug,
+  title: recipe.title,
+  notes: recipe.notes || recipe.description || null,
+  prep_time: recipe.prep_time || 0,
+  cook_time: recipe.cook_time || 0,
+  servings: recipe.servings || 4,
+  calories: recipe.calories || 0,
+  image_url: recipe.image_url || null,
+  sections: recipe.sections || [],
+  instructions: recipe.instructions || [],
+  nutrition: recipe.nutrition || null,
+};
+const saveDataJson = JSON.stringify(saveData).replace(/</g, '\\u003c');
 ---
 
 <BaseLayout
@@ -431,64 +447,123 @@ const richNutrients = recipe.nutrition?.richNutrients || [];
     </div>
   </footer>
 
-  <script define:vars={{ slug, recipe, allTags }}>
-    function addToRecipeBox() {
+  <script type="application/json" id="rb-recipe-data" set:html={saveDataJson} />
+
+  <!-- ─── Save modal ─── -->
+  <div class="rb-modal-backdrop" id="rb-modal" hidden>
+    <div class="rb-modal-card" role="dialog" aria-modal="true" aria-labelledby="rb-modal-title">
+      <button class="rb-modal-close" id="rb-modal-close" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div id="rb-modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    import { supabase, getSaveGate, saveSharedRecipeToLibrary, escapeHtml, type SharedSaveData } from '@/lib/account';
+
+    const APP_STORE = 'https://apps.apple.com/gb/app/recipebox-ai/id6752560797';
+    const shared = JSON.parse(document.getElementById('rb-recipe-data')?.textContent || 'null') as SharedSaveData | null;
+
+    const saveBtn = document.getElementById('add-to-recipebox-btn') as HTMLButtonElement | null;
+    const modal = document.getElementById('rb-modal') as HTMLElement;
+    const modalBody = document.getElementById('rb-modal-body') as HTMLElement;
+
+    function openModal(html: string) {
+      modalBody.innerHTML = html;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+    document.getElementById('rb-modal-close')?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+    modalBody?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-close]')) closeModal();
+    });
+
+    const idleBtnHtml = saveBtn?.innerHTML ?? '';
+    function setBusy(busy: boolean) {
+      if (!saveBtn) return;
+      saveBtn.disabled = busy;
+      saveBtn.innerHTML = busy ? '<span class="rb-btn-spinner"></span> Saving…' : idleBtnHtml;
+    }
+
+    function markSaved() {
+      if (!saveBtn) return;
+      saveBtn.disabled = true;
+      saveBtn.classList.add('saved');
+      saveBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+        Saved to your library`;
+    }
+
+    const appleBadge = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>';
+
+    function signInModal() {
+      const next = encodeURIComponent(window.location.pathname);
+      openModal(`
+        <div class="rb-modal-eyebrow">Save to your RecipeBox</div>
+        <h3 id="rb-modal-title">Sign in to save<br><em>this recipe.</em></h3>
+        <p>Sign in with your RecipeBox AI account and this recipe lands in your library — on your phone, tablet, and here on the web.</p>
+        <a class="rb-modal-btn primary" href="/login/?next=${next}">Sign in</a>
+        <a class="rb-modal-btn secondary" href="${APP_STORE}">${appleBadge} New here? Get the app</a>`);
+    }
+
+    function upgradeModal(used: number, limit: number) {
+      openModal(`
+        <div class="rb-modal-eyebrow">Free plan limit</div>
+        <h3 id="rb-modal-title">Your RecipeBox<br><em>is full.</em></h3>
+        <p>You've saved <b>${used} of ${limit}</b> recipes on the free plan. Upgrade to Pro for unlimited recipes, AI transformations, and more.</p>
+        <a class="rb-modal-btn primary" href="${APP_STORE}">${appleBadge} Upgrade in the app</a>
+        <p class="rb-modal-hint">Upgrading on the web is coming soon.</p>`);
+    }
+
+    function savedModal(newId: string, title: string) {
+      openModal(`
+        <div class="rb-modal-eyebrow">Saved</div>
+        <h3 id="rb-modal-title">It's in your<br><em>library.</em></h3>
+        <p>“${escapeHtml(title)}” is now in your RecipeBox — it syncs to all your devices automatically.</p>
+        <a class="rb-modal-btn primary" href="/my/recipes/view/?id=${encodeURIComponent(newId)}">View recipe</a>
+        <a class="rb-modal-btn secondary" href="/my/recipes/">Go to My Recipes</a>`);
+    }
+
+    function errorModal(message: string) {
+      openModal(`
+        <div class="rb-modal-eyebrow">Something went wrong</div>
+        <h3 id="rb-modal-title">Couldn't save<br><em>this recipe.</em></h3>
+        <p>${escapeHtml(message)}</p>
+        <button class="rb-modal-btn secondary" data-close>Close and try again</button>`);
+    }
+
+    async function onSave() {
+      if (!shared) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        signInModal();
+        return;
+      }
+      setBusy(true);
       try {
-        const sections = (recipe.sections || []).map((section) => ({
-          name: section.name || section.title || 'Main',
-          ingredients: (section.ingredients || []).map((ing) => ({
-            name: ing.name || '',
-            amount: ing.amount || '',
-            unit: ing.unit || '',
-            additionalInfo: ing.preparation || ing.additionalInfo || null,
-            section: section.name || section.title || null,
-          })),
-        }));
-
-        const instructions = (recipe.instructions || []).map((inst, index) => ({
-          stepNumber: inst.stepNumber || index + 1,
-          instruction: inst.instruction || inst.text || '',
-        }));
-
-        const tags = recipe.tags && typeof recipe.tags === 'object' ? {
-          mealType: recipe.tags.mealType || null,
-          cuisine: recipe.tags.cuisine || null,
-          diet: recipe.tags.diet || null,
-        } : null;
-
-        const recipeData = {
-          title: recipe.title,
-          prepTime: recipe.prep_time,
-          cookTime: recipe.cook_time,
-          servings: recipe.servings,
-          calories: recipe.calories,
-          notes: recipe.notes || recipe.description || null,
-          sections,
-          instructions,
-          tags,
-          autoTags: recipe.auto_tags || allTags,
-          nutrition: recipe.nutrition ? {
-            protein: recipe.nutrition.protein || 0,
-            fat: recipe.nutrition.fat || 0,
-            carbs: recipe.nutrition.carbs || 0,
-            richNutrients: recipe.nutrition.richNutrients || [],
-          } : null,
-          coverImageURL: recipe.image_url || null,
-        };
-
-        const encodedRecipe = encodeURIComponent(JSON.stringify(recipeData));
-        const deepLink = `stage4.recipebox-ai-v5://recipe/add?json=${encodedRecipe}`;
-        window.location.href = deepLink;
-
-        setTimeout(() => {
-          alert('Opening RecipeBox AI app...\n\nIf the app doesn\'t open:\n1. Make sure RecipeBox AI is installed\n2. Try copying the link and opening it in Safari');
-        }, 500);
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Error adding recipe. Please try again.');
+        const gate = await getSaveGate(session.user.id);
+        if (!gate.allowed) {
+          setBusy(false);
+          upgradeModal(gate.used, gate.limit);
+          return;
+        }
+        const newId = await saveSharedRecipeToLibrary(session.user.id, shared);
+        markSaved();
+        savedModal(newId, shared.title);
+      } catch (err) {
+        setBusy(false);
+        errorModal(err instanceof Error ? err.message : 'Please try again.');
       }
     }
-    document.getElementById('add-to-recipebox-btn')?.addEventListener('click', addToRecipeBox);
+
+    saveBtn?.addEventListener('click', onSave);
   </script>
 
   <script is:inline define:vars={{ baseServings: recipe.servings }}>
@@ -564,8 +639,29 @@ const richNutrients = recipe.nutrition?.richNutrients || [];
   img { display: block; max-width: 100%; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
 
   .container { max-width: 1280px; margin: 0 auto; padding: 0 56px; }
+
+  /* Save modal */
+  .rb-modal-backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(10,10,10,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: grid; place-items: center; padding: 22px; }
+  .rb-modal-card { position: relative; width: 100%; max-width: 420px; background: #fff; border-radius: 28px; padding: 40px 36px 32px; box-shadow: 0 32px 80px -24px rgba(10,10,10,0.35); }
+  .rb-modal-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--bg); color: var(--ink-2); display: grid; place-items: center; }
+  .rb-modal-close:hover { background: var(--bg-2); color: var(--ink); }
+  .rb-modal-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .rb-modal-card h3 { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; font-size: 40px; line-height: 0.98; letter-spacing: -0.03em; margin: 0 0 14px; text-wrap: balance; }
+  .rb-modal-card h3 em { font-style: italic; }
+  .rb-modal-card p { margin: 0 0 22px; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+  .rb-modal-card p b { color: var(--ink); }
+  .rb-modal-btn { width: 100%; height: 50px; border-radius: 999px; font-size: 14.5px; font-weight: 600; letter-spacing: -0.005em; display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-bottom: 10px; border: 0; }
+  .rb-modal-btn.primary { background: #0a0a0a; color: #fff; }
+  .rb-modal-btn.primary:hover { background: #1a1a1a; }
+  .rb-modal-btn.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .rb-modal-btn.secondary:hover { border-color: rgba(10,10,10,0.35); }
+  .rb-modal-hint { font-size: 12px !important; color: var(--muted) !important; margin: 4px 0 0 !important; text-align: center; }
+  .rb-btn-spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; animation: rb-spin 700ms linear infinite; display: inline-block; }
+  @keyframes rb-spin { to { transform: rotate(360deg); } }
+  .stats .btn-primary.saved { background: #2d6a3f; cursor: default; }
   .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
   .display em { font-style: italic; font-weight: 400; }
   .eyebrow { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }

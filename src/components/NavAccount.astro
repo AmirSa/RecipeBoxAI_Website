@@ -1,0 +1,40 @@
+---
+// Signed-in account chip for the public pages' nav. Hidden by default; when a
+// session exists it reveals itself and hides the sibling Download CTA
+// (#nav-download), so the nav reflects auth state site-wide.
+---
+
+<div class="nav-account" id="nav-account" hidden>
+  <span class="who" id="nav-email"></span>
+  <button class="signout" id="signout-btn" type="button">Sign out</button>
+</div>
+
+<script>
+  import { supabase } from '@/lib/account';
+
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) return;
+    const download = document.getElementById('nav-download');
+    if (download) download.style.display = 'none';
+    const email = document.getElementById('nav-email');
+    if (email) email.textContent = session.user.email ?? '';
+    const account = document.getElementById('nav-account');
+    if (account) account.hidden = false;
+  });
+
+  document.getElementById('signout-btn')?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  });
+</script>
+
+<style>
+  .nav-account { display: flex; align-items: center; gap: 12px; }
+  .nav-account[hidden] { display: none; }
+  .nav-account .who { font-size: 12.5px; color: var(--muted, #6e6e73); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line, rgba(10,10,10,0.08)); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2, #2a2a2c); cursor: pointer; font-family: inherit; }
+  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink, #0a0a0a); }
+  @media (max-width: 760px) {
+    .nav-account .who { display: none; }
+  }
+</style>

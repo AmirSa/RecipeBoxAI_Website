@@ -80,6 +80,33 @@ export interface SharedRecipe {
   created_at: string;
 }
 
+/**
+ * Fetch ALL published shared recipes. PostgREST silently caps any single
+ * request at 1000 rows — with 1400+ published recipes, unpaged queries made
+ * the list page and getStaticPaths see different 1000-row subsets, so ~170
+ * recipe links 404'd. Always page through to the end, in a stable order.
+ */
+export async function fetchAllPublishedRecipes<T = Record<string, unknown>>(columns: string): Promise<T[]> {
+  const PAGE = 1000;
+  const all: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('shared_recipes')
+      .select(columns)
+      .eq('is_published', true)
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) {
+      console.error('Error fetching shared recipes page:', error);
+      break;
+    }
+    const rows = (data ?? []) as T[];
+    all.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return all;
+}
+
 // Fetch all published recipes for the list page
 export async function getSharedRecipesList(): Promise<SharedRecipeListItem[]> {
   const { data, error } = await supabase

@@ -33,6 +33,19 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       <h1 class="display">Welcome<br><em>back.</em></h1>
       <p class="lead">Sign in with the same account you use in the RecipeBox AI app — every recipe on your phone is right here.</p>
 
+      <div class="oauth-row">
+        <button class="oauth-btn google" id="google-btn" type="button">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.57 5.57 0 01-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0012 24z"/><path fill="#FBBC05" d="M5.27 14.29A7.19 7.19 0 014.89 12c0-.8.14-1.57.38-2.29V6.62H1.29a12 12 0 000 10.76l3.98-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+          Continue with Google
+        </button>
+        <button class="oauth-btn apple" id="apple-btn" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
+          Continue with Apple
+        </button>
+      </div>
+
+      <div class="or-divider" id="or-divider"><span>or sign in with email</span></div>
+
       <form id="login-form" novalidate>
         <div class="field">
           <label for="email">Email</label>
@@ -90,7 +103,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   </footer>
 
   <script>
-    import { supabase, safeNextPath } from '@/lib/account';
+    import { supabase, supabaseUrl, safeNextPath } from '@/lib/account';
 
     const nextPath = safeNextPath(new URLSearchParams(window.location.search).get('next'), '/my/recipes/');
 
@@ -106,6 +119,32 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
     const spinner = submitBtn.querySelector('.spinner') as HTMLElement;
     const label = submitBtn.querySelector('.label') as HTMLElement;
+
+    // ── OAuth ──
+    // Same providers as the apps: Google everywhere; Apple only when the
+    // backend has a web OAuth secret configured (the iOS app uses the native
+    // id-token flow, which doesn't need one). Probe once and reveal the Apple
+    // button only if the web flow is actually available.
+    const appleBtn = document.getElementById('apple-btn') as HTMLButtonElement;
+    fetch(`${supabaseUrl}/auth/v1/authorize?provider=apple`, { redirect: 'manual' })
+      .then((res) => {
+        if (res.type === 'opaqueredirect' || res.ok || (res.status >= 300 && res.status < 400)) {
+          appleBtn.hidden = false;
+        }
+      })
+      .catch(() => { /* keep hidden */ });
+
+    async function oauthSignIn(provider: 'google' | 'apple') {
+      errorCard.hidden = true;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + nextPath },
+      });
+      if (error) showError(error.message);
+    }
+
+    document.getElementById('google-btn')?.addEventListener('click', () => oauthSignIn('google'));
+    appleBtn?.addEventListener('click', () => oauthSignIn('apple'));
 
     document.getElementById('pw-toggle')?.addEventListener('click', () => {
       const showing = passwordEl.type === 'text';
@@ -171,6 +210,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   img { display: block; max-width: 100%; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
 
   .container { max-width: 1280px; margin: 0 auto; padding: 0 56px; }
   .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; text-wrap: balance; }
@@ -193,6 +233,15 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   .auth-card { width: 100%; max-width: 460px; background: #fff; border: 1px solid var(--line-2); border-radius: 28px; padding: 44px 40px 36px; box-shadow: 0 24px 60px -32px rgba(10,10,10,0.18); }
   .auth-card h1 { font-size: 56px; margin: 12px 0 16px; }
   .auth-card .lead { margin: 0 0 30px; }
+
+  .oauth-row { display: flex; flex-direction: column; gap: 10px; }
+  .oauth-btn { width: 100%; height: 50px; border-radius: 999px; font-size: 14.5px; font-weight: 600; letter-spacing: -0.005em; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: border-color 140ms ease, background 140ms ease; }
+  .oauth-btn.google { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .oauth-btn.google:hover { border-color: rgba(10,10,10,0.35); }
+  .oauth-btn.apple { background: #0a0a0a; color: #fff; border: 0; }
+  .oauth-btn.apple:hover { background: #1a1a1a; }
+  .or-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--muted); font-size: 12px; }
+  .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 
   .field { margin-bottom: 18px; }
   .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }

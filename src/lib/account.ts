@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
+import { supabase, supabaseUrl } from './supabase';
 
-export { supabase };
+export { supabase, supabaseUrl };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Wire-format decoding for the user `recipes` table.

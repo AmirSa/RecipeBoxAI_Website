@@ -43,7 +43,10 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
     <main class="results">
       <div class="toolbar" id="toolbar" hidden>
-        <div class="filter-pills" id="filter-pills"></div>
+        <div class="filters" id="filters">
+          <div class="filter-pills" id="filter-pills"></div>
+          <button class="pills-toggle" id="pills-toggle" type="button" hidden></button>
+        </div>
         <div class="right">
           <div class="search-wrap">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -119,12 +122,25 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       search: '',
       sort: 'newest',
       filter: 'all' as string, // 'all' | 'favorites' | tag id
+      pillsExpanded: false,
     };
 
     const grid = document.getElementById('grid') as HTMLElement;
     const toolbar = document.getElementById('toolbar') as HTMLElement;
+    const filtersEl = document.getElementById('filters') as HTMLElement;
     const pillsEl = document.getElementById('filter-pills') as HTMLElement;
+    const pillsToggle = document.getElementById('pills-toggle') as HTMLElement;
     const headCount = document.getElementById('head-count') as HTMLElement;
+
+    // Collapse the tag filter to ~2 rows when there are many tags; a library
+    // can carry 90+ tags, which otherwise buries the grid under a pill wall.
+    const COLLAPSED_MAX = 92; // px — matches .filter-pills collapsed max-height
+    function updatePillsToggle() {
+      filtersEl.classList.toggle('expanded', state.pillsExpanded);
+      const overflowing = pillsEl.scrollHeight > COLLAPSED_MAX + 6;
+      pillsToggle.hidden = !overflowing;
+      pillsToggle.textContent = state.pillsExpanded ? 'Show fewer tags' : 'Show all tags';
+    }
 
     function placeholderCard(title: string) {
       return `<div class="ph"><span>${escapeHtml((title || 'R').slice(0, 1).toUpperCase())}</span></div>`;
@@ -191,6 +207,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
           return `<button class="pill tag-pill ${active ? 'active' : ''}" data-filter="${escapeHtml(t.id)}"><span class="sw" style="background:${active ? '#fff' : hex};"></span>${escapeHtml(t.name)}</button>`;
         }),
       ].join('');
+      updatePillsToggle();
     }
 
     function renderResults() {
@@ -241,7 +258,16 @@ import BaseLayout from '@layouts/BaseLayout.astro';
         state.sort = (e.target as HTMLSelectElement).value;
         renderResults();
       });
-      document.getElementById('signout-btn')?.addEventListener('click', () => signOut());
+      pillsToggle.addEventListener('click', () => {
+        state.pillsExpanded = !state.pillsExpanded;
+        updatePillsToggle();
+      });
+      // Re-measure when reflow changes how many pills fit per row.
+      let rz: ReturnType<typeof setTimeout>;
+      window.addEventListener('resize', () => {
+        clearTimeout(rz);
+        rz = setTimeout(updatePillsToggle, 150);
+      });
     }
 
     async function load() {
@@ -345,10 +371,18 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
   /* Toolbar */
   main.results { padding-bottom: 96px; }
-  .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--line); gap: 20px; flex-wrap: wrap; }
+  .toolbar { display: flex; justify-content: space-between; align-items: flex-start; padding: 0 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--line); gap: 20px; flex-wrap: wrap; }
   .toolbar .right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .toolbar .sort-label { font-size: 13px; color: var(--muted); }
-  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filters { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; max-height: 92px; overflow: hidden; position: relative; transition: max-height 220ms ease; }
+  .filters.expanded .filter-pills { max-height: 2000px; }
+  /* Soft fade at the clipped bottom edge so it reads as "there's more". */
+  .filters:not(.expanded) .filter-pills::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: linear-gradient(to bottom, transparent, var(--bg)); pointer-events: none; }
+  .pills-toggle { border: 0; background: transparent; padding: 0; font-size: 12.5px; font-weight: 600; color: var(--muted); letter-spacing: -0.005em; display: inline-flex; align-items: center; gap: 5px; }
+  .pills-toggle::after { content: "›"; transform: rotate(90deg); display: inline-block; font-size: 15px; line-height: 0; transition: transform 180ms ease; }
+  .filters.expanded .pills-toggle::after { transform: rotate(-90deg); }
+  .pills-toggle:hover { color: var(--ink); }
   .pill { padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; background: transparent; border: 1px solid var(--line); color: var(--ink-2); letter-spacing: -0.005em; transition: background 100ms ease, color 100ms ease, border-color 100ms ease; display: inline-flex; align-items: center; gap: 7px; }
   .pill:hover { border-color: rgba(10,10,10,0.25); color: var(--ink); }
   .pill.active { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }

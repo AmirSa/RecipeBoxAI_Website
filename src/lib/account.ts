@@ -199,22 +199,67 @@ export interface SaveGate {
   limit: number;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Profile lookup — resilient to the user_profiles UUID-case duplication.
+//
+// `user_profiles.user_id` is a TEXT column (not uuid), and iOS writes its row
+// with an UPPERCASE UUID (Swift's `UUID` uppercases), which holds the real
+// subscription state. The web/Android auth session's `user.id` is the canonical
+// LOWERCASE UUID, so an exact `.eq('user_id', ...)` match can land on a stale
+// duplicate row (e.g. a `free` shell) and miss the `pro` row entirely.
+//
+// We therefore match case-insensitively (`.ilike`, safe: a UUID has no `%`/`_`
+// wildcard chars) and fold every row for this user into one logical profile:
+// Pro wins over Free, and we take the most generous bonus-slot value. The
+// `recipes`/`tags`/`cookbooks` tables use real `uuid` columns whose RLS
+// normalizes case, so this quirk is confined to `user_profiles`.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ProfileRow {
+  subscription_tier: string | null;
+  subscription_status: string | null;
+  subscription_end_date: string | null;
+  bonus_recipe_slots: number | null;
+}
+
+export interface ResolvedProfile {
+  isPro: boolean;
+  bonusSlots: number;
+}
+
+function rowIsPro(r: ProfileRow): boolean {
+  if ((r.subscription_tier ?? '').toLowerCase() === 'pro') return true;
+  if ((r.subscription_status ?? '').toLowerCase() === 'active') {
+    const end = r.subscription_end_date ? Date.parse(r.subscription_end_date) : NaN;
+    return isNaN(end) || end > Date.now();
+  }
+  return false;
+}
+
+export async function resolveProfile(userId: string): Promise<ResolvedProfile> {
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('subscription_tier, subscription_status, subscription_end_date, bonus_recipe_slots')
+    .ilike('user_id', userId);
+  const rows = (data ?? []) as ProfileRow[];
+  return {
+    isPro: rows.some(rowIsPro),
+    bonusSlots: rows.reduce((m, r) => Math.max(m, r.bonus_recipe_slots ?? 0), 0),
+  };
+}
+
 export async function getSaveGate(userId: string): Promise<SaveGate> {
-  const [profileRes, countRes] = await Promise.all([
-    supabase
-      .from('user_profiles')
-      .select('subscription_tier, bonus_recipe_slots')
-      .eq('user_id', userId)
-      .maybeSingle(),
+  const [profile, countRes] = await Promise.all([
+    resolveProfile(userId),
     supabase
       .from('recipes')
       .select('id', { count: 'exact', head: true })
       .is('deleted_at', null),
   ]);
-  const tier = profileRes.data?.subscription_tier ?? 'free';
-  const limit = FREE_TIER_LIMIT + (profileRes.data?.bonus_recipe_slots ?? 0);
+  const tier = profile.isPro ? 'pro' : 'free';
+  const limit = FREE_TIER_LIMIT + profile.bonusSlots;
   const used = countRes.count ?? 0;
-  return { allowed: tier === 'pro' || used < limit, tier, used, limit };
+  return { allowed: profile.isPro || used < limit, tier, used, limit };
 }
 
 // Wire key → accepted source keys (shared recipes may carry either casing).
@@ -356,26 +401,23 @@ export interface AccountSummary {
 }
 
 export async function getAccountSummary(userId: string, email: string): Promise<AccountSummary> {
-  const [profileRes, countRes] = await Promise.all([
-    supabase
-      .from('user_profiles')
-      .select('subscription_tier, bonus_recipe_slots')
-      .eq('user_id', userId)
-      .maybeSingle(),
+  // Tier/bonus come from the (case-insensitively resolved) profile; the live
+  // recipe count comes from RLS on the `recipes` uuid column, which is correct
+  // regardless of the user_profiles duplication.
+  const [profile, countRes] = await Promise.all([
+    resolveProfile(userId),
     supabase
       .from('recipes')
       .select('id', { count: 'exact', head: true })
       .is('deleted_at', null),
   ]);
-  const tier = profileRes.data?.subscription_tier ?? 'free';
-  const bonusSlots = profileRes.data?.bonus_recipe_slots ?? 0;
   return {
     email,
-    tier,
-    isPro: tier === 'pro',
+    tier: profile.isPro ? 'pro' : 'free',
+    isPro: profile.isPro,
     recipeCount: countRes.count ?? 0,
-    bonusSlots,
-    limit: FREE_TIER_LIMIT + bonusSlots,
+    bonusSlots: profile.bonusSlots,
+    limit: FREE_TIER_LIMIT + profile.bonusSlots,
   };
 }
 
@@ -432,6 +474,9 @@ export async function fetchCookbooksWithCounts(): Promise<CookbookWithCount[]> {
       .order('created_at', { ascending: false }),
     supabase.from('cookbook_recipes').select('cookbook_id'),
   ]);
+  // Surface a real failure instead of silently rendering "0 cookbooks" (which
+  // is indistinguishable from a genuinely empty account and hides bugs).
+  if (cbRes.error) throw new Error(cbRes.error.message);
   const counts = new Map<string, number>();
   for (const row of (linksRes.data ?? []) as { cookbook_id: string }[]) {
     counts.set(row.cookbook_id, (counts.get(row.cookbook_id) ?? 0) + 1);

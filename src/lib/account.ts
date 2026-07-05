@@ -325,6 +325,174 @@ export async function saveSharedRecipeToLibrary(userId: string, shared: SharedSa
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Account overview, tags, cookbooks (for the /account/ page)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Canonical tag palette, identical to the apps (core/util/TagColors.kt) so a
+// color picked on the web renders the same in the app. Order matches the apps.
+export const TAG_PALETTE: { hex: string; name: string }[] = [
+  { hex: '#8E8E93', name: 'Gray' },
+  { hex: '#007AFF', name: 'Blue' },
+  { hex: '#34C759', name: 'Green' },
+  { hex: '#FF9500', name: 'Orange' },
+  { hex: '#FF3B30', name: 'Red' },
+  { hex: '#AF52DE', name: 'Purple' },
+  { hex: '#FF2D55', name: 'Pink' },
+  { hex: '#FFCC00', name: 'Yellow' },
+  { hex: '#30B0C7', name: 'Teal' },
+  { hex: '#5856D6', name: 'Indigo' },
+  { hex: '#00C7BE', name: 'Mint' },
+  { hex: '#32ADE6', name: 'Cyan' },
+  { hex: '#A2845E', name: 'Brown' },
+];
+
+export interface AccountSummary {
+  email: string;
+  tier: string;          // 'free' | 'pro'
+  isPro: boolean;
+  recipeCount: number;   // live count of non-deleted recipes
+  bonusSlots: number;
+  limit: number;         // FREE_TIER_LIMIT + bonusSlots
+}
+
+export async function getAccountSummary(userId: string, email: string): Promise<AccountSummary> {
+  const [profileRes, countRes] = await Promise.all([
+    supabase
+      .from('user_profiles')
+      .select('subscription_tier, bonus_recipe_slots')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('recipes')
+      .select('id', { count: 'exact', head: true })
+      .is('deleted_at', null),
+  ]);
+  const tier = profileRes.data?.subscription_tier ?? 'free';
+  const bonusSlots = profileRes.data?.bonus_recipe_slots ?? 0;
+  return {
+    email,
+    tier,
+    isPro: tier === 'pro',
+    recipeCount: countRes.count ?? 0,
+    bonusSlots,
+    limit: FREE_TIER_LIMIT + bonusSlots,
+  };
+}
+
+export interface TagWithCount extends UserTagRow {
+  count: number;
+}
+
+export async function fetchTagsWithCounts(): Promise<TagWithCount[]> {
+  const [tagsRes, linksRes] = await Promise.all([
+    supabase.from('tags').select('id, name, color').is('deleted_at', null).order('name'),
+    supabase.from('recipe_tags').select('tag_id'),
+  ]);
+  const counts = new Map<string, number>();
+  for (const row of (linksRes.data ?? []) as { tag_id: string }[]) {
+    counts.set(row.tag_id, (counts.get(row.tag_id) ?? 0) + 1);
+  }
+  return ((tagsRes.data ?? []) as UserTagRow[]).map((t) => ({ ...t, count: counts.get(t.id) ?? 0 }));
+}
+
+export async function renameTag(id: string, name: string): Promise<void> {
+  const { error } = await supabase.from('tags').update({ name }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function recolorTag(id: string, hex: string): Promise<void> {
+  const { error } = await supabase.from('tags').update({ color: hex }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Hard-delete a tag. `recipe_tags` links cascade server-side and a DB trigger
+ * writes a `deleted_tags` tombstone, so the apps drop it on their next full
+ * sync — exactly what the app's own tag delete does.
+ */
+export async function deleteTag(id: string): Promise<void> {
+  const { error } = await supabase.from('tags').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export interface CookbookWithCount {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  count: number;
+}
+
+export async function fetchCookbooksWithCounts(): Promise<CookbookWithCount[]> {
+  const [cbRes, linksRes] = await Promise.all([
+    supabase
+      .from('cookbooks')
+      .select('id, name, description, image_url, created_at')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false }),
+    supabase.from('cookbook_recipes').select('cookbook_id'),
+  ]);
+  const counts = new Map<string, number>();
+  for (const row of (linksRes.data ?? []) as { cookbook_id: string }[]) {
+    counts.set(row.cookbook_id, (counts.get(row.cookbook_id) ?? 0) + 1);
+  }
+  return ((cbRes.data ?? []) as Record<string, any>[]).map((c) => ({
+    id: c.id,
+    name: c.name || 'Untitled cookbook',
+    description: c.description ?? null,
+    image_url: c.image_url ?? null,
+    count: counts.get(c.id) ?? 0,
+  }));
+}
+
+export interface CookbookDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  recipes: {
+    id: string;
+    title: string;
+    totalTime: number;
+    calories: number;
+    image: string | null;
+  }[];
+}
+
+export async function fetchCookbook(id: string): Promise<CookbookDetail | null> {
+  const { data: cb } = await supabase
+    .from('cookbooks')
+    .select('id, name, description')
+    .eq('id', id)
+    .is('deleted_at', null)
+    .maybeSingle();
+  if (!cb) return null;
+
+  const { data: links } = await supabase
+    .from('cookbook_recipes')
+    .select('recipe_id')
+    .eq('cookbook_id', id);
+  const recipeIds = ((links ?? []) as { recipe_id: string }[]).map((l) => l.recipe_id);
+
+  let recipes: CookbookDetail['recipes'] = [];
+  if (recipeIds.length > 0) {
+    const { data: rows } = await supabase
+      .from('recipes')
+      .select('id, title, prep_time, cook_time, total_time, calories, image_url')
+      .in('id', recipeIds)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+    recipes = ((rows ?? []) as Record<string, any>[]).map((r) => ({
+      id: r.id,
+      title: r.title || 'Untitled recipe',
+      totalTime: r.total_time || (r.prep_time || 0) + (r.cook_time || 0),
+      calories: r.calories || 0,
+      image: r.image_url ?? null,
+    }));
+  }
+  return { id: cb.id, name: cb.name || 'Untitled cookbook', description: cb.description ?? null, recipes };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Auth
 // ─────────────────────────────────────────────────────────────────────────────
 

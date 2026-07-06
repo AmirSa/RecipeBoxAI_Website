@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import NavAccount from '@components/NavAccount.astro';
 ---
 
 <BaseLayout title="Recipe" description="View a recipe from your RecipeBox AI library.">
@@ -22,10 +23,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
         <li><a href="/my/cookbooks/">Cookbooks</a></li>
         <li><a href="/account/">Account</a></li>
       </ul>
-      <div class="nav-account" id="nav-account" hidden>
-        <a class="who" id="nav-email" href="/account/"></a>
-        <button class="signout" id="signout-btn">Sign out</button>
-      </div>
+      <NavAccount dest="/login/" />
     </div>
   </nav>
 
@@ -63,7 +61,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
   <script>
     import {
-      supabase, requireSession, signOut, escapeHtml, tagHex,
+      supabase, requireSession, escapeHtml, tagHex,
       parseIngredientSections, parseInstructions, parseNutrition,
       type UserRecipeRow, type UserTagRow, type WireNutrition,
     } from '@/lib/account';
@@ -336,11 +334,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       const session = await requireSession();
       if (!session) return;
 
-      const navAccount = document.getElementById('nav-account') as HTMLElement;
-      (document.getElementById('nav-email') as HTMLElement).textContent = session.user.email ?? '';
-      navAccount.hidden = false;
-      document.getElementById('signout-btn')?.addEventListener('click', () => signOut());
-
       const id = new URLSearchParams(window.location.search).get('id');
       if (!id) {
         showState('Recipe not found', 'This link is missing a recipe id.');
@@ -415,10 +408,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
   nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
   nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
-  .nav-account { display: flex; align-items: center; gap: 12px; }
-  .nav-account .who { font-size: 12.5px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink); }
 
   /* Crumb */
   .crumb { padding: 24px 0 16px; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -560,7 +549,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   @media (max-width: 760px) {
     .container { padding: 0 22px; }
     nav.rb-nav ul { display: none; }
-    .nav-account .who { display: none; }
     .hero-grid { grid-template-columns: 1fr; gap: 28px; }
     .hero-h1 { font-size: 40px; }
     .hero .overview { font-size: 16px; margin-top: 18px; }

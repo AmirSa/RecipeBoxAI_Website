@@ -1,39 +1,175 @@
 ---
-// Signed-in account chip for the public pages' nav. Hidden by default; when a
-// session exists it reveals itself and hides the sibling Download CTA
-// (#nav-download), so the nav reflects auth state site-wide.
+// Signed-in account control for the site nav. Hidden by default; when a
+// session exists it reveals itself as a circular avatar (profile picture from
+// the auth provider, or the user's initials) and hides the sibling Download
+// CTA (#nav-download). Clicking the avatar opens a dropdown with the user's
+// identity, account links, and Sign out.
+//
+// `dest` is where signOut() navigates afterwards — public pages keep the user
+// on the site ('/'), signed-in pages send them to the login screen.
+interface Props {
+  dest?: string;
+}
+const { dest = '/' } = Astro.props;
 ---
 
-<div class="nav-account" id="nav-account" hidden>
-  <a class="who" id="nav-email" href="/account/"></a>
-  <button class="signout" id="signout-btn" type="button">Sign out</button>
+<div class="nav-account" id="nav-account" data-signout-dest={dest} hidden>
+  <button
+    class="avatar-btn"
+    id="avatar-btn"
+    type="button"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-label="Account menu"
+  >
+    <img class="avatar-img" id="avatar-img" alt="" referrerpolicy="no-referrer" hidden />
+    <span class="avatar-initials" id="avatar-initials" aria-hidden="true"></span>
+  </button>
+
+  <div class="menu" id="account-menu" role="menu" aria-labelledby="avatar-btn" hidden>
+    <div class="menu-head">
+      <span class="menu-name" id="menu-name" hidden></span>
+      <span class="menu-email" id="menu-email"></span>
+    </div>
+    <a class="menu-item" role="menuitem" href="/my/recipes/">My Recipes</a>
+    <a class="menu-item" role="menuitem" href="/my/cookbooks/">Cookbooks</a>
+    <a class="menu-item" role="menuitem" href="/account/">Account</a>
+    <div class="menu-sep" role="separator"></div>
+    <button class="menu-item menu-signout" id="signout-btn" role="menuitem" type="button">Sign out</button>
+  </div>
 </div>
 
 <script>
   import { supabase, signOut } from '@/lib/account';
 
+  const root = document.getElementById('nav-account');
+  const btn = document.getElementById('avatar-btn');
+  const menu = document.getElementById('account-menu');
+
+  /** "Amir Salameh" -> "AS", "amir" -> "A"; falls back to the email's first letter. */
+  function initialsFor(name: string | undefined, email: string): string {
+    const source = (name ?? '').trim();
+    if (source) {
+      const parts = source.split(/\s+/);
+      const first = parts[0][0] ?? '';
+      const last = parts.length > 1 ? parts[parts.length - 1][0] ?? '' : '';
+      return (first + last).toUpperCase();
+    }
+    return (email[0] ?? '?').toUpperCase();
+  }
+
+  function closeMenu() {
+    if (!menu || menu.hidden) return;
+    menu.hidden = true;
+    btn?.setAttribute('aria-expanded', 'false');
+  }
+
   supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) return;
+    if (!session || !root || !btn || !menu) return;
+
+    const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
+    const email = session.user.email ?? '';
+    const name = typeof meta.full_name === 'string' && meta.full_name.trim()
+      ? meta.full_name
+      : typeof meta.name === 'string' && meta.name.trim() ? meta.name : undefined;
+    const picture = typeof meta.avatar_url === 'string' && meta.avatar_url
+      ? meta.avatar_url
+      : typeof meta.picture === 'string' && meta.picture ? meta.picture : undefined;
+
+    const initialsEl = document.getElementById('avatar-initials');
+    if (initialsEl) initialsEl.textContent = initialsFor(name, email);
+
+    const img = document.getElementById('avatar-img') as HTMLImageElement | null;
+    if (img && picture) {
+      // Only swap the initials out once the picture actually loads.
+      img.addEventListener('load', () => {
+        img.hidden = false;
+        if (initialsEl) initialsEl.hidden = true;
+      });
+      img.src = picture;
+    }
+
+    const nameEl = document.getElementById('menu-name');
+    if (nameEl && name) {
+      nameEl.textContent = name;
+      nameEl.hidden = false;
+    }
+    const emailEl = document.getElementById('menu-email');
+    if (emailEl) emailEl.textContent = email;
+
+    // Public pages show a Download CTA in the same slot; signed-in nav replaces it.
     const download = document.getElementById('nav-download');
     if (download) download.style.display = 'none';
-    const email = document.getElementById('nav-email');
-    if (email) email.textContent = session.user.email ?? '';
-    const account = document.getElementById('nav-account');
-    if (account) account.hidden = false;
-  });
 
-  // Sign out and return to the home page (this button lives on public pages).
-  document.getElementById('signout-btn')?.addEventListener('click', () => signOut('/'));
+    root.hidden = false;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = menu.hidden;
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target as Node)) closeMenu();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    document.getElementById('signout-btn')?.addEventListener('click', () => {
+      signOut(root.dataset.signoutDest || '/');
+    });
+  });
 </script>
 
 <style>
-  .nav-account { display: flex; align-items: center; gap: 12px; }
+  .nav-account { position: relative; display: flex; align-items: center; }
   .nav-account[hidden] { display: none; }
-  .nav-account .who { font-size: 12.5px; color: var(--muted, #6e6e73); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .nav-account a.who:hover { color: var(--ink, #0a0a0a); }
-  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line, rgba(10,10,10,0.08)); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2, #2a2a2c); cursor: pointer; font-family: inherit; }
-  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink, #0a0a0a); }
-  @media (max-width: 760px) {
-    .nav-account .who { display: none; }
+
+  .avatar-btn {
+    width: 36px; height: 36px; padding: 0;
+    border-radius: 50%; border: 1px solid var(--line, rgba(10,10,10,0.08));
+    background: var(--ink, #0a0a0a);
+    display: inline-flex; align-items: center; justify-content: center;
+    overflow: hidden; cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
   }
+  .avatar-btn:hover { box-shadow: 0 0 0 3px rgba(10,10,10,0.1); }
+  .avatar-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(10,10,10,0.25); }
+  .avatar-btn[aria-expanded="true"] { box-shadow: 0 0 0 3px rgba(10,10,10,0.15); }
+
+  .avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .avatar-img[hidden] { display: none; }
+  .avatar-initials {
+    font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+    color: #fff; user-select: none; line-height: 1;
+  }
+  .avatar-initials[hidden] { display: none; }
+
+  .menu {
+    position: absolute; top: calc(100% + 10px); right: 0; z-index: 200;
+    min-width: 224px; padding: 6px;
+    background: #fff; border: 1px solid var(--line, rgba(10,10,10,0.08));
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(10,10,10,0.1), 0 2px 6px rgba(10,10,10,0.06);
+  }
+  .menu[hidden] { display: none; }
+
+  .menu-head { display: flex; flex-direction: column; gap: 1px; padding: 10px 12px 9px; }
+  .menu-name { font-size: 13.5px; font-weight: 600; color: var(--ink, #0a0a0a); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .menu-name[hidden] { display: none; }
+  .menu-email { font-size: 12.5px; color: var(--muted, #6e6e73); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .menu-sep { height: 1px; margin: 6px 6px; background: var(--line, rgba(10,10,10,0.08)); }
+
+  .menu-item {
+    display: block; width: 100%; box-sizing: border-box;
+    padding: 8px 12px; border: 0; border-radius: 10px;
+    background: transparent; text-align: left; text-decoration: none;
+    font-family: inherit; font-size: 13.5px; font-weight: 500;
+    color: var(--ink-2, #2a2a2c); cursor: pointer;
+  }
+  .menu-item:hover { background: rgba(10,10,10,0.05); color: var(--ink, #0a0a0a); }
+  .menu-signout { color: #b42318; }
+  .menu-signout:hover { background: rgba(180,35,24,0.07); color: #b42318; }
 </style>

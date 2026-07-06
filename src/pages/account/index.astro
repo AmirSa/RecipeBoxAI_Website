@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import NavAccount from '@components/NavAccount.astro';
 ---
 
 <BaseLayout title="Account" description="Manage your RecipeBox AI account, tags, and cookbooks.">
@@ -21,10 +22,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
         <li><a href="/my/cookbooks/">Cookbooks</a></li>
         <li><a class="current" href="/account/">Account</a></li>
       </ul>
-      <div class="nav-account" id="nav-account" hidden>
-        <span class="who" id="nav-email"></span>
-        <button class="signout" id="signout-btn" type="button">Sign out</button>
-      </div>
+      <NavAccount dest="/login/" />
     </div>
   </nav>
 
@@ -57,7 +55,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
   <script>
     import {
-      requireSession, signOut, escapeHtml, tagHex, TAG_PALETTE, FREE_TIER_LIMIT,
+      requireSession, escapeHtml, tagHex, TAG_PALETTE, FREE_TIER_LIMIT,
       getAccountSummary, fetchTagsWithCounts, renameTag, recolorTag, deleteTag,
       fetchCookbooksWithCounts,
       type TagWithCount, type CookbookWithCount, type AccountSummary,
@@ -264,9 +262,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     async function load() {
       const session = await requireSession();
       if (!session) return;
-      (document.getElementById('nav-email') as HTMLElement).textContent = session.user.email ?? '';
-      (document.getElementById('nav-account') as HTMLElement).hidden = false;
-      document.getElementById('signout-btn')?.addEventListener('click', () => signOut());
 
       try {
         const [summary, tags, cookbooks] = await Promise.all([
@@ -315,10 +310,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
   nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
   nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
-  .nav-account { display: flex; align-items: center; gap: 12px; }
-  .nav-account .who { font-size: 12.5px; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .nav-account .signout { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-  .nav-account .signout:hover { border-color: rgba(10,10,10,0.3); color: var(--ink); }
 
   header.page-head { padding: 44px 0 32px; }
   header.page-head h1 { font-size: 64px; margin: 12px 0 0; }
@@ -408,7 +399,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   @media (max-width: 760px) {
     .container { padding: 0 22px; }
     nav.rb-nav ul { display: none; }
-    .nav-account .who { display: none; }
     header.page-head { padding: 28px 0 20px; }
     header.page-head h1 { font-size: 44px; }
     .card { padding: 22px 20px; }

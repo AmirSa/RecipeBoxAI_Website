@@ -93,13 +93,14 @@ import NavAccount from '@components/NavAccount.astro';
 
   <script>
     import {
-      supabase, requireSession, escapeHtml, tagHex,
+      supabase, requireSession, escapeHtml, tagHex, setRecipeFavorite,
       type UserRecipeRow, type UserTagRow,
     } from '@/lib/account';
 
     const ICON = {
       timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>',
       heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+      heartLine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
       star: '<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
     };
 
@@ -156,7 +157,7 @@ import NavAccount from '@components/NavAccount.astro';
             ${r.image
               ? `<img src="${escapeHtml(r.image)}" alt="${escapeHtml(r.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${escapeHtml((r.title || 'R').slice(0, 1).toUpperCase())}'}))">`
               : placeholderCard(r.title)}
-            ${r.isFavorite ? `<div class="fav" title="Favorite">${ICON.heart}</div>` : ''}
+            <button class="fav ${r.isFavorite ? 'on' : ''}" data-fav="${escapeHtml(r.id)}" aria-pressed="${r.isFavorite}" title="${r.isFavorite ? 'Remove from favorites' : 'Add to favorites'}">${r.isFavorite ? ICON.heart : ICON.heartLine}</button>
             ${r.rating > 0 ? `<div class="rating">${ICON.star} ${r.rating}</div>` : ''}
           </div>
           <div class="body">
@@ -237,7 +238,37 @@ import NavAccount from '@components/NavAccount.astro';
       document.getElementById('retry-btn')?.addEventListener('click', () => window.location.reload());
     }
 
+    // Optimistic toggle, matching the account page's tag mutations: flip the
+    // UI immediately, push to Supabase, revert + alert on failure. In-flight
+    // ids are locked so a double-click can't race two opposite updates.
+    const favInFlight = new Set<string>();
+    async function toggleFavorite(id: string) {
+      const rec = state.all.find((r) => r.id === id);
+      if (!rec || favInFlight.has(id)) return;
+      favInFlight.add(id);
+      rec.isFavorite = !rec.isFavorite;
+      renderPills();
+      renderResults();
+      try {
+        await setRecipeFavorite(id, rec.isFavorite);
+      } catch (err) {
+        rec.isFavorite = !rec.isFavorite;
+        renderPills();
+        renderResults();
+        alert('Could not update favorite: ' + (err instanceof Error ? err.message : 'try again'));
+      } finally {
+        favInFlight.delete(id);
+      }
+    }
+
     function wire() {
+      grid.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('[data-fav]') as HTMLElement | null;
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFavorite(btn.dataset.fav!);
+      });
       pillsEl.addEventListener('click', (e) => {
         const pill = (e.target as HTMLElement).closest('[data-filter]') as HTMLElement | null;
         if (!pill) return;
@@ -392,7 +423,9 @@ import NavAccount from '@components/NavAccount.astro';
   .card .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
   .card:hover .img-wrap img { transform: scale(1.04); }
   .card .img-wrap .ph { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 72px; font-weight: 500; color: rgba(10,10,10,0.18); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
-  .card .fav { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: grid; place-items: center; color: #e0533d; }
+  .card .fav { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: grid; place-items: center; color: #8e8a82; transition: color 120ms ease, transform 120ms ease; }
+  .card .fav:hover { color: #e0533d; transform: scale(1.1); }
+  .card .fav.on { color: #e0533d; }
   .card .rating { position: absolute; bottom: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); font-size: 11.5px; font-weight: 700; color: var(--ink); display: inline-flex; align-items: center; gap: 5px; }
   .card .rating svg { color: #d9a514; }
   .card .body { padding: 16px 4px 4px; display: flex; flex-direction: column; gap: 10px; }

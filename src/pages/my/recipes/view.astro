@@ -61,7 +61,7 @@ import NavAccount from '@components/NavAccount.astro';
 
   <script>
     import {
-      supabase, requireSession, escapeHtml, tagHex,
+      supabase, requireSession, escapeHtml, tagHex, setRecipeFavorite,
       parseIngredientSections, parseInstructions, parseNutrition,
       type UserRecipeRow, type UserTagRow, type WireNutrition,
     } from '@/lib/account';
@@ -70,6 +70,7 @@ import NavAccount from '@components/NavAccount.astro';
 
     const ICON = {
       heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
+      heartLine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
       starFill: '<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
       star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="15" height="15"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
       link: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
@@ -171,7 +172,7 @@ import NavAccount from '@components/NavAccount.astro';
               <h1 class="display hero-h1">${escapeHtml(title)}</h1>
               <div class="meta-line">
                 ${recipe.rating > 0 ? `<span class="stars">${starsHtml(recipe.rating)}</span>` : ''}
-                ${recipe.is_favorite ? `<span class="fav-chip">${ICON.heart} Favorite</span>` : ''}
+                <button class="fav-chip ${recipe.is_favorite ? 'on' : ''}" id="fav-btn" aria-pressed="${recipe.is_favorite}">${recipe.is_favorite ? ICON.heart : ICON.heartLine} Favorite</button>
                 ${recipe.source_name ? `<span>From <b>${escapeHtml(recipe.source_name)}</b></span>` : ''}
                 ${created ? `<span>Saved ${escapeHtml(created)}</span>` : ''}
               </div>
@@ -290,6 +291,37 @@ import NavAccount from '@components/NavAccount.astro';
         </div>`;
 
       wireInteractions(recipe.servings || 1);
+      wireFavorite(recipe);
+    }
+
+    // Optimistic favorite toggle (same contract as the apps' small mutations):
+    // flip the chip immediately, push to Supabase, revert + alert on failure.
+    function wireFavorite(recipe: UserRecipeRow) {
+      const btn = document.getElementById('fav-btn');
+      if (!btn) return;
+      let busy = false;
+      const paint = () => {
+        btn.classList.toggle('on', recipe.is_favorite);
+        btn.setAttribute('aria-pressed', String(recipe.is_favorite));
+        btn.setAttribute('title', recipe.is_favorite ? 'Remove from favorites' : 'Add to favorites');
+        btn.innerHTML = `${recipe.is_favorite ? ICON.heart : ICON.heartLine} Favorite`;
+      };
+      paint();
+      btn.addEventListener('click', async () => {
+        if (busy) return;
+        busy = true;
+        recipe.is_favorite = !recipe.is_favorite;
+        paint();
+        try {
+          await setRecipeFavorite(recipe.id, recipe.is_favorite);
+        } catch (err) {
+          recipe.is_favorite = !recipe.is_favorite;
+          paint();
+          alert('Could not update favorite: ' + (err instanceof Error ? err.message : 'try again'));
+        } finally {
+          busy = false;
+        }
+      });
     }
 
     function wireInteractions(baseServings: number) {
@@ -424,7 +456,9 @@ import NavAccount from '@components/NavAccount.astro';
   .hero .meta-line { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 24px; font-size: 13px; color: var(--muted); }
   .hero .meta-line b { color: var(--ink); font-weight: 600; }
   .hero .meta-line .stars { display: inline-flex; gap: 2px; color: #d9a514; }
-  .hero .meta-line .fav-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: #e0533d; border: 1px solid rgba(224,83,61,0.25); background: rgba(224,83,61,0.07); }
+  .hero .meta-line .fav-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); background: transparent; transition: color 120ms ease, border-color 120ms ease, background 120ms ease; }
+  .hero .meta-line .fav-chip:hover { color: #e0533d; border-color: rgba(224,83,61,0.35); }
+  .hero .meta-line .fav-chip.on { color: #e0533d; border-color: rgba(224,83,61,0.25); background: rgba(224,83,61,0.07); }
   .hero .overview { margin: 24px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink-2); letter-spacing: -0.01em; max-width: 52ch; text-wrap: pretty; white-space: pre-line; }
   .hero-img-wrap { aspect-ratio: 4/5; border-radius: 28px; overflow: hidden; background: var(--bg-2); position: relative; }
   .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }

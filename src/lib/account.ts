@@ -437,6 +437,20 @@ export async function fetchTagsWithCounts(): Promise<TagWithCount[]> {
   return ((tagsRes.data ?? []) as UserTagRow[]).map((t) => ({ ...t, count: counts.get(t.id) ?? 0 }));
 }
 
+/**
+ * Set a recipe's favorite flag. This is the same "small mutation" the apps
+ * perform (architecture doc §4.2): update the row and bump `updated_at`; both
+ * apps adopt the server value on their next full sync, since a pulled row wins
+ * over any non-pending local copy. RLS scopes the update to the signed-in user.
+ */
+export async function setRecipeFavorite(id: string, isFavorite: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('recipes')
+    .update({ is_favorite: isFavorite, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
 export async function renameTag(id: string, name: string): Promise<void> {
   const { error } = await supabase.from('tags').update({ name }).eq('id', id);
   if (error) throw new Error(error.message);

@@ -33,16 +33,16 @@ const { photos } = Astro.props;
 
 <style>
   .card {
-    background: white;
+    background: var(--card);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
-  
+
   .card-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--ink);
     margin-bottom: 0;
   }
   
@@ -75,7 +75,7 @@ const { photos } = Astro.props;
     aspect-ratio: 1;
     border-radius: 12px;
     overflow: hidden;
-    background: #f0f0f0;
+    background: var(--bg-2);
   }
   
   .photo-item img {
@@ -88,9 +88,12 @@ const { photos } = Astro.props;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ccc;
+    color: var(--muted);
     font-size: 1.5rem;
   }
+
+  /* Dark-mode override: lift purple accent text for contrast (no direct token) */
+  :global([data-theme="dark"]) .add-photo-btn { color: #a78bfa; }
   
   @media (max-width: 900px) {
     .photos-grid {

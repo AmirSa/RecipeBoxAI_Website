@@ -1,4 +1,6 @@
 ---
+import ThemeToggle from './ThemeToggle.astro';
+
 interface Props {
   title: string;
 }
@@ -13,6 +15,7 @@ const { title } = Astro.props;
     </svg>
     {title}
   </a>
+  <ThemeToggle />
 </nav>
 
 <style>
@@ -21,18 +24,18 @@ const { title } = Astro.props;
     align-items: center;
     justify-content: space-between;
     padding: 1rem 2rem;
-    background: white;
-    border-bottom: 1px solid #eee;
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
     z-index: 100;
   }
-  
+
   .back-button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #333;
+    color: var(--ink-2);
     text-decoration: none;
     font-size: 0.95rem;
   }

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import NavAccount from '@components/NavAccount.astro';
+import ThemeToggle from '@components/ThemeToggle.astro';
 ---
 
 <BaseLayout title="Recipe" description="View a recipe from your RecipeBox AI library.">
@@ -23,7 +24,10 @@ import NavAccount from '@components/NavAccount.astro';
         <li><a href="/my/cookbooks/">Cookbooks</a></li>
         <li><a href="/account/">Account</a></li>
       </ul>
-      <NavAccount dest="/login/" />
+      <div class="nav-actions">
+        <ThemeToggle />
+        <NavAccount dest="/login/" />
+      </div>
     </div>
   </nav>
 
@@ -146,7 +150,7 @@ import NavAccount from '@components/NavAccount.astro';
 
       const tagChips = tags.map((t) => {
         const hex = tagHex(t.color);
-        return `<span class="tag" style="color:${hex}; border-color:${hex}40; background:${hex}12;"><span class="sw" style="background:${hex};"></span>${escapeHtml(t.name)}</span>`;
+        return `<span class="tag" style="--tag-c:${hex};"><span class="sw" style="background:${hex};"></span>${escapeHtml(t.name)}</span>`;
       }).join('');
 
       const created = formatDate(recipe.created_at);
@@ -408,21 +412,10 @@ import NavAccount from '@components/NavAccount.astro';
 </BaseLayout>
 
 <style is:global>
-  :root {
-    --bg: #f0eee9;
-    --bg-2: #e9e6df;
-    --ink: #0a0a0a;
-    --ink-2: #2a2a2c;
-    --muted: #6e6e73;
-    --line: rgba(10,10,10,0.08);
-    --line-2: rgba(10,10,10,0.04);
-    --serif: "Fraunces", Georgia, serif;
-    --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.45; }
   body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-  ::selection { background: #0a0a0a; color: #fff; }
+  ::selection { background: var(--ink); color: var(--bg); }
   img { display: block; max-width: 100%; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; cursor: pointer; }
@@ -440,6 +433,7 @@ import NavAccount from '@components/NavAccount.astro';
   nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
   nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
   nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
+  nav.rb-nav .nav-actions { display: flex; align-items: center; gap: 12px; }
 
   /* Crumb */
   .crumb { padding: 24px 0 16px; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -450,22 +444,24 @@ import NavAccount from '@components/NavAccount.astro';
   .hero { padding: 12px 0 48px; }
   .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
   .hero .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
-  .hero .tag { padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid; display: inline-flex; align-items: center; gap: 6px; }
+  /* Tag hue comes from the app's user palette via --tag-c; blending it with the
+     theme ink keeps even near-white or near-black tag colors readable. */
+  .hero .tag { padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid; display: inline-flex; align-items: center; gap: 6px; color: color-mix(in srgb, var(--tag-c, var(--muted)) 42%, var(--ink)); border-color: color-mix(in srgb, var(--tag-c, var(--muted)) 25%, transparent); background: color-mix(in srgb, var(--tag-c, var(--muted)) 7%, transparent); }
   .hero .tag .sw { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .hero-h1 { font-size: 64px; margin: 0; }
   .hero .meta-line { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 24px; font-size: 13px; color: var(--muted); }
   .hero .meta-line b { color: var(--ink); font-weight: 600; }
-  .hero .meta-line .stars { display: inline-flex; gap: 2px; color: #d9a514; }
+  .hero .meta-line .stars { display: inline-flex; gap: 2px; color: var(--star); }
   .hero .meta-line .fav-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); background: transparent; transition: color 120ms ease, border-color 120ms ease, background 120ms ease; }
   .hero .meta-line .fav-chip:hover { color: #e0533d; border-color: rgba(224,83,61,0.35); }
   .hero .meta-line .fav-chip.on { color: #e0533d; border-color: rgba(224,83,61,0.25); background: rgba(224,83,61,0.07); }
   .hero .overview { margin: 24px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink-2); letter-spacing: -0.01em; max-width: 52ch; text-wrap: pretty; white-space: pre-line; }
   .hero-img-wrap { aspect-ratio: 4/5; border-radius: 28px; overflow: hidden; background: var(--bg-2); position: relative; }
   .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
-  .hero-img-wrap .ph-mark, .hero-img-wrap.ph::after { content: ''; width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 120px; font-weight: 500; color: rgba(10,10,10,0.15); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
+  .hero-img-wrap .ph-mark, .hero-img-wrap.ph::after { content: ''; width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 120px; font-weight: 500; color: color-mix(in srgb, var(--ink) 15%, transparent); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
 
   /* Stats strip */
-  .stats { padding: 28px 32px; background: #fff; border: 1px solid var(--line-2); border-radius: 24px; display: grid; grid-template-columns: 1.5fr repeat(4, 1fr) 1.4fr; align-items: center; gap: 20px; }
+  .stats { padding: 28px 32px; background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; display: grid; grid-template-columns: 1.5fr repeat(4, 1fr) 1.4fr; align-items: center; gap: 20px; }
   .stats .label-col { font-family: var(--serif); font-style: italic; font-size: 22px; letter-spacing: -0.02em; line-height: 1.05; color: var(--ink); }
   .stats .stat { display: flex; flex-direction: column; gap: 2px; }
   .stats .stat .k { font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
@@ -473,30 +469,30 @@ import NavAccount from '@components/NavAccount.astro';
   .stats .stat .v .u { font-family: var(--sans); font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 3px; }
   .stats .cta-col { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
   .btn-secondary { height: 48px; padding: 0 22px; border-radius: 999px; background: transparent; color: var(--ink); border: 1px solid var(--line); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; transition: border-color 140ms ease; }
-  .btn-secondary:hover { border-color: rgba(10,10,10,0.35); }
+  .btn-secondary:hover { border-color: var(--line-strong); }
 
   /* Body */
   .body-layout { display: grid; grid-template-columns: 320px 1fr; gap: 64px; padding: 80px 0; align-items: start; }
   aside.side { position: sticky; top: 88px; align-self: start; display: flex; flex-direction: column; gap: 20px; }
   main.recipe-main { min-width: 0; }
 
-  .card-base { background: #fff; border: 1px solid var(--line-2); border-radius: 20px; padding: 24px; }
+  .card-base { background: var(--card); border: 1px solid var(--line-2); border-radius: 20px; padding: 24px; }
   .card-base h3 { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin: 0 0 16px; }
 
   .macro-total { display: flex; align-items: baseline; gap: 10px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
   .macro-total .big { font-family: var(--serif); font-size: 48px; line-height: 1; font-weight: 500; letter-spacing: -0.03em; }
   .macro-total .small { font-size: 12px; color: var(--muted); }
   .macro-bar { height: 8px; border-radius: 999px; overflow: hidden; display: flex; background: var(--bg-2); margin: 8px 0 14px; }
-  .macro-bar .seg-p { background: #4d7cff; }
-  .macro-bar .seg-c { background: #f5a524; }
-  .macro-bar .seg-f { background: #b13fe8; }
+  .macro-bar .seg-p { background: var(--accent); }
+  .macro-bar .seg-c { background: var(--star); }
+  .macro-bar .seg-f { background: var(--accent-2); }
   .macro-list { display: flex; flex-direction: column; gap: 10px; }
   .macro-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
   .macro-row .lhs { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-weight: 500; }
   .macro-row .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .macro-row .dot.p { background: #4d7cff; }
-  .macro-row .dot.c { background: #f5a524; }
-  .macro-row .dot.f { background: #b13fe8; }
+  .macro-row .dot.p { background: var(--accent); }
+  .macro-row .dot.c { background: var(--star); }
+  .macro-row .dot.f { background: var(--accent-2); }
   .macro-row .v { font-family: var(--serif); font-size: 16px; font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
   .macro-row .pct { color: var(--muted); font-size: 12px; margin-left: 6px; }
 
@@ -510,7 +506,7 @@ import NavAccount from '@components/NavAccount.astro';
   .source-link:hover { text-decoration: underline; }
   .source-link svg { color: var(--muted); flex-shrink: 0; }
 
-  .cta-card { background: #0a0a0a; color: #fff; border-radius: 20px; padding: 24px; }
+  .cta-card { background: var(--panel); color: #fff; border-radius: 20px; padding: 24px; }
   .cta-card h3 { font-family: var(--serif); font-size: 22px; font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; margin: 0; color: #fff; }
   .cta-card p { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.65); margin: 8px 0 16px; }
   .cta-card .btn { width: 100%; height: 44px; border-radius: 999px; background: #fff; color: #0a0a0a; border: 0; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
@@ -524,14 +520,14 @@ import NavAccount from '@components/NavAccount.astro';
   .ing-list li { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; color: var(--ink); letter-spacing: -0.005em; }
   .ing-list li:last-child { border-bottom: 0; }
   .ing-list .name { flex: 1; }
-  .ing-list .check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--line); background: #fff; display: grid; place-items: center; flex-shrink: 0; cursor: pointer; transition: background 100ms ease, border-color 100ms ease; padding: 0; }
-  .ing-list .check.on { background: #0a0a0a; border-color: #0a0a0a; }
+  .ing-list .check { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--line); background: var(--card); display: grid; place-items: center; flex-shrink: 0; cursor: pointer; transition: background 100ms ease, border-color 100ms ease; padding: 0; }
+  .ing-list .check.on { background: var(--solid); border-color: var(--solid); }
   .ing-list .check svg { width: 14px; height: 14px; color: transparent; }
-  .ing-list .check.on svg { color: #fff; }
+  .ing-list .check.on svg { color: var(--on-solid); }
   .ing-list .qty { font-family: var(--serif); font-weight: 500; font-size: 15px; color: var(--muted); min-width: 88px; font-variant-numeric: tabular-nums; }
   .ing-list li.done .name { text-decoration: line-through; color: var(--muted); }
 
-  .servings-bar { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; padding: 6px; background: #fff; border: 1px solid var(--line); border-radius: 999px; }
+  .servings-bar { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; padding: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; }
   .servings-bar button { width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--ink); font-size: 18px; font-weight: 600; display: grid; place-items: center; }
   .servings-bar button:hover { background: var(--bg); }
   .servings-bar .num { font-family: var(--serif); font-size: 18px; font-weight: 500; min-width: 110px; text-align: center; padding: 0 8px; }
@@ -553,14 +549,14 @@ import NavAccount from '@components/NavAccount.astro';
   .sk-inline, .sk-title, .sk-line, .sk-img { background: linear-gradient(90deg, var(--bg-2) 25%, #e0dcd2 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
-  .page-state { margin: 64px auto 96px; max-width: 560px; padding: 72px 40px; text-align: center; background: #fff; border: 1px solid var(--line-2); border-radius: 28px; }
+  .page-state { margin: 64px auto 96px; max-width: 560px; padding: 72px 40px; text-align: center; background: var(--card); border: 1px solid var(--line-2); border-radius: 28px; }
   .page-state h2 { font-family: var(--serif); font-size: 36px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 10px; }
   .page-state p { margin: 0 auto; color: var(--muted); font-size: 15px; max-width: 42ch; }
-  .state-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: 24px; height: 46px; padding: 0 24px; border-radius: 999px; background: #0a0a0a; color: #fff; font-size: 14px; font-weight: 600; }
-  .state-btn:hover { background: #1a1a1a; }
+  .state-btn { display: inline-flex; align-items: center; justify-content: center; margin-top: 24px; height: 46px; padding: 0 24px; border-radius: 999px; background: var(--solid); color: var(--on-solid); font-size: 14px; font-weight: 600; }
+  .state-btn:hover { background: color-mix(in srgb, var(--solid) 92%, var(--bg)); }
 
   /* Footer */
-  footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+  footer.rb-footer { background: var(--panel); color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
   footer.rb-footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
   footer.rb-footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; letter-spacing: -0.02em; font-size: 16px; }
   footer.rb-footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
@@ -596,4 +592,15 @@ import NavAccount from '@components/NavAccount.astro';
     .hero-img-wrap { aspect-ratio: 4/3; }
     footer.rb-footer .row { flex-direction: column; align-items: flex-start; gap: 18px; }
   }
+
+  /* Dark-mode overrides for values with no token equivalent */
+  :root[data-theme="dark"] .hero-img-wrap .ph-mark,
+  :root[data-theme="dark"] .hero-img-wrap.ph::after { background: linear-gradient(135deg, var(--bg-2), #2a2723); }
+  :root[data-theme="dark"] .sk-inline,
+  :root[data-theme="dark"] .sk-title,
+  :root[data-theme="dark"] .sk-line,
+  :root[data-theme="dark"] .sk-img { background: linear-gradient(90deg, var(--bg-2) 25%, #2a2723 50%, var(--bg-2) 75%); background-size: 200% 100%; }
+  /* Favorite heart: same pink hue, lightened for contrast on the dark bg */
+  :root[data-theme="dark"] .hero .meta-line .fav-chip:hover { color: #f0725c; border-color: rgba(240,114,92,0.4); }
+  :root[data-theme="dark"] .hero .meta-line .fav-chip.on { color: #f0725c; border-color: rgba(240,114,92,0.3); background: rgba(240,114,92,0.1); }
 </style>

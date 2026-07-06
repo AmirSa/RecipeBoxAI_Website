@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import NavAccount from '@components/NavAccount.astro';
+import ThemeToggle from '@components/ThemeToggle.astro';
 ---
 
 <BaseLayout title="Account" description="Manage your RecipeBox AI account, tags, and cookbooks.">
@@ -22,7 +23,10 @@ import NavAccount from '@components/NavAccount.astro';
         <li><a href="/my/cookbooks/">Cookbooks</a></li>
         <li><a class="current" href="/account/">Account</a></li>
       </ul>
-      <NavAccount dest="/login/" />
+      <div class="nav-actions">
+        <ThemeToggle />
+        <NavAccount dest="/login/" />
+      </div>
     </div>
   </nav>
 
@@ -136,7 +140,7 @@ import NavAccount from '@components/NavAccount.astro';
       }
       return `
         <li class="tag-row" data-id="${escapeHtml(t.id)}">
-          <span class="tag-chip" style="color:${hex}; border-color:${hex}40; background:${hex}12;">
+          <span class="tag-chip" style="--tag-c:${hex};">
             <span class="sw" style="background:${hex};"></span>${escapeHtml(t.name)}
           </span>
           <span class="tag-count">${t.count} recipe${t.count === 1 ? '' : 's'}</span>
@@ -283,15 +287,10 @@ import NavAccount from '@components/NavAccount.astro';
 </BaseLayout>
 
 <style is:global>
-  :root {
-    --bg: #f0eee9; --bg-2: #e9e6df; --ink: #0a0a0a; --ink-2: #2a2a2c; --muted: #6e6e73;
-    --line: rgba(10,10,10,0.08); --line-2: rgba(10,10,10,0.04);
-    --serif: "Fraunces", Georgia, serif; --sans: "Inter Tight", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.45; }
   body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-  ::selection { background: #0a0a0a; color: #fff; }
+  ::selection { background: var(--ink); color: var(--bg); }
   img { display: block; max-width: 100%; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; cursor: pointer; }
@@ -310,12 +309,13 @@ import NavAccount from '@components/NavAccount.astro';
   nav.rb-nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 28px; }
   nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
   nav.rb-nav ul a.current, nav.rb-nav ul a:hover { color: var(--ink); }
+  nav.rb-nav .nav-actions { display: flex; align-items: center; gap: 14px; }
 
   header.page-head { padding: 44px 0 32px; }
   header.page-head h1 { font-size: 64px; margin: 12px 0 0; }
   main#account-body { padding-bottom: 96px; }
 
-  .card { background: #fff; border: 1px solid var(--line-2); border-radius: 24px; padding: 28px 30px; }
+  .card { background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; padding: 28px 30px; }
   .card.section { margin-top: 24px; }
 
   /* Plan */
@@ -331,13 +331,13 @@ import NavAccount from '@components/NavAccount.astro';
   .usage { margin-top: 22px; }
   .usage-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--ink-2); }
   .usage-num b { font-family: var(--serif); font-size: 20px; font-weight: 600; }
-  .usage-num b.full { color: #c0392b; }
+  .usage-num b.full { color: var(--danger); }
   .meter { height: 10px; border-radius: 999px; background: var(--bg-2); overflow: hidden; margin-top: 10px; }
-  .meter-fill { height: 100%; border-radius: 999px; background: #0a0a0a; transition: width 300ms ease; }
-  .meter-fill.full { background: #c0392b; }
+  .meter-fill { height: 100%; border-radius: 999px; background: var(--solid); transition: width 300ms ease; }
+  .meter-fill.full { background: var(--danger); }
   .plan-cta { display: flex; align-items: center; gap: 16px; margin-top: 22px; flex-wrap: wrap; }
-  .btn-primary { height: 46px; padding: 0 22px; border-radius: 999px; background: #0a0a0a; color: #fff; border: 0; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
-  .btn-primary:hover { background: #1a1a1a; }
+  .btn-primary { height: 46px; padding: 0 22px; border-radius: 999px; background: var(--solid); color: var(--on-solid); border: 0; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-primary:hover { background: color-mix(in srgb, var(--solid) 88%, var(--bg)); }
   .plan-cta .hint { font-size: 12.5px; color: var(--muted); }
 
   /* Sections */
@@ -351,22 +351,24 @@ import NavAccount from '@components/NavAccount.astro';
   .tag-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
   .tag-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
   .tag-row:last-child { border-bottom: 0; }
-  .tag-chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid; }
+  /* Tag hue comes from the app's user palette via --tag-c; blending it with the
+     theme ink keeps even near-white or near-black tag colors readable. */
+  .tag-chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid; color: color-mix(in srgb, var(--tag-c, var(--muted)) 42%, var(--ink)); border-color: color-mix(in srgb, var(--tag-c, var(--muted)) 25%, transparent); background: color-mix(in srgb, var(--tag-c, var(--muted)) 7%, transparent); }
   .tag-chip .sw { width: 8px; height: 8px; border-radius: 50%; }
   .tag-count { font-size: 12.5px; color: var(--muted); margin-left: auto; }
   .mini { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
-  .mini:hover:not(:disabled) { border-color: rgba(10,10,10,0.3); color: var(--ink); }
-  .mini.solid { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
-  .mini.solid:hover:not(:disabled) { background: #1a1a1a; }
-  .mini.danger { color: #c0392b; border-color: rgba(192,57,43,0.3); }
-  .mini.danger:hover:not(:disabled) { background: rgba(192,57,43,0.06); }
+  .mini:hover:not(:disabled) { border-color: var(--line-strong); color: var(--ink); }
+  .mini.solid { background: var(--solid); color: var(--on-solid); border-color: var(--solid); }
+  .mini.solid:hover:not(:disabled) { background: color-mix(in srgb, var(--solid) 88%, var(--bg)); }
+  .mini.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+  .mini.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 6%, transparent); }
   .tag-row.editing { align-items: stretch; }
   .tag-edit { width: 100%; display: flex; flex-direction: column; gap: 14px; }
   .tag-name-input { height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-family: var(--sans); font-size: 15px; color: var(--ink); outline: none; }
-  .tag-name-input:focus { border-color: rgba(10,10,10,0.4); background: #fff; }
+  .tag-name-input:focus { border-color: color-mix(in srgb, var(--ink) 40%, transparent); background: var(--card); }
   .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
   .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--line); }
-  .swatch.on { border-color: #fff; box-shadow: 0 0 0 2px #0a0a0a; }
+  .swatch.on { border-color: var(--card); box-shadow: 0 0 0 2px var(--ink); }
   .edit-actions { display: flex; align-items: center; gap: 8px; }
   .edit-actions .spacer { flex: 1; }
 
@@ -376,17 +378,17 @@ import NavAccount from '@components/NavAccount.astro';
   .cb-card:hover { transform: translateY(-3px); }
   .cb-cover { aspect-ratio: 3/2; border-radius: 16px; overflow: hidden; background: var(--bg-2); }
   .cb-cover img { width: 100%; height: 100%; object-fit: cover; }
-  .cb-ph { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 48px; font-weight: 500; color: rgba(10,10,10,0.18); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }
+  .cb-ph { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 48px; font-weight: 500; color: color-mix(in srgb, var(--ink) 18%, transparent); background: linear-gradient(135deg, var(--bg-2), color-mix(in srgb, var(--bg-2) 95%, var(--ink))); }
   .cb-body { padding: 12px 4px 4px; }
   .cb-body h3 { font-family: var(--serif); font-size: 18px; font-weight: 500; letter-spacing: -0.015em; margin: 0 0 4px; line-height: 1.15; }
   .cb-count { font-size: 12px; color: var(--muted); }
 
   /* Skeleton */
-  .sk-block { border-radius: 24px; background: linear-gradient(90deg, var(--bg-2) 25%, #e0dcd2 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
+  .sk-block { border-radius: 24px; background: linear-gradient(90deg, var(--bg-2) 25%, color-mix(in srgb, var(--bg-2) 95%, var(--ink)) 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
   /* Footer */
-  footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
+  footer.rb-footer { background: var(--panel); color: rgba(255,255,255,0.7); padding: 56px 0 64px; }
   footer.rb-footer .row { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; max-width: 1000px; }
   footer.rb-footer .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 16px; }
   footer.rb-footer .brand .app-ico { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }

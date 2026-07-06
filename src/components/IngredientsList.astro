@@ -74,16 +74,16 @@ const showSections = sections && sections.length > 1;
 
 <style>
   .card {
-    background: white;
+    background: var(--card);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
-  
+
   .card-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--ink);
     margin-bottom: 1rem;
   }
   
@@ -101,7 +101,7 @@ const showSections = sections && sections.length > 1;
     color: #8b5cf6;
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--line);
   }
   
 
@@ -117,7 +117,7 @@ const showSections = sections && sections.length > 1;
     align-items: flex-start;
     gap: 0.75rem;
     padding: 0.625rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--line-2);
   }
   
   .ingredient-item:last-child {
@@ -128,7 +128,7 @@ const showSections = sections && sections.length > 1;
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 2px solid #ddd;
+    border: 2px solid var(--line);
     flex-shrink: 0;
     margin-top: 2px;
     cursor: pointer;
@@ -150,20 +150,23 @@ const showSections = sections && sections.length > 1;
   
   .ingredient-amount {
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--ink);
     margin-right: 0.25rem;
   }
-  
+
   .ingredient-name {
-    color: #555;
+    color: var(--ink-2);
   }
-  
+
   .ingredient-note {
     display: block;
     font-size: 0.8rem;
-    color: #595959;
+    color: var(--ink-2);
     font-style: italic;
   }
+
+  /* Dark-mode override: lift purple accent text for contrast (no direct token) */
+  :global([data-theme="dark"]) .section-title { color: #a78bfa; }
 </style>
 
 <script>

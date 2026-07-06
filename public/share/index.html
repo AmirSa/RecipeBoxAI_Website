@@ -27,8 +27,25 @@
     <meta property="og:image" content="">
     
     <link rel="icon" type="image/png" href="/favicon.png">
-    
+
+    <!-- Pre-paint theme resolution: same contract as the rest of the site ('light'/'dark') -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('theme');
+                if (t !== 'light' && t !== 'dark') {
+                    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                }
+                document.documentElement.dataset.theme = t;
+            } catch (e) { /* default: light styles apply */ }
+        })();
+    </script>
+
     <style>
+        :root {
+            color-scheme: light;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -173,6 +190,57 @@
         
         .error p {
             color: #666;
+        }
+
+        /* ===== Dark mode overrides ===== */
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+        }
+
+        :root[data-theme="dark"] body {
+            /* Darkened brand gradient (still reads as purple) */
+            background: linear-gradient(135deg, #3b4699 0%, #4a2d66 100%);
+        }
+
+        :root[data-theme="dark"] .container {
+            background: #24221e;
+            color: #f0eee9;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+        }
+
+        :root[data-theme="dark"] .recipe-image {
+            /* Placeholder backdrop only — real photos are untouched */
+            background: linear-gradient(135deg, #2c2a26 0%, #38352f 100%);
+        }
+
+        :root[data-theme="dark"] .recipe-title {
+            color: #f0eee9;
+        }
+
+        :root[data-theme="dark"] .recipe-meta {
+            color: #9b988f;
+        }
+
+        :root[data-theme="dark"] .shared-by,
+        :root[data-theme="dark"] .download-text {
+            color: #9b988f;
+        }
+
+        :root[data-theme="dark"] .open-app-btn:hover {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.55);
+        }
+
+        :root[data-theme="dark"] .loading .spinner {
+            border-color: rgba(240, 238, 233, 0.11);
+            border-top-color: #8b9cf0;
+        }
+
+        :root[data-theme="dark"] .error h2 {
+            color: #f0796b;
+        }
+
+        :root[data-theme="dark"] .error p {
+            color: #9b988f;
         }
     </style>
 </head>

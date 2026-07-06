@@ -20,16 +20,16 @@ const { instructions } = Astro.props;
 
 <style>
   .card {
-    background: white;
+    background: var(--card);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
-  
+
   .card-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--ink);
     margin-bottom: 1rem;
   }
   
@@ -64,7 +64,7 @@ const { instructions } = Astro.props;
   
   .instruction-text {
     flex: 1;
-    color: #444;
+    color: var(--ink-2);
     font-size: 0.95rem;
     line-height: 1.6;
     padding-top: 3px;

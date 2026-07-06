@@ -39,16 +39,16 @@ const colorClasses: Record<string, string> = {
 
 <style>
   .card {
-    background: white;
+    background: var(--card);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
-  
+
   .card-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--ink);
     margin-bottom: 1rem;
   }
   
@@ -98,7 +98,7 @@ const colorClasses: Record<string, string> = {
   .nutrient-name {
     font-weight: 600;
     font-size: 0.9rem;
-    color: #1a1a1a;
+    color: var(--ink);
   }
   
   .nutrient-value {
@@ -114,11 +114,29 @@ const colorClasses: Record<string, string> = {
   
   .nutrient-desc {
     font-size: 0.8rem;
-    color: #666;
+    color: var(--muted);
     margin-top: 0.25rem;
     line-height: 1.4;
   }
-  
+
+  /* Dark-mode overrides for the pastel nutrient tints (no direct token) */
+  :global([data-theme="dark"]) .nutrient-yellow {
+    background: linear-gradient(135deg, rgba(245,158,11,0.10) 0%, rgba(245,158,11,0.18) 100%);
+  }
+  :global([data-theme="dark"]) .nutrient-red {
+    background: linear-gradient(135deg, rgba(236,72,153,0.10) 0%, rgba(236,72,153,0.18) 100%);
+  }
+  :global([data-theme="dark"]) .nutrient-blue {
+    background: linear-gradient(135deg, rgba(59,130,246,0.10) 0%, rgba(59,130,246,0.18) 100%);
+  }
+  :global([data-theme="dark"]) .nutrient-green {
+    background: linear-gradient(135deg, rgba(34,197,94,0.10) 0%, rgba(34,197,94,0.18) 100%);
+  }
+  :global([data-theme="dark"]) .nutrient-yellow .nutrient-value { color: #fbbf24; }
+  :global([data-theme="dark"]) .nutrient-red .nutrient-value { color: #f472b6; }
+  :global([data-theme="dark"]) .nutrient-blue .nutrient-value { color: #60a5fa; }
+  :global([data-theme="dark"]) .nutrient-green .nutrient-value { color: #4ade80; }
+
   @media (max-width: 600px) {
     .nutrients-grid {
       grid-template-columns: 1fr;

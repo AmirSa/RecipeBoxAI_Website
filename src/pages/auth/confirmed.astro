@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ThemeToggle from '@components/ThemeToggle.astro';
 ---
 
 <BaseLayout title="Email Confirmed" description="Your RecipeBox AI email has been confirmed">
+  <div style="position:absolute; top:16px; right:16px;"><ThemeToggle /></div>
   <div class="container">
     <div class="card">
       <div class="logo">🍳 RecipeBox AI</div>
@@ -28,7 +30,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   }
 
   .card {
-    background: white;
+    background: var(--card);
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -50,12 +52,17 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   }
 
   h2 {
-    color: #333;
+    color: var(--ink);
     margin-bottom: 12px;
   }
 
   p {
-    color: #666;
+    color: var(--muted);
     font-size: 1.1em;
+  }
+
+  /* Dark-mode overrides for values with no token (rule 12) */
+  :global(:root[data-theme="dark"] body) {
+    background: linear-gradient(135deg, #3d478f 0%, #4a2f66 100%);
   }
 </style>

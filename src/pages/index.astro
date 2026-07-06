@@ -40,7 +40,7 @@ const appSchema = {
 };
 ---
 
-<BaseLayout title="Save any recipe. From anywhere." description="Paste a TikTok, scan a cookbook, drop a YouTube link. RecipeBox AI turns it into a clean, structured recipe with macros — in seconds. Free on iOS.">
+<BaseLayout title="Save any recipe. From anywhere." description="Paste a TikTok, scan a cookbook, drop a YouTube link. RecipeBox AI turns it into a clean, structured recipe with macros — in seconds. Free on iPhone, with your whole library on the web.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter+Tight:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -61,11 +61,14 @@ const appSchema = {
         <li><a href="/my/cookbooks/">Cookbooks</a></li>
         <li><a href="#reviews">Reviews</a></li>
       </ul>
-      <a class="download" id="nav-download" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
-        Download
-      </a>
-      <NavAccount />
+      <div class="nav-actions">
+        <a class="signin" id="nav-signin" href="/login/">Sign in</a>
+        <a class="download" id="nav-download" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
+          Download
+        </a>
+        <NavAccount />
+      </div>
     </div>
   </nav>
 
@@ -73,14 +76,15 @@ const appSchema = {
   <section class="hero">
     <div class="container hero-grid">
       <div>
-        <div class="eyebrow">RecipeBox AI · iOS</div>
+        <div class="eyebrow">RecipeBox AI · iPhone &amp; Web</div>
         <h1 class="display hero-h1">Save any recipe.<br><em>From anywhere.</em></h1>
-        <p class="lead hero-lead">Paste a TikTok, scan a cookbook, drop a YouTube link. RecipeBox AI turns it into a clean, structured recipe with macros — in seconds.</p>
+        <p class="lead hero-lead">Paste a TikTok, scan a cookbook, drop a YouTube link. RecipeBox AI turns it into a clean, structured recipe with macros — in seconds. Everything you save lives in one library: in the app, and right here in your browser.</p>
         <div class="cta-row" style="margin-top: 32px;">
           <a class="btn-primary" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
             Download for iOS
           </a>
+          <a class="btn-secondary" href="/login/">Sign in on the web</a>
         </div>
         <div class="hero-meta">
           <span class="stars">
@@ -90,6 +94,7 @@ const appSchema = {
           </span>
           <strong>Every review is 5 stars</strong>
           <span>· Free to download</span>
+          <span>· Android coming soon</span>
         </div>
 
         <div class="channels">
@@ -230,6 +235,84 @@ const appSchema = {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Web library ─── -->
+  <section class="web-band" id="web">
+    <div class="container web-grid">
+      <div class="browser-wrap">
+        <div class="browser">
+          <div class="bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="url">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+              recipeboxai.app/my/recipes
+            </span>
+          </div>
+          <div class="page">
+            <div class="site-row">
+              <span class="site-brand"><img src="/app-icon.png" alt="">RecipeBox AI</span>
+              <span class="site-links"><b>My Recipes</b><span>Cookbooks</span><span>Account</span></span>
+              <span class="site-avatar">A</span>
+            </div>
+            <div class="lib-head">
+              <h3>Your library</h3>
+              <p>24 recipes · synced with the app</p>
+            </div>
+            <div class="recipe-grid web-recipe-grid">
+              <div class="recipe-card">
+                <img src="https://images.unsplash.com/photo-1591814468924-caf88d1232e1?w=600&q=80&auto=format&fit=crop" alt="">
+                <div class="scrim"></div>
+                <div class="fav on"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.8-10-9.3C.6 8.9 2.4 5 6.1 5c2 0 3.4 1.1 4.2 2.3h1.4C12.5 6.1 13.9 5 15.9 5c3.7 0 5.5 3.9 4.1 6.7C17.5 16.2 12 21 12 21z"/></svg></div>
+                <div class="meta"><h3>Dumpling Ramen</h3><div class="sub"><span>20 min</span><span>375 kcal</span></div></div>
+              </div>
+              <div class="recipe-card">
+                <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600&q=80&auto=format&fit=crop" alt="">
+                <div class="scrim"></div>
+                <div class="fav"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.8-10-9.3C.6 8.9 2.4 5 6.1 5c2 0 3.4 1.1 4.2 2.3h1.4C12.5 6.1 13.9 5 15.9 5c3.7 0 5.5 3.9 4.1 6.7C17.5 16.2 12 21 12 21z"/></svg></div>
+                <div class="meta"><h3>Peanut Chilli Noodles</h3><div class="sub"><span>16 min</span><span>420 kcal</span></div></div>
+              </div>
+              <div class="recipe-card">
+                <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80&auto=format&fit=crop" alt="">
+                <div class="scrim"></div>
+                <div class="fav on"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.8-10-9.3C.6 8.9 2.4 5 6.1 5c2 0 3.4 1.1 4.2 2.3h1.4C12.5 6.1 13.9 5 15.9 5c3.7 0 5.5 3.9 4.1 6.7C17.5 16.2 12 21 12 21z"/></svg></div>
+                <div class="meta"><h3>Gochujang Chicken</h3><div class="sub"><span>40 min</span><span>510 kcal</span></div></div>
+              </div>
+              <div class="recipe-card">
+                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80&auto=format&fit=crop" alt="">
+                <div class="scrim"></div>
+                <div class="fav"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.8-10-9.3C.6 8.9 2.4 5 6.1 5c2 0 3.4 1.1 4.2 2.3h1.4C12.5 6.1 13.9 5 15.9 5c3.7 0 5.5 3.9 4.1 6.7C17.5 16.2 12 21 12 21z"/></svg></div>
+                <div class="meta"><h3>Chickpea &amp; Feta</h3><div class="sub"><span>15 min</span><span>320 kcal</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="eyebrow">Also on the web · recipeboxai.app</div>
+        <h2 class="display" style="font-size: 64px; margin-top: 14px;">Your library follows you <em>into the browser.</em></h2>
+        <p class="lead" style="margin-top: 20px;">This site isn't just an ad for the app — it <em>is</em> your recipe box. Sign in with the same account you use on your phone and your whole collection is here, on any laptop, tablet, or borrowed computer.</p>
+        <div class="web-points">
+          <div class="web-point">
+            <span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span><b>One account, everywhere.</b> Sign in with Google or the email you use in the app — no separate signup.</span>
+          </div>
+          <div class="web-point">
+            <span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span><b>Browse, favorite, organise.</b> Flip through My Recipes and your Cookbooks, star favorites, manage tags — changes sync back to your phone.</span>
+          </div>
+          <div class="web-point">
+            <span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span><b>Nothing to install.</b> Cooking at a friend's place? Open recipeboxai.app, sign in, and cook.</span>
+          </div>
+        </div>
+        <div class="cta-row" style="margin-top: 32px;">
+          <a class="btn-primary" href="/login/">Sign in to your library</a>
+        </div>
+        <p class="web-note">New here? <a href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">Grab the iPhone app</a> to create your account and save your first recipe — it appears here instantly.</p>
       </div>
     </div>
   </section>
@@ -402,7 +485,7 @@ const appSchema = {
           <p>Secure cloud sync. No third-party sharing.</p>
           <div class="viz privacy">
             <div class="lock"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
-            <div class="text"><b>End-to-end synced</b><br>across your iPhone and iPad.</div>
+            <div class="text"><b>End-to-end synced</b><br>across iPhone, iPad, and the web.</div>
           </div>
         </div>
 
@@ -538,7 +621,8 @@ const appSchema = {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.06 13.28c-.02-2.45 2-3.62 2.09-3.68-1.14-1.67-2.91-1.9-3.54-1.93-1.51-.15-2.94.89-3.71.89-.78 0-1.96-.86-3.22-.84-1.66.02-3.19.96-4.04 2.45-1.72 2.98-.44 7.4 1.24 9.82.82 1.18 1.8 2.52 3.06 2.47 1.23-.05 1.7-.8 3.19-.8 1.48 0 1.9.8 3.2.78 1.32-.02 2.15-1.2 2.96-2.39.93-1.37 1.32-2.71 1.34-2.78-.03-.01-2.57-.98-2.59-3.89zM14.6 6.06c.67-.81 1.13-1.94.99-3.06-.97.04-2.13.65-2.83 1.45-.62.71-1.18 1.86-1.03 2.96 1.09.09 2.2-.55 2.87-1.35z"/></svg>
         Download for iOS
       </a>
-      <div class="small">Requires iOS 17.0 or later. Works on iPhone and iPad.</div>
+      <a class="closer-signin" href="/login/">Already saving with the app? Sign in to your library on the web →</a>
+      <div class="small">Requires iOS 17.0 or later. Works on iPhone and iPad · your library is always at recipeboxai.app · Android coming soon.</div>
     </div>
   </section>
 
@@ -647,7 +731,7 @@ const appSchema = {
   .container-tight { max-width: 1100px; margin: 0 auto; padding: 0 56px; }
   .eyebrow { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); }
   .display { font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144; line-height: 0.96; letter-spacing: -0.035em; color: var(--ink); text-wrap: balance; }
-  .display em { font-style: italic; font-weight: 400; color: var(--ink); }
+  .display em { font-style: italic; font-weight: 400; color: inherit; }
   .lead { font-family: var(--sans); font-size: 19px; line-height: 1.45; color: var(--ink-2); letter-spacing: -0.01em; max-width: 56ch; text-wrap: pretty; }
 
   /* CTAs */
@@ -666,6 +750,9 @@ const appSchema = {
   nav.rb-nav ul a { font-size: 14px; font-weight: 500; color: var(--ink-2); }
   nav.rb-nav ul a:hover { color: var(--ink); }
   nav.rb-nav .download { height: 38px; padding: 0 16px; border-radius: 999px; background: #0a0a0a; color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  nav.rb-nav .nav-actions { display: flex; align-items: center; gap: 18px; }
+  nav.rb-nav .signin { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  nav.rb-nav .signin:hover { color: var(--ink); }
 
   /* Hero */
   section.hero { padding: 56px 0 80px; position: relative; overflow: hidden; }
@@ -750,6 +837,43 @@ const appSchema = {
   .m-result .body .chip { padding: 4px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 600; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.1); }
   .m-result .body .macros { margin-top: 10px; display: flex; gap: 14px; font-size: 11px; color: rgba(255,255,255,0.65); }
   .m-result .body .macros b { color: #fff; font-weight: 700; }
+
+  /* Web library */
+  section.web-band { background: var(--bg-2); }
+  .web-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .browser-wrap { display: grid; place-items: center; }
+  .browser { width: 100%; max-width: 560px; border-radius: 20px; background: #fff; border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; transform: rotate(1.5deg); }
+  .browser .bar { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--line-2); }
+  .browser .dots { display: inline-flex; gap: 6px; }
+  .browser .dots i { width: 10px; height: 10px; border-radius: 50%; }
+  .browser .dots i:nth-child(1) { background: #ff5f57; }
+  .browser .dots i:nth-child(2) { background: #febc2e; }
+  .browser .dots i:nth-child(3) { background: #28c840; }
+  .browser .url { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 28px; border-radius: 8px; background: #fff; border: 1px solid var(--line-2); font-size: 12px; font-weight: 500; color: var(--ink-2); }
+  .browser .url svg { color: var(--muted); }
+  .browser .page { padding: 16px 18px 20px; }
+  .browser .site-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line-2); }
+  .browser .site-brand { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; letter-spacing: -0.02em; }
+  .browser .site-brand img { width: 20px; height: 20px; border-radius: 5px; }
+  .browser .site-links { display: inline-flex; gap: 14px; font-size: 11.5px; color: var(--muted); font-weight: 500; }
+  .browser .site-links b { color: var(--ink); font-weight: 700; }
+  .browser .site-avatar { width: 24px; height: 24px; border-radius: 50%; background: #0a0a0a; color: #fff; display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
+  .browser .lib-head { margin: 14px 0 12px; }
+  .browser .lib-head h3 { margin: 0; font-family: var(--serif); font-size: 21px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; }
+  .browser .lib-head p { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+  .web-recipe-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 0; }
+  .web-recipe-grid .recipe-card { border-radius: 14px; }
+  .web-recipe-grid .recipe-card .meta h3 { font-size: 12.5px; }
+  .web-recipe-grid .recipe-card .meta .sub { font-size: 9px; gap: 5px; }
+  .recipe-card .fav { position: absolute; top: 7px; right: 7px; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.92); color: var(--muted); display: grid; place-items: center; }
+  .recipe-card .fav.on { color: #e0245e; }
+  .web-points { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; max-width: 54ch; }
+  .web-point { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+  .web-point .tick { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: #0a0a0a; color: #fff; display: grid; place-items: center; margin-top: 2px; }
+  .web-point b { color: var(--ink); font-weight: 700; }
+  .web-note { margin-top: 18px; font-size: 13.5px; color: var(--muted); max-width: 48ch; }
+  .web-note a { text-decoration: underline; text-underline-offset: 3px; color: var(--ink-2); }
+  .web-note a:hover { color: var(--ink); }
 
   /* Reviews */
   section.reviews { background: var(--bg); }
@@ -905,6 +1029,8 @@ const appSchema = {
   section.closer .lead { color: rgba(255,255,255,0.65); margin-top: 28px; font-size: 20px; max-width: 50ch; }
   section.closer .btn-primary { background: #fff; color: #0a0a0a; box-shadow: 0 1px 0 rgba(0,0,0,0.08), 0 14px 40px rgba(255,255,255,0.18); margin-top: 40px; }
   section.closer .small { margin-top: 22px; font-size: 13px; color: rgba(255,255,255,0.45); }
+  section.closer .closer-signin { display: block; margin-top: 20px; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.75); }
+  section.closer .closer-signin:hover { color: #fff; }
 
   /* Footer */
   footer.rb-footer { background: #0a0a0a; color: rgba(255,255,255,0.7); padding: 56px 0 64px; border-top: 1px solid rgba(255,255,255,0.08); }
@@ -927,6 +1053,7 @@ const appSchema = {
     .rec-grid { grid-template-columns: repeat(2, 1fr); }
     .pers-grid { grid-template-columns: repeat(2, 1fr); }
     .wow-grid { grid-template-columns: 1fr; }
+    .web-grid { grid-template-columns: 1fr; gap: 48px; }
     .feat-grid { grid-template-columns: repeat(2, 1fr); }
     .feat, .feat.wide { grid-column: span 1; }
     .feat.full { grid-column: span 2; }
@@ -936,7 +1063,11 @@ const appSchema = {
     .container, .container-tight { padding: 0 22px; }
     section { padding: 80px 0; }
     nav.rb-nav ul { display: none; }
+    nav.rb-nav .nav-actions { gap: 12px; }
     section.hero { padding: 32px 0 48px; }
+    .browser { transform: none; }
+    .browser .site-links { display: none; }
+    .web-recipe-grid { grid-template-columns: repeat(2, 1fr); }
     .hero-grid { grid-template-columns: 1fr; gap: 24px; }
     .hero-h1 { font-size: 48px; line-height: 1; }
     .hero-lead { font-size: 17px; }

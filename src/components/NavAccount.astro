@@ -97,9 +97,11 @@ const { dest = '/' } = Astro.props;
     const emailEl = document.getElementById('menu-email');
     if (emailEl) emailEl.textContent = email;
 
-    // Public pages show a Download CTA in the same slot; signed-in nav replaces it.
+    // Public pages show Sign in + Download CTAs in the same slot; signed-in nav replaces them.
     const download = document.getElementById('nav-download');
     if (download) download.style.display = 'none';
+    const signin = document.getElementById('nav-signin');
+    if (signin) signin.style.display = 'none';
 
     root.hidden = false;
 

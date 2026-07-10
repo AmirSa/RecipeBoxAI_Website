@@ -3,9 +3,15 @@ interface Props {
   title: string;
   description?: string;
   image?: string;
+  /**
+   * When set, signed-in visitors are redirected here before first paint.
+   * Used on the marketing homepage so logged-in users land on My Recipes
+   * while logged-out visitors keep seeing the Features landing page.
+   */
+  redirectAuthedTo?: string;
 }
 
-const { title, description = "RecipeBox AI - Your AI-powered recipe assistant", image } = Astro.props;
+const { title, description = "RecipeBox AI - Your AI-powered recipe assistant", image, redirectAuthedTo } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
@@ -14,6 +20,26 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {redirectAuthedTo && (
+      <script is:inline define:vars={{ dest: redirectAuthedTo }}>
+        // Bounce signed-in visitors off the marketing page before first paint.
+        // Synchronous localStorage probe (Supabase stores the session under an
+        // `sb-<ref>-auth-token` key, cleared on sign-out) so there is no flash
+        // of the landing page and no analytics/pixel fire before we navigate.
+        (function () {
+          try {
+            for (var i = 0; i < localStorage.length; i++) {
+              var k = localStorage.key(i);
+              if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1 && localStorage.getItem(k)) {
+                window.location.replace(dest);
+                break;
+              }
+            }
+          } catch (e) { /* localStorage blocked → stay on the public page */ }
+        })();
+      </script>
+    )}
 
     <!-- TikTok Pixel Code Start -->
     <script is:inline>

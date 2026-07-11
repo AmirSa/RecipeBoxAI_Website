@@ -1,0 +1,123 @@
+---
+// Responsive hamburger for the site nav. Hidden on desktop; at <=760px the
+// inline nav links are already hidden by each page's CSS, so this button
+// reveals them (plus any Sign in / Download CTA) in a dropdown panel. The
+// panel is populated at click-time by cloning the page's own <ul> links, so
+// it always reflects that page's links and current-page highlight without
+// duplicating markup across pages.
+---
+
+<button
+  class="nav-hamburger"
+  id="nav-hamburger"
+  type="button"
+  aria-label="Open menu"
+  aria-haspopup="true"
+  aria-expanded="false"
+  aria-controls="mobile-menu"
+>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M3 6h18M3 12h18M3 18h18" />
+  </svg>
+</button>
+
+<div class="mobile-menu" id="mobile-menu" role="menu" hidden></div>
+
+<script>
+  const btn = document.getElementById('nav-hamburger');
+  const panel = document.getElementById('mobile-menu');
+  const nav = document.querySelector('.rb-nav');
+  const list = nav?.querySelector('ul');
+
+  // Rebuild the panel from the live nav each time it opens.
+  function build() {
+    if (!panel || !list) return;
+    panel.innerHTML = '';
+    list.querySelectorAll('a').forEach((a) => {
+      const link = document.createElement('a');
+      link.href = a.getAttribute('href') || '#';
+      link.textContent = (a.textContent || '').trim();
+      link.className = 'mobile-link' + (a.classList.contains('current') ? ' current' : '');
+      link.setAttribute('role', 'menuitem');
+      panel.appendChild(link);
+    });
+    // Bring along the Sign in / Download CTAs when logged out. NavAccount sets
+    // their inline `display:none` once a session is found, so the inline style
+    // (not computed — this component hides them in the bar via CSS) is the
+    // auth signal to check.
+    ['nav-signin', 'nav-download'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el && el.style.display !== 'none') {
+        const link = document.createElement('a');
+        link.href = el.getAttribute('href') || '#';
+        link.textContent = (el.textContent || '').trim();
+        link.className = 'mobile-link cta';
+        link.setAttribute('role', 'menuitem');
+        panel.appendChild(link);
+      }
+    });
+  }
+
+  function close() {
+    if (!panel) return;
+    panel.hidden = true;
+    btn?.setAttribute('aria-expanded', 'false');
+    nav?.classList.remove('nav-open');
+  }
+
+  function toggle() {
+    if (!panel) return;
+    const opening = panel.hidden;
+    if (opening) build();
+    panel.hidden = !opening;
+    btn?.setAttribute('aria-expanded', String(opening));
+    nav?.classList.toggle('nav-open', opening);
+  }
+
+  btn?.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+  document.addEventListener('click', (e) => {
+    if (!panel?.hidden && !nav?.contains(e.target as Node)) close();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  window.addEventListener('resize', () => { if (window.innerWidth > 760) close(); });
+</script>
+
+<style is:global>
+  /* Desktop: hamburger and its panel never show. */
+  .nav-hamburger { display: none; }
+  .mobile-menu { display: none; }
+
+  @media (max-width: 760px) {
+    .nav-hamburger {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; padding: 0;
+      background: transparent; color: var(--ink);
+      border: 1px solid var(--line, rgba(10,10,10,0.12)); border-radius: 10px;
+      cursor: pointer;
+    }
+    .nav-hamburger:hover { background: var(--line-2, rgba(10,10,10,0.05)); }
+    .nav-hamburger[aria-expanded="true"] { background: var(--line-2, rgba(10,10,10,0.05)); }
+
+    /* Sign in / Download move into the panel, so hide them in the bar. */
+    #nav-signin, #nav-download { display: none !important; }
+
+    .mobile-menu:not([hidden]) {
+      display: flex; flex-direction: column; gap: 2px;
+      position: absolute; top: 60px; right: 12px; left: auto; z-index: 200;
+      min-width: 200px; max-width: calc(100vw - 24px);
+      padding: 6px;
+      background: var(--card, #fff);
+      border: 1px solid var(--line, rgba(10,10,10,0.08));
+      border-radius: 14px;
+      box-shadow: var(--shadow-md, 0 6px 24px rgba(10,10,10,0.1));
+    }
+    .mobile-link {
+      display: block; padding: 12px 14px; border-radius: 10px;
+      font-family: inherit; font-size: 15px; font-weight: 500;
+      color: var(--ink-2, #2a2a2c); text-decoration: none;
+    }
+    .mobile-link:hover { background: var(--line-2, rgba(10,10,10,0.05)); color: var(--ink, #0a0a0a); }
+    .mobile-link.current { color: var(--ink, #0a0a0a); background: var(--line-2, rgba(10,10,10,0.05)); }
+    .mobile-link.cta { color: var(--ink, #0a0a0a); font-weight: 600; }
+  }
+</style>

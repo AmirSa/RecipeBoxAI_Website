@@ -31,8 +31,6 @@ const { dest = '/' } = Astro.props;
       <span class="menu-name" id="menu-name" hidden></span>
       <span class="menu-email" id="menu-email"></span>
     </div>
-    <a class="menu-item" role="menuitem" href="/my/recipes/">My Recipes</a>
-    <a class="menu-item" role="menuitem" href="/my/cookbooks/">Cookbooks</a>
     <a class="menu-item" role="menuitem" href="/account/">Account</a>
     <div class="menu-sep" role="separator"></div>
     <button class="menu-item menu-signout" id="signout-btn" role="menuitem" type="button">Sign out</button>
@@ -102,6 +100,15 @@ const { dest = '/' } = Astro.props;
     if (download) download.style.display = 'none';
     const signin = document.getElementById('nav-signin');
     if (signin) signin.style.display = 'none';
+
+    // Primary nav link: signed-out visitors see "Home" (→ landing); once a
+    // session exists it becomes "My Recipes". Signed-in-only pages already
+    // render it as My Recipes, so this is a no-op there.
+    const primary = document.getElementById('nav-primary');
+    if (primary) {
+      primary.textContent = 'My Recipes';
+      primary.setAttribute('href', '/my/recipes/');
+    }
 
     root.hidden = false;
 

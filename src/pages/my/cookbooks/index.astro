@@ -33,9 +33,13 @@ import MobileNav from '@components/MobileNav.astro';
   <div class="container">
     <header class="page-head">
       <div class="left">
-        <div class="eyebrow">Synced from your phone</div>
+        <div class="eyebrow">Synced across your devices</div>
         <h1 class="display">Your<br><em>cookbooks.</em></h1>
-        <p class="lead">Collections you've curated in the RecipeBox AI app — every cookbook, on every device.</p>
+        <p class="lead">Collections you've curated — create, edit, and organize them here or in the RecipeBox AI app, synced on every device.</p>
+        <button class="new-cb-btn" id="new-cb-btn" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+          New cookbook
+        </button>
       </div>
       <div class="right">
         <div class="count" id="head-count">–</div>
@@ -50,6 +54,19 @@ import MobileNav from '@components/MobileNav.astro';
         <div class="sk-card"><div class="sk-img"></div><div class="sk-line w55"></div><div class="sk-line w30"></div></div>
       </div>
     </main>
+  </div>
+
+  <div class="modal-scrim" id="create-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
+      <h2 id="create-title">New cookbook</h2>
+      <p class="modal-sub">Give your collection a name. You can add recipes once it's created.</p>
+      <input type="text" id="cb-name" class="modal-input" placeholder="e.g. Weeknight dinners" maxlength="120" autocomplete="off">
+      <div class="modal-err" id="create-err" hidden></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="create-cancel">Cancel</button>
+        <button class="btn-solid" id="create-confirm">Create cookbook</button>
+      </div>
+    </div>
   </div>
 
   <footer class="rb-footer">
@@ -68,27 +85,51 @@ import MobileNav from '@components/MobileNav.astro';
   <script>
     import {
       requireSession, escapeHtml, fetchCookbooksWithCounts,
+      createCookbook, deleteCookbook,
       type CookbookWithCount,
     } from '@/lib/account';
 
     const body = document.getElementById('cb-body') as HTMLElement;
     const headCount = document.getElementById('head-count') as HTMLElement;
+    const newBtn = document.getElementById('new-cb-btn') as HTMLButtonElement;
+
+    const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>';
 
     function cardHtml(c: CookbookWithCount): string {
       const initial = escapeHtml((c.name || 'C').slice(0, 1).toUpperCase());
       return `
-        <a class="cb-card" href="/my/cookbooks/view/?id=${encodeURIComponent(c.id)}">
-          <div class="cb-cover">
-            ${c.cover
-              ? `<img src="${escapeHtml(c.cover)}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cb-ph',textContent:'${initial}'}))">`
-              : `<div class="cb-ph">${initial}</div>`}
-          </div>
-          <div class="cb-body">
-            <h3>${escapeHtml(c.name)}</h3>
-            ${c.description ? `<p class="cb-desc">${escapeHtml(c.description)}</p>` : ''}
-            <span class="cb-count">${c.count} recipe${c.count === 1 ? '' : 's'}</span>
-          </div>
-        </a>`;
+        <div class="cb-card" data-id="${escapeHtml(c.id)}">
+          <button class="cb-del" title="Delete cookbook" aria-label="Delete cookbook">${ICON_TRASH}</button>
+          <a class="cb-link" href="/my/cookbooks/view/?id=${encodeURIComponent(c.id)}">
+            <div class="cb-cover">
+              ${c.cover
+                ? `<img src="${escapeHtml(c.cover)}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'cb-ph',textContent:'${initial}'}))">`
+                : `<div class="cb-ph">${initial}</div>`}
+            </div>
+            <div class="cb-body">
+              <h3>${escapeHtml(c.name)}</h3>
+              ${c.description ? `<p class="cb-desc">${escapeHtml(c.description)}</p>` : ''}
+              <span class="cb-count">${c.count} recipe${c.count === 1 ? '' : 's'}</span>
+            </div>
+          </a>
+        </div>`;
+    }
+
+    function emptyStateHtml(): string {
+      return `
+        <div class="state-card">
+          <h3>No cookbooks yet</h3>
+          <p>Group your recipes into collections. Create one here and it'll sync to the RecipeBox AI app automatically.</p>
+          <button class="state-btn" id="empty-new-btn">Create your first cookbook</button>
+        </div>`;
+    }
+
+    function render(cookbooks: CookbookWithCount[]) {
+      headCount.textContent = String(cookbooks.length);
+      body.innerHTML = cookbooks.length === 0
+        ? emptyStateHtml()
+        : `<div class="grid">${cookbooks.map(cardHtml).join('')}</div>`;
+      document.getElementById('empty-new-btn')?.addEventListener('click', openCreate);
     }
 
     function showError(message: string) {
@@ -101,22 +142,79 @@ import MobileNav from '@components/MobileNav.astro';
       document.getElementById('retry-btn')?.addEventListener('click', () => location.reload());
     }
 
+    // ── Delete (event-delegated on the grid) ──────────────────────────────────
+    body.addEventListener('click', async (e) => {
+      const btn = (e.target as HTMLElement).closest('.cb-del') as HTMLButtonElement | null;
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const card = btn.closest('.cb-card') as HTMLElement;
+      const id = card.dataset.id!;
+      const name = card.querySelector('h3')?.textContent ?? 'this cookbook';
+      if (!confirm(`Delete "${name}"? This won't delete the recipes inside it. This syncs to all your devices.`)) return;
+      btn.disabled = true;
+      card.style.opacity = '0.4';
+      try {
+        await deleteCookbook(id);
+        card.remove();
+        headCount.textContent = String(document.querySelectorAll('.cb-card').length);
+        if (document.querySelectorAll('.cb-card').length === 0) render([]);
+      } catch (err) {
+        card.style.opacity = '';
+        btn.disabled = false;
+        alert(err instanceof Error ? err.message : 'Could not delete the cookbook.');
+      }
+    });
+
+    // ── Create modal ──────────────────────────────────────────────────────────
+    const modal = document.getElementById('create-modal') as HTMLElement;
+    const nameInput = document.getElementById('cb-name') as HTMLInputElement;
+    const createErr = document.getElementById('create-err') as HTMLElement;
+    const confirmBtn = document.getElementById('create-confirm') as HTMLButtonElement;
+
+    function openCreate() {
+      createErr.hidden = true;
+      nameInput.value = '';
+      modal.hidden = false;
+      confirmBtn.disabled = false;
+      setTimeout(() => nameInput.focus(), 30);
+    }
+    function closeCreate() { modal.hidden = true; }
+
+    async function submitCreate() {
+      const name = nameInput.value.trim();
+      if (!name) { createErr.textContent = 'Please enter a name.'; createErr.hidden = false; nameInput.focus(); return; }
+      confirmBtn.disabled = true;
+      try {
+        const cb = await createCookbook(name);
+        closeCreate();
+        // If the empty state is showing, replace it with a fresh grid.
+        let grid = body.querySelector('.grid') as HTMLElement | null;
+        if (!grid) { body.innerHTML = '<div class="grid"></div>'; grid = body.querySelector('.grid') as HTMLElement; }
+        grid.insertAdjacentHTML('afterbegin', cardHtml(cb));
+        headCount.textContent = String(document.querySelectorAll('.cb-card').length);
+      } catch (err) {
+        createErr.textContent = err instanceof Error ? err.message : 'Could not create the cookbook.';
+        createErr.hidden = false;
+        confirmBtn.disabled = false;
+      }
+    }
+
+    newBtn.addEventListener('click', openCreate);
+    confirmBtn.addEventListener('click', submitCreate);
+    document.getElementById('create-cancel')?.addEventListener('click', closeCreate);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeCreate(); });
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submitCreate(); }
+      if (e.key === 'Escape') closeCreate();
+    });
+
     async function load() {
       const session = await requireSession();
       if (!session) return;
+      newBtn.hidden = false;
       const cookbooks = await fetchCookbooksWithCounts();
-      headCount.textContent = String(cookbooks.length);
-
-      if (cookbooks.length === 0) {
-        body.innerHTML = `
-          <div class="state-card">
-            <h3>No cookbooks yet</h3>
-            <p>Create cookbooks in the RecipeBox AI app to group your recipes into collections — they'll sync here automatically.</p>
-            <a class="state-btn" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">Get the app</a>
-          </div>`;
-        return;
-      }
-      body.innerHTML = `<div class="grid">${cookbooks.map(cardHtml).join('')}</div>`;
+      render(cookbooks);
     }
 
     load().catch((err) => showError(err instanceof Error ? err.message : 'Something went wrong.'));
@@ -156,11 +254,34 @@ import MobileNav from '@components/MobileNav.astro';
   header.page-head .count { font-family: var(--serif); font-size: 56px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
   header.page-head .count-label { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
 
+  .new-cb-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; height: 46px; padding: 0 22px; border-radius: 999px; background: var(--solid); color: var(--on-solid); border: 0; font-size: 14px; font-weight: 600; transition: background 160ms ease; }
+  .new-cb-btn:hover { background: color-mix(in srgb, var(--solid) 88%, var(--bg)); }
+
+  .modal-scrim { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--ink) 45%, transparent); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  .modal { width: 100%; max-width: 440px; background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; padding: 32px 30px; box-shadow: 0 24px 60px rgba(0,0,0,0.28); }
+  .modal h2 { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .modal-sub { font-size: 14px; color: var(--muted); margin: 0 0 20px; }
+  .modal-input { width: 100%; height: 50px; padding: 0 16px; font-size: 15px; color: var(--ink); background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 14px; outline: none; transition: border-color 160ms ease; }
+  .modal-input:focus { border-color: var(--solid); }
+  .modal-err { margin-top: 12px; font-size: 13px; color: #e5484d; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+  .btn-ghost, .btn-solid { height: 44px; padding: 0 20px; border-radius: 999px; font-size: 14px; font-weight: 600; border: 0; }
+  .btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line-2); }
+  .btn-ghost:hover { color: var(--ink); background: var(--bg-2); }
+  .btn-solid { background: var(--solid); color: var(--on-solid); }
+  .btn-solid:hover { background: color-mix(in srgb, var(--solid) 88%, var(--bg)); }
+  .btn-solid:disabled { opacity: 0.6; cursor: default; }
+
   main#cb-body { padding-bottom: 96px; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 
-  .cb-card { border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform 200ms ease; color: var(--ink); }
+  .cb-card { position: relative; border-radius: 22px; transition: transform 200ms ease; color: var(--ink); }
   .cb-card:hover { transform: translateY(-3px); }
+  .cb-link { display: flex; flex-direction: column; color: inherit; }
+  .cb-del { position: absolute; top: 10px; right: 10px; z-index: 2; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--bg) 78%, transparent); color: var(--ink); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 1px 4px rgba(0,0,0,0.18); opacity: 0; transition: opacity 160ms ease, background 160ms ease, transform 160ms ease; }
+  .cb-card:hover .cb-del, .cb-del:focus-visible { opacity: 1; }
+  .cb-del:hover { background: #e5484d; color: #fff; transform: scale(1.05); }
+  @media (hover: none) { .cb-del { opacity: 1; } }
   .cb-cover { aspect-ratio: 3/2; border-radius: 22px; overflow: hidden; background: var(--bg-2); }
   .cb-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
   .cb-card:hover .cb-cover img { transform: scale(1.04); }

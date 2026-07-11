@@ -40,6 +40,20 @@ import MobileNav from '@components/MobileNav.astro';
     </div>
   </div>
 
+  <div class="modal-scrim" id="manage-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="manage-title">
+      <h2 id="manage-title">Manage recipes</h2>
+      <p class="modal-sub">Check the recipes you want in this cookbook.</p>
+      <input type="text" id="recipe-search" class="modal-input" placeholder="Search your recipes…" autocomplete="off">
+      <div class="picker" id="recipe-picker"></div>
+      <div class="modal-err" id="manage-err" hidden></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="manage-cancel">Cancel</button>
+        <button class="btn-solid" id="manage-save">Save changes</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="rb-footer">
     <div class="container row">
       <div class="brand"><img class="app-ico" src="/app-icon.png" alt="">RecipeBox AI</div>
@@ -54,10 +68,19 @@ import MobileNav from '@components/MobileNav.astro';
   </footer>
 
   <script>
-    import { requireSession, escapeHtml, fetchCookbook } from '@/lib/account';
+    import {
+      requireSession, escapeHtml, fetchCookbook,
+      fetchRecipesBrief, addRecipeToCookbook, removeRecipeFromCookbook, deleteCookbook,
+      type CookbookDetail, type RecipeBrief,
+    } from '@/lib/account';
 
     const app = document.getElementById('app') as HTMLElement;
     const ICON_TIMER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>';
+    const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+    let cookbookId = '';
+    let cb: CookbookDetail | null = null;
+    let allRecipes: RecipeBrief[] = [];
 
     function state(title: string, msg: string) {
       app.innerHTML = `
@@ -68,43 +91,171 @@ import MobileNav from '@components/MobileNav.astro';
     function recipeCard(r: { id: string; title: string; totalTime: number; calories: number; image: string | null }) {
       const initial = escapeHtml((r.title || 'R').slice(0, 1).toUpperCase());
       return `
-        <a class="card" href="/my/recipes/view/?id=${encodeURIComponent(r.id)}">
-          <div class="img-wrap">
-            ${r.image
-              ? `<img src="${escapeHtml(r.image)}" alt="${escapeHtml(r.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${initial}'}))">`
-              : `<div class="ph">${initial}</div>`}
-          </div>
-          <div class="body">
-            <h3>${escapeHtml(r.title)}</h3>
-            <div class="meta-row">
-              ${r.totalTime > 0 ? `<span class="mt">${ICON_TIMER} ${r.totalTime} min</span>` : ''}
-              ${r.totalTime > 0 && r.calories > 0 ? '<span class="dot"></span>' : ''}
-              ${r.calories > 0 ? `<span>${r.calories} kcal</span>` : ''}
+        <div class="card" data-id="${escapeHtml(r.id)}">
+          <button class="card-del" title="Remove from cookbook" aria-label="Remove from cookbook">${ICON_X}</button>
+          <a class="card-link" href="/my/recipes/view/?id=${encodeURIComponent(r.id)}">
+            <div class="img-wrap">
+              ${r.image
+                ? `<img src="${escapeHtml(r.image)}" alt="${escapeHtml(r.title)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${initial}'}))">`
+                : `<div class="ph">${initial}</div>`}
+            </div>
+            <div class="body">
+              <h3>${escapeHtml(r.title)}</h3>
+              <div class="meta-row">
+                ${r.totalTime > 0 ? `<span class="mt">${ICON_TIMER} ${r.totalTime} min</span>` : ''}
+                ${r.totalTime > 0 && r.calories > 0 ? '<span class="dot"></span>' : ''}
+                ${r.calories > 0 ? `<span>${r.calories} kcal</span>` : ''}
+              </div>
+            </div>
+          </a>
+        </div>`;
+    }
+
+    function render() {
+      if (!cb) return;
+      const n = cb.recipes.length;
+      app.innerHTML = `
+        <div class="crumb"><a href="/my/cookbooks/">My Cookbooks</a><span class="sep">/</span><span style="color:var(--ink);">${escapeHtml(cb.name)}</span></div>
+        <header class="cb-head">
+          <div class="cb-head-top">
+            <div>
+              <h1 class="display">${escapeHtml(cb.name)}</h1>
+              ${cb.description ? `<p class="cb-desc">${escapeHtml(cb.description)}</p>` : ''}
+              <div class="cb-meta">${n} recipe${n === 1 ? '' : 's'}</div>
+            </div>
+            <div class="cb-actions">
+              <button class="hd-btn primary" id="manage-btn">Manage recipes</button>
+              <button class="hd-btn danger" id="delete-cb-btn">Delete</button>
             </div>
           </div>
-        </a>`;
+        </header>
+        ${n === 0
+          ? `<div class="page-state"><h2>No recipes yet</h2><p>Add recipes to this cookbook — they'll sync to the RecipeBox AI app automatically.</p><button class="state-btn" id="empty-add-btn">Add recipes</button></div>`
+          : `<div class="grid">${cb.recipes.map(recipeCard).join('')}</div>`}`;
+
+      document.getElementById('manage-btn')?.addEventListener('click', openManage);
+      document.getElementById('empty-add-btn')?.addEventListener('click', openManage);
+      document.getElementById('delete-cb-btn')?.addEventListener('click', onDeleteCookbook);
     }
+
+    async function onDeleteCookbook() {
+      if (!cb) return;
+      if (!confirm(`Delete "${cb.name}"? This won't delete the recipes inside it. This syncs to all your devices.`)) return;
+      try {
+        await deleteCookbook(cookbookId);
+        location.href = '/my/cookbooks/';
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Could not delete the cookbook.');
+      }
+    }
+
+    // ── Remove a recipe from the cookbook (event-delegated) ────────────────────
+    app.addEventListener('click', async (e) => {
+      const btn = (e.target as HTMLElement).closest('.card-del') as HTMLButtonElement | null;
+      if (!btn || !cb) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const card = btn.closest('.card') as HTMLElement;
+      const id = card.dataset.id!;
+      btn.disabled = true;
+      card.style.opacity = '0.4';
+      try {
+        await removeRecipeFromCookbook(cookbookId, id);
+        cb.recipes = cb.recipes.filter((r) => r.id !== id);
+        render();
+      } catch (err) {
+        card.style.opacity = '';
+        btn.disabled = false;
+        alert(err instanceof Error ? err.message : 'Could not remove the recipe.');
+      }
+    });
+
+    // ── Manage-recipes modal ───────────────────────────────────────────────────
+    const modal = document.getElementById('manage-modal') as HTMLElement;
+    const picker = document.getElementById('recipe-picker') as HTMLElement;
+    const searchInput = document.getElementById('recipe-search') as HTMLInputElement;
+    const manageErr = document.getElementById('manage-err') as HTMLElement;
+    const saveBtn = document.getElementById('manage-save') as HTMLButtonElement;
+
+    function pickerRow(r: RecipeBrief, checked: boolean): string {
+      const initial = escapeHtml((r.title || 'R').slice(0, 1).toUpperCase());
+      return `
+        <label class="pick-row" data-title="${escapeHtml((r.title || '').toLowerCase())}">
+          <input type="checkbox" value="${escapeHtml(r.id)}" ${checked ? 'checked' : ''}>
+          <span class="pick-thumb">${r.image ? `<img src="${escapeHtml(r.image)}" alt="" loading="lazy">` : `<span class="pick-ph">${initial}</span>`}</span>
+          <span class="pick-title">${escapeHtml(r.title)}</span>
+        </label>`;
+    }
+
+    async function openManage() {
+      if (!cb) return;
+      manageErr.hidden = true;
+      searchInput.value = '';
+      picker.innerHTML = '<div class="pick-loading">Loading your recipes…</div>';
+      modal.hidden = false;
+      saveBtn.disabled = false;
+      try {
+        if (allRecipes.length === 0) allRecipes = await fetchRecipesBrief();
+        const members = new Set(cb.recipes.map((r) => r.id));
+        if (allRecipes.length === 0) {
+          picker.innerHTML = '<div class="pick-loading">You have no recipes yet.</div>';
+          return;
+        }
+        picker.innerHTML = allRecipes.map((r) => pickerRow(r, members.has(r.id))).join('');
+      } catch (err) {
+        picker.innerHTML = `<div class="pick-loading">${escapeHtml(err instanceof Error ? err.message : 'Could not load recipes.')}</div>`;
+      }
+    }
+    function closeManage() { modal.hidden = true; }
+
+    async function saveManage() {
+      if (!cb) return;
+      const before = new Set(cb.recipes.map((r) => r.id));
+      const after = new Set(
+        [...picker.querySelectorAll<HTMLInputElement>('input[type=checkbox]:checked')].map((c) => c.value)
+      );
+      const toAdd = [...after].filter((id) => !before.has(id));
+      const toRemove = [...before].filter((id) => !after.has(id));
+      if (toAdd.length === 0 && toRemove.length === 0) { closeManage(); return; }
+
+      saveBtn.disabled = true;
+      manageErr.hidden = true;
+      try {
+        for (const id of toAdd) await addRecipeToCookbook(cookbookId, id);
+        for (const id of toRemove) await removeRecipeFromCookbook(cookbookId, id);
+        closeManage();
+        // Reload the cookbook so member cards (with full metadata) are accurate.
+        cb = await fetchCookbook(cookbookId);
+        if (cb) render(); else state('Cookbook not found', 'This cookbook may have been deleted.');
+      } catch (err) {
+        manageErr.textContent = err instanceof Error ? err.message : 'Could not save changes.';
+        manageErr.hidden = false;
+        saveBtn.disabled = false;
+      }
+    }
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      picker.querySelectorAll<HTMLElement>('.pick-row').forEach((row) => {
+        row.style.display = !q || (row.dataset.title ?? '').includes(q) ? '' : 'none';
+      });
+    });
+    saveBtn.addEventListener('click', saveManage);
+    document.getElementById('manage-cancel')?.addEventListener('click', closeManage);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeManage(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) closeManage(); });
 
     async function load() {
       const session = await requireSession();
       if (!session) return;
       const id = new URLSearchParams(location.search).get('id');
       if (!id) { state('Cookbook not found', 'This link is missing a cookbook id.'); return; }
+      cookbookId = id;
 
-      const cb = await fetchCookbook(id).catch((e) => { throw e; });
+      cb = await fetchCookbook(id);
       if (!cb) { state('Cookbook not found', "This cookbook doesn't exist in your library — it may have been deleted on another device."); return; }
       document.title = `${cb.name} - RecipeBox AI`;
-
-      app.innerHTML = `
-        <div class="crumb"><a href="/my/cookbooks/">My Cookbooks</a><span class="sep">/</span><span style="color:var(--ink);">${escapeHtml(cb.name)}</span></div>
-        <header class="cb-head">
-          <h1 class="display">${escapeHtml(cb.name)}</h1>
-          ${cb.description ? `<p class="cb-desc">${escapeHtml(cb.description)}</p>` : ''}
-          <div class="cb-meta">${cb.recipes.length} recipe${cb.recipes.length === 1 ? '' : 's'}</div>
-        </header>
-        ${cb.recipes.length === 0
-          ? `<div class="page-state"><h2>No recipes yet</h2><p>Add recipes to this cookbook in the app and they'll appear here.</p><a class="state-btn" href="/my/recipes/">Browse your recipes</a></div>`
-          : `<div class="grid">${cb.recipes.map(recipeCard).join('')}</div>`}`;
+      render();
     }
 
     load().catch((err) => state('Something went wrong', err instanceof Error ? err.message : 'Please try again.'));
@@ -136,13 +287,24 @@ import MobileNav from '@components/MobileNav.astro';
   .crumb a:hover { color: var(--ink); }
   .crumb .sep { opacity: 0.5; }
   .cb-head { padding: 20px 0 32px; }
+  .cb-head-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; }
   .cb-head h1 { font-size: 56px; margin: 0; }
   .cb-desc { font-size: 17px; color: var(--ink-2); margin: 16px 0 0; max-width: 60ch; line-height: 1.5; }
   .cb-meta { font-size: 12.5px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 14px; }
+  .cb-actions { display: flex; gap: 10px; flex-shrink: 0; padding-top: 8px; }
+  .hd-btn { height: 42px; padding: 0 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600; border: 1px solid var(--line-2); background: transparent; color: var(--ink); transition: background 160ms ease, color 160ms ease, border-color 160ms ease; }
+  .hd-btn.primary { background: var(--solid); color: var(--on-solid); border-color: transparent; }
+  .hd-btn.primary:hover { background: color-mix(in srgb, var(--solid) 88%, var(--bg)); }
+  .hd-btn.danger:hover { background: #e5484d; color: #fff; border-color: #e5484d; }
 
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-bottom: 96px; }
-  .card { border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform 200ms ease; color: var(--ink); }
+  .card { position: relative; border-radius: 22px; transition: transform 200ms ease; color: var(--ink); }
   .card:hover { transform: translateY(-3px); }
+  .card-link { display: flex; flex-direction: column; color: inherit; }
+  .card-del { position: absolute; top: 10px; right: 10px; z-index: 2; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--bg) 78%, transparent); color: var(--ink); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 1px 4px rgba(0,0,0,0.18); opacity: 0; transition: opacity 160ms ease, background 160ms ease, transform 160ms ease; }
+  .card:hover .card-del, .card-del:focus-visible { opacity: 1; }
+  .card-del:hover { background: #e5484d; color: #fff; transform: scale(1.05); }
+  @media (hover: none) { .card-del { opacity: 1; } }
   .card .img-wrap { aspect-ratio: 4/3; border-radius: 22px; overflow: hidden; background: var(--bg-2); }
   .card .img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
   .card:hover .img-wrap img { transform: scale(1.04); }
@@ -156,7 +318,32 @@ import MobileNav from '@components/MobileNav.astro';
   .page-state { margin: 40px 0 96px; max-width: 560px; padding: 60px 40px; text-align: center; background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; }
   .page-state h2 { font-family: var(--serif); font-size: 30px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 10px; }
   .page-state p { margin: 0 auto; color: var(--muted); font-size: 15px; max-width: 42ch; }
-  .state-btn { display: inline-flex; margin-top: 22px; height: 46px; padding: 0 24px; align-items: center; border-radius: 999px; background: var(--solid); color: var(--on-solid); font-size: 14px; font-weight: 600; }
+  .state-btn { display: inline-flex; margin-top: 22px; height: 46px; padding: 0 24px; align-items: center; border-radius: 999px; background: var(--solid); color: var(--on-solid); font-size: 14px; font-weight: 600; border: 0; }
+
+  .modal-scrim { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--ink) 45%, transparent); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  .modal { width: 100%; max-width: 480px; max-height: 86vh; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; padding: 30px 28px; box-shadow: 0 24px 60px rgba(0,0,0,0.28); }
+  .modal h2 { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .modal-sub { font-size: 14px; color: var(--muted); margin: 0 0 18px; }
+  .modal-input { width: 100%; height: 48px; padding: 0 16px; font-size: 15px; color: var(--ink); background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 14px; outline: none; transition: border-color 160ms ease; }
+  .modal-input:focus { border-color: var(--solid); }
+  .modal-err { margin-top: 12px; font-size: 13px; color: #e5484d; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+  .btn-ghost, .btn-solid { height: 44px; padding: 0 20px; border-radius: 999px; font-size: 14px; font-weight: 600; border: 0; }
+  .btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line-2); }
+  .btn-ghost:hover { color: var(--ink); background: var(--bg-2); }
+  .btn-solid { background: var(--solid); color: var(--on-solid); }
+  .btn-solid:hover { background: color-mix(in srgb, var(--solid) 88%, var(--bg)); }
+  .btn-solid:disabled { opacity: 0.6; cursor: default; }
+
+  .picker { margin-top: 14px; overflow-y: auto; flex: 1; min-height: 120px; border: 1px solid var(--line-2); border-radius: 14px; padding: 6px; }
+  .pick-loading { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 14px; }
+  .pick-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+  .pick-row:hover { background: var(--bg-2); }
+  .pick-row input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--solid); }
+  .pick-thumb { width: 44px; height: 44px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--bg-2); }
+  .pick-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .pick-ph { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 20px; color: color-mix(in srgb, var(--ink) 30%, transparent); }
+  .pick-title { font-size: 14.5px; font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .sk-inline { display: inline-block; width: 120px; height: 12px; border-radius: 6px; }
   .sk-block, .sk-inline { background: linear-gradient(90deg, var(--bg-2) 25%, color-mix(in srgb, var(--bg-2) 95%, var(--ink)) 50%, var(--bg-2) 75%); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }

@@ -577,6 +577,97 @@ export async function fetchCookbook(id: string): Promise<CookbookDetail | null> 
   return { id: cb.id, name: cb.name || 'Untitled cookbook', description: cb.description ?? null, recipes };
 }
 
+/**
+ * Create a cookbook — the webapp acting as a third sync client. Mirrors the
+ * apps' create path (architecture doc §8): `upsert` a row with a client UUID,
+ * `is_private = true` (the iOS-owned default), and ISO timestamps. We omit
+ * `description` (Android-owned) and `image_url` so PostgREST partial upserts
+ * leave those for the apps to fill, and never send `deleted_at`/`sync_status`.
+ * `upsert` (not `insert`) keeps a retried create idempotent. RLS + the
+ * `default auth.uid()` scope the row to the signed-in user.
+ */
+export async function createCookbook(name: string): Promise<CookbookWithCount> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('You must be signed in to create a cookbook.');
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from('cookbooks')
+    .upsert({ id, user_id: user.id, name, is_private: true, created_at: now, updated_at: now });
+  if (error) throw new Error(error.message);
+  return { id, name, description: null, image_url: null, cover: null, count: 0 };
+}
+
+/**
+ * Hard-delete a cookbook. Membership links cascade server-side (FK ON DELETE
+ * CASCADE) and an AFTER DELETE trigger writes a `deleted_cookbooks` tombstone,
+ * so the apps drop it on their next full sync — exactly what the app's own
+ * cookbook delete does. Deleting a cookbook never deletes its recipes. We do
+ * NOT touch `deleted_cookbooks` or pre-delete `cookbook_recipes`.
+ */
+export async function deleteCookbook(id: string): Promise<void> {
+  const { error } = await supabase.from('cookbooks').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Bump a cookbook's `updated_at` so other devices treat its membership as changed. */
+async function touchCookbook(cookbookId: string): Promise<void> {
+  await supabase
+    .from('cookbooks')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', cookbookId);
+}
+
+/**
+ * Add a recipe to a cookbook. Membership is `(cookbook_id, recipe_id)` with
+ * `user_id` backfilled by the DB `default auth.uid()`. `upsert` is idempotent
+ * on the PK, so re-adding an existing member is a no-op. We bump the parent
+ * cookbook's `updated_at` to match the apps' "mark the cookbook pending".
+ */
+export async function addRecipeToCookbook(cookbookId: string, recipeId: string): Promise<void> {
+  const { error } = await supabase
+    .from('cookbook_recipes')
+    .upsert({ cookbook_id: cookbookId, recipe_id: recipeId });
+  if (error) throw new Error(error.message);
+  await touchCookbook(cookbookId);
+}
+
+/** Remove a recipe from a cookbook (deletes the membership row; recipe is untouched). */
+export async function removeRecipeFromCookbook(cookbookId: string, recipeId: string): Promise<void> {
+  const { error } = await supabase
+    .from('cookbook_recipes')
+    .delete()
+    .eq('cookbook_id', cookbookId)
+    .eq('recipe_id', recipeId);
+  if (error) throw new Error(error.message);
+  await touchCookbook(cookbookId);
+}
+
+export interface RecipeBrief {
+  id: string;
+  title: string;
+  image: string | null;
+}
+
+/**
+ * Lightweight list of the user's recipes for the "add recipes" picker. Mirrors
+ * the recipe query in `my/recipes/index.astro`, projecting only what the picker
+ * needs. RLS scopes it to the signed-in user.
+ */
+export async function fetchRecipesBrief(): Promise<RecipeBrief[]> {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select('id, title, image_url')
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Record<string, any>[]).map((r) => ({
+    id: r.id,
+    title: r.title || 'Untitled recipe',
+    image: r.image_url ?? null,
+  }));
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Auth
 // ─────────────────────────────────────────────────────────────────────────────

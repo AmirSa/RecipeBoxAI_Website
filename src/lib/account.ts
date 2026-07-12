@@ -451,6 +451,40 @@ export async function setRecipeFavorite(id: string, isFavorite: boolean): Promis
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Hard-delete a recipe — the same delete the apps perform (architecture doc
+ * §4.6): DELETE the row; the server's AFTER DELETE trigger records a
+ * `deleted_recipes` tombstone and `recipe_tags` links cascade, so every device
+ * drops it on its next full sync (and the BEFORE INSERT trigger blocks any
+ * backup-guarantee resurrection). The Storage image is left in place — the
+ * apps don't clean it up on delete either. RLS scopes the delete to the
+ * signed-in user.
+ */
+export async function deleteRecipe(id: string): Promise<void> {
+  const { error } = await supabase.from('recipes').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+
+  // Best-effort counter decrement (mirrors the apps' decrementRecipeCount;
+  // the apps reconcile recipe_count on sign-in so a miss here self-heals).
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('recipe_count')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (profile) {
+      await supabase
+        .from('user_profiles')
+        .update({ recipe_count: Math.max(0, (profile.recipe_count ?? 0) - 1) })
+        .eq('user_id', user.id);
+    }
+  } catch {
+    // non-fatal
+  }
+}
+
 export async function renameTag(id: string, name: string): Promise<void> {
   const { error } = await supabase.from('tags').update({ name }).eq('id', id);
   if (error) throw new Error(error.message);

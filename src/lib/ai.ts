@@ -1348,6 +1348,65 @@ export async function waitForRecipe(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Ingredient alternatives (the apps' per-ingredient "swap" feature).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IngredientAlternative {
+  name: string;
+  isHealthier: boolean;
+}
+
+/** Mirror of OpenAIService.findIngredientAlternatives (op `findIngredientAlternatives`). */
+export async function findIngredientAlternatives(ingredient: string): Promise<IngredientAlternative[]> {
+  const name = ingredient.trim();
+  if (!name) throw new Error('Ingredient name cannot be empty');
+
+  // Prompt verbatim from OpenAIService.swift — do not "improve" it here alone.
+  const prompt = `Find 5 practical cooking alternatives for the ingredient: "${name}"
+
+Return ONLY a JSON object with an "alternatives" array. Each alternative should have:
+- "name": the alternative ingredient name
+- "is_healthier": true if this alternative is healthier than the original (lower calorie, less saturated fat, more nutrients, whole grain, lean protein, etc.), false otherwise
+
+Example format:
+{
+  "alternatives": [
+    {"name": "whole wheat flour", "is_healthier": true},
+    {"name": "almond flour", "is_healthier": true},
+    {"name": "all-purpose flour", "is_healthier": false}
+  ]
+}
+
+Consider:
+- Similar flavor profiles
+- Similar cooking properties
+- Common availability
+- Appropriate substitution ratios
+- Nutritional value (calories, fat content, fiber, vitamins, processing level)
+
+Only return ingredients that can realistically substitute in most recipes.`;
+
+  const content = await chatCompletion(
+    [
+      { role: 'system', content: 'You are a cooking expert that helps find ingredient substitutions. Always respond with valid JSON.' },
+      { role: 'user', content: prompt },
+    ],
+    'findIngredientAlternatives',
+  );
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = JSON.parse(extractJsonFromResponse(content));
+  } catch {
+    throw new Error("Couldn't read the alternatives — please try again.");
+  }
+
+  return (Array.isArray(raw?.alternatives) ? (raw.alternatives as Record<string, unknown>[]) : [])
+    .map((a) => ({ name: asString(a?.name).trim(), isHealthier: a?.is_healthier === true }))
+    .filter((a) => a.name);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AI Transform via the `transform-recipe` Edge Function.
 //
 // Web port of the apps' AI Transform (AITransformView): convert a saved recipe

@@ -72,7 +72,7 @@ import ImportTray from '@components/ImportTray.astro';
       parseIngredientSections, parseInstructions, parseNutrition,
       type UserRecipeRow, type UserTagRow, type WireNutrition,
     } from '@/lib/account';
-    import { submitTransform, waitForRecipe, waitForRecipeUpdate, type TransformPayload } from '@/lib/ai';
+    import { submitTransform, waitForRecipe, waitForRecipeUpdate, findIngredientAlternatives, type TransformPayload, type IngredientAlternative } from '@/lib/ai';
     import { trackImport, removeImport, requestImportNotifications } from '@/lib/imports';
 
     const app = document.getElementById('app') as HTMLElement;
@@ -109,6 +109,8 @@ import ImportTray from '@components/ImportTray.astro';
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
       wand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>',
       pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
+      swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 12a9 9 0 01-15.3 6.4M3 12a9 9 0 0115.3-6.4"/><path d="M21 3v6h-6"/><path d="M3 21v-6h6"/></svg>',
+      copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
     };
 
     function showState(title: string, body: string, backLabel = 'Back to My Recipes') {
@@ -326,6 +328,7 @@ import ImportTray from '@components/ImportTray.astro';
                           <button class="check" data-check="s${sIdx}-i${iIdx}" aria-label="Mark ingredient">${ICON.check}</button>
                           <span class="qty" data-base-amount="${isNumeric ? amountNum : ''}" data-unit="${escapeHtml(ing.unit ?? '')}">${isNumeric ? `${amountNum}${ing.unit ? ' ' + escapeHtml(ing.unit) : ''}` : escapeHtml(ing.amount ?? '')}</span>
                           <span class="name">${escapeHtml(ing.name)}${escapeHtml(extra)}</span>
+                          <button class="swap" data-ing="${escapeHtml(ing.name)}" aria-label="Find alternatives for ${escapeHtml(ing.name)}" title="Find alternatives">${ICON.swap}</button>
                         </li>`;
                     }).join('')}
                   </ul>`).join('')}
@@ -369,12 +372,103 @@ import ImportTray from '@components/ImportTray.astro';
               <button class="tx-go" id="tx-go" disabled>${ICON.wand} Transform Recipe</button>
             </div>
           </div>
+        </div>
+
+        <div class="tx-overlay" id="alt-overlay" hidden>
+          <div class="tx-modal alt-modal" role="dialog" aria-modal="true" aria-labelledby="alt-title">
+            <button class="tx-close" id="alt-close" aria-label="Close">✕</button>
+            <p class="alt-kicker">Alternatives for</p>
+            <h3 class="tx-h" id="alt-title"></h3>
+            <div class="alt-body" id="alt-body"></div>
+          </div>
         </div>`;
 
       wireInteractions(recipe.servings || 1);
       wireFavorite(recipe);
       wireOptions(recipe);
       wireTransform(recipe);
+      wireAlternatives();
+    }
+
+    // Ingredient alternatives — the apps' per-ingredient swap feature
+    // (RecipeDetailView.findAlternatives → IngredientAlternativesSheet): tap
+    // the swap icon, get 5 AI substitutes with the healthier ones highlighted,
+    // tap a row to copy it.
+    function wireAlternatives() {
+      const overlay = document.getElementById('alt-overlay') as HTMLElement;
+      const titleEl = document.getElementById('alt-title') as HTMLElement;
+      const body = document.getElementById('alt-body') as HTMLElement;
+      const closeBtn = document.getElementById('alt-close');
+      if (!overlay || !titleEl || !body) return;
+
+      const setOpen = (open: boolean) => {
+        overlay.hidden = !open;
+        document.body.style.overflow = open ? 'hidden' : '';
+      };
+      closeBtn?.addEventListener('click', () => setOpen(false));
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) setOpen(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) setOpen(false); });
+
+      function renderList(alternatives: IngredientAlternative[]) {
+        if (alternatives.length === 0) {
+          body.innerHTML = `
+            <div class="alt-state">
+              <h4>No alternatives found</h4>
+              <p>We couldn't find any suitable alternatives for this ingredient.</p>
+            </div>`;
+          return;
+        }
+        body.innerHTML = `
+          <ul class="alt-list">
+            ${alternatives.map((a, i) => `
+              <li class="alt-row" data-copy="${escapeHtml(a.name)}" title="Copy to clipboard">
+                <span class="n">${i + 1}</span>
+                <span class="alt-name">${escapeHtml(a.name)}</span>
+                ${a.isHealthier ? '<span class="healthy-pill">Healthy</span>' : ''}
+                <span class="copy-ico">${ICON.copy}</span>
+              </li>`).join('')}
+          </ul>
+          <p class="alt-hint">Tap an alternative to copy it.</p>`;
+
+        body.querySelectorAll<HTMLElement>('.alt-row').forEach((row) => {
+          row.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(row.dataset.copy!);
+              row.classList.add('copied');
+              setTimeout(() => row.classList.remove('copied'), 1200);
+            } catch { /* clipboard unavailable — nothing useful to do */ }
+          });
+        });
+      }
+
+      async function fetchAlternatives(name: string) {
+        body.innerHTML = `
+          <div class="alt-state">
+            <div class="alt-spinner" role="status" aria-label="Loading"></div>
+            <p>Finding alternatives…</p>
+          </div>`;
+        try {
+          renderList(await findIngredientAlternatives(name));
+        } catch (err) {
+          body.innerHTML = `
+            <div class="alt-state">
+              <h4>Unable to find alternatives</h4>
+              <p>${escapeHtml(err instanceof Error ? err.message : 'Please try again.')}</p>
+              <button class="alt-retry" id="alt-retry">Retry</button>
+            </div>`;
+          document.getElementById('alt-retry')?.addEventListener('click', () => fetchAlternatives(name));
+        }
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('.ing-list .swap').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.ing || '';
+          if (!name) return;
+          titleEl.textContent = name;
+          setOpen(true);
+          fetchAlternatives(name);
+        });
+      });
     }
 
     // AI Transform — the apps' AITransformView flow, adapted to the imports'
@@ -770,6 +864,8 @@ import ImportTray from '@components/ImportTray.astro';
   .ing-list .check.on svg { color: var(--on-solid); }
   .ing-list .qty { font-family: var(--serif); font-weight: 500; font-size: 15px; color: var(--muted); min-width: 88px; font-variant-numeric: tabular-nums; }
   .ing-list li.done .name { text-decoration: line-through; color: var(--muted); }
+  .ing-list .swap { width: 30px; height: 30px; border-radius: 50%; border: 0; background: color-mix(in srgb, var(--accent) 8%, transparent); color: color-mix(in srgb, var(--accent) 70%, var(--ink)); display: grid; place-items: center; flex-shrink: 0; padding: 0; transition: background 120ms ease, color 120ms ease, transform 120ms ease; }
+  .ing-list .swap:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); transform: rotate(-30deg); }
 
   .servings-bar { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; padding: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; }
   .servings-bar button { width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--ink); font-size: 18px; font-weight: 600; display: grid; place-items: center; }
@@ -809,6 +905,31 @@ import ImportTray from '@components/ImportTray.astro';
   .tx-go:disabled { opacity: 0.45; cursor: default; }
   :root[data-theme="dark"] .tx-overlay { background: rgba(0,0,0,0.55); }
   :root[data-theme="dark"] .tx-gate { color: #f0725c; background: rgba(240,114,92,0.1); border-color: rgba(240,114,92,0.3); }
+
+  /* Ingredient alternatives modal */
+  .alt-modal { max-width: 480px; }
+  .alt-kicker { margin: 0 0 2px; font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
+  .alt-modal .tx-h { margin-bottom: 16px; overflow-wrap: anywhere; }
+  .alt-state { padding: 36px 8px; text-align: center; }
+  .alt-state h4 { font-family: var(--serif); font-size: 20px; font-weight: 500; letter-spacing: -0.01em; margin: 0 0 6px; }
+  .alt-state p { margin: 0 auto; color: var(--muted); font-size: 13.5px; max-width: 38ch; }
+  .alt-spinner { width: 28px; height: 28px; margin: 0 auto 14px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: alt-spin 0.8s linear infinite; }
+  @keyframes alt-spin { to { transform: rotate(360deg); } }
+  .alt-retry { margin-top: 16px; height: 40px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--solid); color: var(--on-solid); font-size: 13.5px; font-weight: 600; }
+  .alt-list { list-style: none; padding: 0; margin: 0; }
+  .alt-list .alt-row { display: flex; align-items: center; gap: 12px; padding: 12px 10px; border-radius: 12px; border-bottom: 1px solid var(--line); font-size: 15px; cursor: pointer; transition: background 100ms ease; }
+  .alt-list .alt-row:last-child { border-bottom: 0; }
+  .alt-list .alt-row:hover { background: var(--bg-2); }
+  .alt-list .n { width: 26px; height: 26px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); font-size: 12px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .alt-list .alt-name { flex: 1; font-weight: 500; color: var(--ink); overflow-wrap: anywhere; }
+  .healthy-pill { padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; color: #fff; background: #3d9a50; flex-shrink: 0; }
+  .alt-list .copy-ico { color: var(--muted); display: grid; place-items: center; flex-shrink: 0; }
+  .alt-list .alt-row.copied { background: color-mix(in srgb, #3d9a50 10%, transparent); }
+  .alt-list .alt-row.copied .copy-ico { color: #3d9a50; }
+  .alt-hint { margin: 14px 2px 0; font-size: 12px; color: var(--muted); text-align: center; }
+  :root[data-theme="dark"] .healthy-pill { background: #2f7d40; }
+  :root[data-theme="dark"] .alt-list .alt-row.copied { background: rgba(78,175,99,0.12); }
+  :root[data-theme="dark"] .alt-list .alt-row.copied .copy-ico { color: #4eaf63; }
 
   /* Skeletons + states */
   .sk-inline { display: inline-block; width: 120px; height: 12px; border-radius: 6px; }

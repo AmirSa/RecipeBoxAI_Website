@@ -343,7 +343,6 @@ import ImportTray from '@components/ImportTray.astro';
               <div class="tx-options">
                 <label class="tx-opt"><input type="radio" name="tx-target" value="new" checked> Save as a new recipe</label>
                 <label class="tx-opt"><input type="radio" name="tx-target" value="replace"> Replace this recipe</label>
-                <label class="tx-opt"><input type="checkbox" id="tx-image" checked> Generate an AI cover photo</label>
               </div>
               <p class="tx-gate" id="tx-gate" hidden></p>
               <button class="tx-go" id="tx-go" disabled>${ICON.wand} Transform Recipe</button>
@@ -364,13 +363,11 @@ import ImportTray from '@components/ImportTray.astro';
       const openBtn = document.getElementById('transform-btn');
       const closeBtn = document.getElementById('tx-close');
       const custom = document.getElementById('tx-custom') as HTMLTextAreaElement;
-      const imageChk = document.getElementById('tx-image') as HTMLInputElement;
       const gateEl = document.getElementById('tx-gate') as HTMLElement;
       const go = document.getElementById('tx-go') as HTMLButtonElement;
       if (!overlay || !openBtn || !go) return;
 
       let selected: string | null = null;
-      let imageTouched = false;
 
       const target = (): 'new' | 'replace' =>
         (document.querySelector('input[name="tx-target"]:checked') as HTMLInputElement)?.value === 'replace' ? 'replace' : 'new';
@@ -397,14 +394,8 @@ import ImportTray from '@components/ImportTray.astro';
         });
       });
       custom.addEventListener('input', refreshGo);
-      imageChk.addEventListener('change', () => { imageTouched = true; });
       document.querySelectorAll<HTMLInputElement>('input[name="tx-target"]').forEach((r) => {
-        r.addEventListener('change', () => {
-          // Mirror the apps' defaults: new recipes get an AI cover, replacing
-          // keeps the existing photo unless the user asks for a new one.
-          if (!imageTouched) imageChk.checked = target() === 'new';
-          gateEl.hidden = true;
-        });
+        r.addEventListener('change', () => { gateEl.hidden = true; });
       });
 
       go.addEventListener('click', async () => {
@@ -430,12 +421,13 @@ import ImportTray from '@components/ImportTray.astro';
         // flow), register it in the bell tray, and close the modal instantly.
         // The submit itself runs in the background; if the server rejects it,
         // the tray entry is rolled back and the modal reopens with the error.
-        const wantImage = imageChk.checked;
+        // A transformed dish looks different — always generate a fresh AI
+        // cover, for replacements too (Amir, 2026-07-12).
         const mode = target();
         const targetId = mode === 'new' ? crypto.randomUUID() : recipe.id;
         const payload: TransformPayload & { id?: string } = selected === 'Custom'
-          ? { recipeId: recipe.id, conversion: 'Custom', customPrompt: custom.value.trim(), target: mode, generateImage: wantImage }
-          : { recipeId: recipe.id, conversion: selected, target: mode, generateImage: wantImage };
+          ? { recipeId: recipe.id, conversion: 'Custom', customPrompt: custom.value.trim(), target: mode, generateImage: true }
+          : { recipeId: recipe.id, conversion: selected, target: mode, generateImage: true };
         if (mode === 'new') payload.id = targetId;
 
         requestImportNotifications();

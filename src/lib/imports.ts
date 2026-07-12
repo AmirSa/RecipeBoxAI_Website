@@ -2,21 +2,23 @@ import { supabase } from './supabase';
 import { escapeHtml } from './account';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Import tray — the web equivalent of the apps' processing bar.
+// Import bell — the web equivalent of the apps' processing bar.
 //
 // Imports run server-side (import-recipe Edge Function), so they survive the
 // tab; this module makes them *visible* everywhere. Accepted imports are
-// remembered in localStorage and a floating tray (mounted on every /my page
-// via <ImportTray/>) tracks them:
+// remembered in localStorage and a notification bell in the nav (mounted on
+// every /my page via <ImportTray/>) tracks them: a badge + spinning ring while
+// anything is processing, a dropdown panel with per-import status rows, and a
+// bell shake when an import settles (done/failed).
 //
-//  - Tier 2 (when the web_import_jobs migration is applied): the tray reads
+//  - Tier 2 (when the web_import_jobs migration is applied): the panel reads
 //    real statuses — live stage text while processing, honest error messages
 //    on failure.
 //  - Tier 1 fallback (table absent): polls the `recipes` table for the
 //    pending ids and infers failure from a 15-minute timeout.
 //
-// The switch is automatic: the first jobs query that errors flips the tray to
-// fallback mode for the session.
+// The switch is automatic: the first jobs query that errors flips the poller
+// to fallback mode for the session.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = 'rb-pending-imports';
@@ -48,11 +50,11 @@ function write(list: PendingImport[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   } catch {
-    /* storage full/blocked — tray simply won't persist */
+    /* storage full/blocked — bell simply won't persist */
   }
 }
 
-/** Remember an accepted import so the tray can track it across pages/sessions. */
+/** Remember an accepted import so the bell can track it across pages/sessions. */
 export function trackImport(entry: { id: string; label: string; kind: PendingImport['kind'] }) {
   const list = read().filter((e) => e.id !== entry.id);
   list.push({ ...entry, startedAt: Date.now(), status: 'processing' });
@@ -83,9 +85,10 @@ function notifyTray() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tray UI
+// Bell UI
 // ─────────────────────────────────────────────────────────────────────────────
 
+const ICON_BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
 const ICON_SPINNER = '<span class="rb-imp-spin"></span>';
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M5 12l5 5L20 7"/></svg>';
 const ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>';
@@ -106,32 +109,79 @@ const STAGE_LABELS: Record<string, string> = {
 
 let initialized = false;
 
-/** Mount the tray on the current page (idempotent). */
+/** Mount the import bell on the current page (idempotent). */
 export function initImportTray() {
-  if (initialized || document.getElementById('rb-import-tray')) return;
+  if (initialized || document.getElementById('rb-import-bell')) return;
   initialized = true;
 
-  const tray = document.createElement('div');
-  tray.id = 'rb-import-tray';
-  document.body.appendChild(tray);
+  const wrap = document.createElement('div');
+  wrap.id = 'rb-import-bell';
+  wrap.innerHTML = `
+    <button id="rb-bell-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Recipe imports">
+      ${ICON_BELL}
+      <span id="rb-bell-badge" hidden></span>
+    </button>
+    <div id="rb-import-panel" hidden>
+      <div class="rb-panel-head">Recipe imports</div>
+      <div id="rb-import-list"></div>
+    </div>`;
+
+  // The bell lives in the nav, next to the account avatar / theme toggle.
+  // Pages without that slot get a floating fallback so imports stay visible.
+  const slot = document.querySelector('.rb-nav .nav-actions');
+  if (slot) slot.insertBefore(wrap, slot.firstChild);
+  else {
+    wrap.classList.add('rb-floating');
+    document.body.appendChild(wrap);
+  }
+
+  const btn = document.getElementById('rb-bell-btn')!;
+  const badge = document.getElementById('rb-bell-badge')!;
+  const panel = document.getElementById('rb-import-panel')!;
+  const listEl = document.getElementById('rb-import-list')!;
 
   function viewUrl(id: string) {
     return `/my/recipes/view/?id=${encodeURIComponent(id)}`;
   }
 
+  function closePanel() {
+    if (panel.hidden) return;
+    panel.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  // Shake the bell when an import settles (done/failed/stale) so a status
+  // change is noticeable without the panel being open.
+  let lastSettled = -1;
+
   function render() {
     const now = Date.now();
-    // Garbage-collect ancient entries so the tray can't accumulate junk.
+    // Garbage-collect ancient entries so the panel can't accumulate junk.
     const list = read().filter((e) => now - e.startedAt < DONE_TTL_MS);
     write(list);
 
+    const processing = list.some((e) => e.status === 'processing');
+    const attention = list.some((e) => e.status === 'failed' || e.status === 'stale');
+
+    badge.textContent = String(list.length);
+    badge.hidden = list.length === 0;
+    badge.classList.toggle('warn', attention && !processing);
+    btn.classList.toggle('busy', processing);
+    btn.title = processing ? 'Importing a recipe…' : 'Recipe imports';
+
+    const settled = list.filter((e) => e.status !== 'processing').length;
+    if (lastSettled >= 0 && settled > lastSettled) {
+      btn.classList.remove('rb-shake');
+      void (btn as HTMLElement).offsetWidth; // restart the animation
+      btn.classList.add('rb-shake');
+    }
+    lastSettled = settled;
+
     if (list.length === 0) {
-      tray.innerHTML = '';
-      tray.hidden = true;
+      listEl.innerHTML = '<div class="rb-imp-empty">No recipe imports right now.<br>Finished and in-progress imports show up here.</div>';
       return;
     }
-    tray.hidden = false;
-    tray.innerHTML = list.map((e) => {
+    listEl.innerHTML = [...list].reverse().map((e) => {
       const label = `${KIND_LABELS[e.kind] ?? 'Import'}${e.label ? ` · ${escapeHtml(e.label)}` : ''}`;
       if (e.status === 'done') {
         return `<div class="rb-imp done" data-id="${escapeHtml(e.id)}">
@@ -164,7 +214,21 @@ export function initImportTray() {
     }).join('');
   }
 
-  tray.addEventListener('click', (ev) => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target as Node)) closePanel();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePanel();
+  });
+
+  panel.addEventListener('click', (ev) => {
+    ev.stopPropagation();
     const target = ev.target as HTMLElement;
     const dismiss = target.closest('[data-dismiss]') as HTMLElement | null;
     if (dismiss) {

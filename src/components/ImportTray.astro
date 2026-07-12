@@ -1,7 +1,9 @@
 ---
-// Floating import tray — the web version of the apps' "recipe processing" bar.
-// Mount once on every authenticated page; it renders nothing until an import
-// is in flight (state lives in localStorage, see src/lib/imports.ts).
+// Import bell — the web version of the apps' "recipe processing" bar.
+// Mount once on every authenticated page; it injects a notification bell into
+// the nav (.rb-nav .nav-actions) with a badge + spinning ring while an import
+// runs and a dropdown panel of per-import statuses (state lives in
+// localStorage, see src/lib/imports.ts).
 ---
 
 <script>
@@ -10,29 +12,127 @@
 </script>
 
 <style is:global>
-  #rb-import-tray {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: min(380px, calc(100vw - 40px));
+  #rb-import-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
   }
+  #rb-import-bell.rb-floating {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 300;
+  }
+
+  /* Bell button — mirrors the theme-toggle nav control. */
+  #rb-bell-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  #rb-bell-btn:hover,
+  #rb-bell-btn[aria-expanded="true"] {
+    color: var(--ink);
+    border-color: var(--line-strong);
+    background: var(--line-2);
+  }
+
+  /* Spinning arc around the bell while an import is processing. */
+  #rb-bell-btn.busy::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--solid);
+    animation: rb-bell-orbit 1s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes rb-bell-orbit { to { transform: rotate(360deg); } }
+
+  /* Count badge. */
+  #rb-bell-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--solid);
+    color: var(--on-solid);
+    border: 2px solid var(--card, var(--bg));
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    z-index: 1; /* above the busy ring (::after paints after the badge otherwise) */
+  }
+  #rb-bell-badge[hidden] { display: none; }
+  #rb-bell-badge.warn { background: #b96a22; color: #fff; }
+  #rb-bell-btn.busy #rb-bell-badge { animation: rb-badge-pulse 1.4s ease infinite; }
+  @keyframes rb-badge-pulse { 50% { transform: scale(1.18); } }
+
+  /* Bell shake when an import settles (done/failed). */
+  #rb-bell-btn.rb-shake svg {
+    animation: rb-bell-shake 0.7s ease;
+    transform-origin: 50% 15%;
+  }
+  @keyframes rb-bell-shake {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(14deg); }
+    40% { transform: rotate(-12deg); }
+    60% { transform: rotate(8deg); }
+    80% { transform: rotate(-6deg); }
+  }
+
+  /* Dropdown panel. */
+  #rb-import-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 300;
+    width: min(380px, calc(100vw - 24px));
+    padding: 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+    font-family: var(--sans);
+    animation: rb-panel-in 160ms ease;
+  }
+  #rb-import-panel[hidden] { display: none; }
+  @keyframes rb-panel-in { from { opacity: 0; transform: translateY(-4px); } }
+
+  .rb-panel-head {
+    padding: 8px 10px 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   .rb-imp {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
-    border-radius: 16px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-    font-family: var(--sans);
-    animation: rb-imp-in 220ms ease;
+    padding: 10px;
+    border-radius: 12px;
   }
-  @keyframes rb-imp-in { from { opacity: 0; transform: translateY(8px); } }
+  .rb-imp:hover { background: var(--line-2); }
   .rb-imp-ico { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: color-mix(in srgb, var(--solid) 8%, transparent); color: var(--ink); }
   .rb-imp-ico.ok { background: #3f8f4f; color: #fff; }
   .rb-imp-ico.warn { background: color-mix(in srgb, #e0853b 18%, transparent); color: #b96a22; }
@@ -41,11 +141,26 @@
   .rb-imp-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
   .rb-imp-text b { font-size: 13.5px; font-weight: 650; color: var(--ink); letter-spacing: -0.01em; }
   .rb-imp-text small { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rb-imp-btn { flex-shrink: 0; display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 999px; background: var(--solid); color: var(--on-solid); font-size: 12.5px; font-weight: 600; }
+  .rb-imp-btn { flex-shrink: 0; display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 999px; background: var(--solid); color: var(--on-solid); font-size: 12.5px; font-weight: 600; text-decoration: none; }
   .rb-imp-btn:hover { background: color-mix(in srgb, var(--solid) 92%, var(--bg)); }
-  .rb-imp-x { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; display: grid; place-items: center; }
+  .rb-imp-x { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); font-size: 17px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
   .rb-imp-x:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink); }
+
+  .rb-imp-empty {
+    padding: 16px 12px 18px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+  }
+
   @media (max-width: 760px) {
-    #rb-import-tray { right: 12px; bottom: 12px; left: 12px; max-width: none; }
+    #rb-import-panel {
+      position: fixed;
+      top: 66px;
+      left: 12px;
+      right: 12px;
+      width: auto;
+    }
   }
 </style>

@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import NavAccount from '@components/NavAccount.astro';
 import ThemeToggle from '@components/ThemeToggle.astro';
 import MobileNav from '@components/MobileNav.astro';
+import ImportTray from '@components/ImportTray.astro';
 ---
 
 <BaseLayout title="My Cookbooks" description="Your RecipeBox AI cookbooks on the web.">
@@ -29,6 +30,8 @@ import MobileNav from '@components/MobileNav.astro';
       </div>
     </div>
   </nav>
+
+  <ImportTray />
 
   <div class="container">
     <header class="page-head">

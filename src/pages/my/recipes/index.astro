@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import NavAccount from '@components/NavAccount.astro';
 import ThemeToggle from '@components/ThemeToggle.astro';
 import MobileNav from '@components/MobileNav.astro';
+import ImportTray from '@components/ImportTray.astro';
 ---
 
 <BaseLayout title="My Recipes" description="Your RecipeBox AI recipe library on the web.">
@@ -31,6 +32,8 @@ import MobileNav from '@components/MobileNav.astro';
     </div>
   </nav>
 
+  <ImportTray />
+
   <div class="container">
     <header class="page-head">
       <div class="left">
@@ -41,6 +44,10 @@ import MobileNav from '@components/MobileNav.astro';
       <div class="right">
         <div class="count" id="head-count">–</div>
         <div class="count-label">Recipes in your library</div>
+        <a class="add-btn" href="/my/recipes/add/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+          Add recipe
+        </a>
       </div>
     </header>
 
@@ -220,8 +227,9 @@ import MobileNav from '@components/MobileNav.astro';
         grid.innerHTML = `
           <div class="state-card">
             <h3>Your library is empty</h3>
-            <p>Save your first recipe in the RecipeBox AI app — a link, a photo, or a video — and it will appear here.</p>
-            <a class="state-btn" href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797">Get the app</a>
+            <p>Save your first recipe in the RecipeBox AI app — a link, a photo, or a video — or paste one as text right here.</p>
+            <a class="state-btn" href="/my/recipes/add/">Add your first recipe</a>
+            <p style="margin-top: 14px;"><a href="https://apps.apple.com/gb/app/recipebox-ai/id6752560797" style="font-size: 13.5px; font-weight: 600; text-decoration: underline;">Or get the app</a></p>
           </div>`;
         return;
       }
@@ -384,6 +392,8 @@ import MobileNav from '@components/MobileNav.astro';
   header.page-head .right { display: flex; flex-direction: column; gap: 8px; align-items: end; }
   header.page-head .count { font-family: var(--serif); font-size: 56px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
   header.page-head .count-label { font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+  .add-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 42px; padding: 0 20px; border-radius: 999px; background: var(--solid); color: var(--on-solid); font-size: 13.5px; font-weight: 600; transition: background 120ms ease; }
+  .add-btn:hover { background: color-mix(in srgb, var(--solid) 92%, var(--bg)); }
 
   /* Toolbar */
   main.results { padding-bottom: 96px; }

@@ -451,6 +451,31 @@ export async function setRecipeFavorite(id: string, isFavorite: boolean): Promis
   if (error) throw new Error(error.message);
 }
 
+/** Editable fields of a recipe row, already in wire format (see header). */
+export interface RecipeEditPatch {
+  title: string;
+  notes: string | null;
+  image_url: string | null;
+  /** Double-encoded JSON string of sections, or null when there are none. */
+  ingredient_sections: string | null;
+  /** Newline-joined plain-text steps, or null when there are none. */
+  instructions: string | null;
+}
+
+/**
+ * Update a recipe's user-editable fields. Same contract as the apps' edits
+ * (architecture doc §4.2): write the row and bump `updated_at`; both apps
+ * adopt the server value on their next full sync, since a pulled row wins
+ * over any non-pending local copy. RLS scopes the update to the signed-in user.
+ */
+export async function updateRecipe(id: string, patch: RecipeEditPatch): Promise<void> {
+  const { error } = await supabase
+    .from('recipes')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
 /**
  * Hard-delete a recipe — the same delete the apps perform (architecture doc
  * §4.6): DELETE the row; the server's AFTER DELETE trigger records a

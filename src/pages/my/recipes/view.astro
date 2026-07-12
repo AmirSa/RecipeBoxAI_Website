@@ -108,6 +108,7 @@ import ImportTray from '@components/ImportTray.astro';
       dots: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
       wand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>',
+      pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>',
     };
 
     function showState(title: string, body: string, backLabel = 'Back to My Recipes') {
@@ -231,6 +232,7 @@ import ImportTray from '@components/ImportTray.astro';
                 <div class="opt-wrap">
                   <button class="opt-btn" id="opt-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Recipe options" title="Recipe options">${ICON.dots}</button>
                   <div class="opt-menu" id="opt-menu" role="menu" hidden>
+                    <a class="opt-item" id="edit-btn" role="menuitem" href="/my/recipes/edit/?id=${encodeURIComponent(recipe.id)}">${ICON.pencil} Edit recipe</a>
                     <button class="opt-item danger" id="delete-btn" role="menuitem">${ICON.trash} Delete recipe</button>
                   </div>
                 </div>
@@ -481,9 +483,10 @@ import ImportTray from '@components/ImportTray.astro';
       });
     }
 
-    // Options (⋯) menu — currently just "Delete recipe". The delete is the
-    // same hard-DELETE the apps do: the server records a tombstone, so the
-    // recipe disappears from every device on its next sync.
+    // Options (⋯) menu — "Edit recipe" (a plain link to the edit page) and
+    // "Delete recipe". The delete is the same hard-DELETE the apps do: the
+    // server records a tombstone, so the recipe disappears from every device
+    // on its next sync.
     function wireOptions(recipe: UserRecipeRow) {
       const btn = document.getElementById('opt-btn');
       const menu = document.getElementById('opt-menu');

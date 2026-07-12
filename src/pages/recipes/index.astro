@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import NavAccount from '@components/NavAccount.astro';
 import ThemeToggle from '@components/ThemeToggle.astro';
 import MobileNav from '@components/MobileNav.astro';
+import ImportTray from '@components/ImportTray.astro';
 import { fetchAllPublishedRecipes } from '../../lib/supabase';
 
 const recipes = await fetchAllPublishedRecipes<Record<string, any>>(
@@ -78,6 +79,8 @@ const itemListSchema = {
       </div>
     </div>
   </nav>
+
+  <ImportTray />
 
   <div class="container">
     <div class="crumb">

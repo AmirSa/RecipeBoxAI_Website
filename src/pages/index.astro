@@ -3,6 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import NavAccount from '@components/NavAccount.astro';
 import ThemeToggle from '@components/ThemeToggle.astro';
 import MobileNav from '@components/MobileNav.astro';
+import ImportTray from '@components/ImportTray.astro';
 import { supabase } from '../lib/supabase';
 
 // Fetch 4 recipes for the gallery section so links resolve to real pages
@@ -73,6 +74,8 @@ const appSchema = {
       </div>
     </div>
   </nav>
+
+  <ImportTray />
 
   <!-- ─── Hero ─── -->
   <section class="hero">

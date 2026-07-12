@@ -104,6 +104,7 @@ const STAGE_LABELS: Record<string, string> = {
   starting: 'Starting…',
   extracting: 'Extracting the recipe…',
   nutrition: 'Analyzing nutrition…',
+  image: 'Creating a cover photo…',
   saving: 'Saving to your library…',
 };
 
@@ -128,6 +129,10 @@ export function initImportTray() {
 
   // The bell lives in the nav, next to the account avatar / theme toggle.
   // Pages without that slot get a floating fallback so imports stay visible.
+  // It starts hidden and only reveals itself for signed-in users — the tray
+  // is also mounted on public pages (landing, Discover), where visitors may
+  // not have a session.
+  wrap.hidden = true;
   const slot = document.querySelector('.rb-nav .nav-actions');
   if (slot) slot.insertBefore(wrap, slot.firstChild);
   else {
@@ -337,6 +342,13 @@ export function initImportTray() {
     if (e.key === STORAGE_KEY) render();
   });
 
-  render();
-  poll();
+  // Reveal the bell and start polling only once a session is confirmed —
+  // signed-out visitors on public pages never see it (and anon polls would
+  // return nothing anyway).
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) return;
+    wrap.hidden = false;
+    render();
+    poll();
+  });
 }

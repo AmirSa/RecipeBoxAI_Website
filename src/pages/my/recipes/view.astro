@@ -129,6 +129,25 @@ import ImportTray from '@components/ImportTray.astro';
       return Array.from({ length: 5 }, (_, i) => (i < rating ? ICON.starFill : ICON.star)).join('');
     }
 
+    // AI-transformed recipes carry an app-parity metadata block in notes
+    // ("🤖 AI-Generated Recipe / Original Recipe: … / Original ID: <uuid>").
+    // Render it human-friendly: hide the raw id lines and turn the original
+    // recipe's title into a link to it instead.
+    function overviewHtml(notes: string): string {
+      let html = escapeHtml(notes);
+      // The id can sit on its own line (the canonical block) or mid-sentence
+      // (older transforms let the model paraphrase it into the notes).
+      const idMatch = html.match(/Original ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+      html = html.replace(/\s*Original ID:\s*[0-9a-f-]{36}/gi, '');
+      if (idMatch) {
+        html = html.replace(
+          /^(Original Recipe: )(.+)$/m,
+          (_, prefix, title) => `${prefix}<a class="orig-link" href="/my/recipes/view/?id=${idMatch[1].toLowerCase()}">${title}</a>`,
+        );
+      }
+      return html;
+    }
+
     // Nutrition rows beyond the macro chart, in app display order.
     const NUTRIENT_LABELS: [keyof WireNutrition, string, string][] = [
       ['fiber', 'Fiber', 'g'],
@@ -216,7 +235,7 @@ import ImportTray from '@components/ImportTray.astro';
                   </div>
                 </div>
               </div>
-              ${recipe.notes ? `<p class="overview">${escapeHtml(recipe.notes)}</p>` : ''}
+              ${recipe.notes ? `<p class="overview">${overviewHtml(recipe.notes)}</p>` : ''}
             </div>
             <div class="hero-img-wrap">
               ${recipe.image_url
@@ -676,6 +695,8 @@ import ImportTray from '@components/ImportTray.astro';
   .opt-menu .opt-item.danger { color: #e0533d; }
   .opt-menu .opt-item svg { flex-shrink: 0; }
   .hero .overview { margin: 24px 0 0; font-size: 18px; line-height: 1.5; color: var(--ink-2); letter-spacing: -0.01em; max-width: 52ch; text-wrap: pretty; white-space: pre-line; }
+  .hero .overview .orig-link { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent); text-underline-offset: 3px; }
+  .hero .overview .orig-link:hover { text-decoration-color: var(--ink); }
   .hero-img-wrap { aspect-ratio: 4/5; border-radius: 28px; overflow: hidden; background: var(--bg-2); position: relative; }
   .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
   .hero-img-wrap .ph-mark, .hero-img-wrap.ph::after { content: ''; width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--serif); font-size: 120px; font-weight: 500; color: color-mix(in srgb, var(--ink) 15%, transparent); background: linear-gradient(135deg, var(--bg-2), #e0dcd2); }

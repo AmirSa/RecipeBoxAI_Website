@@ -29,7 +29,11 @@ const DONE_TTL_MS = 24 * 60 * 60_000; // drop dismissed-but-forgotten entries af
 export interface PendingImport {
   id: string;          // recipe id (row appears in `recipes` when finished)
   label: string;       // human label, e.g. "recipetineats.com" / "Photo scan"
-  kind: 'text' | 'ai' | 'photo' | 'link';
+  kind: 'text' | 'ai' | 'photo' | 'link' | 'transform';
+  // Transforms only: 'replace' rewrites an EXISTING row, so "row exists in
+  // `recipes`" is meaningless as a completion signal — those settle on the
+  // web_import_jobs status instead.
+  mode?: 'new' | 'replace';
   startedAt: number;
   status: 'processing' | 'done' | 'failed' | 'stale';
   stage?: string;      // Tier 2: live pipeline stage
@@ -55,7 +59,7 @@ function write(list: PendingImport[]) {
 }
 
 /** Remember an accepted import so the bell can track it across pages/sessions. */
-export function trackImport(entry: { id: string; label: string; kind: PendingImport['kind'] }) {
+export function trackImport(entry: { id: string; label: string; kind: PendingImport['kind']; mode?: PendingImport['mode'] }) {
   const list = read().filter((e) => e.id !== entry.id);
   list.push({ ...entry, startedAt: Date.now(), status: 'processing' });
   write(list);
@@ -98,11 +102,13 @@ const KIND_LABELS: Record<PendingImport['kind'], string> = {
   ai: 'AI recipe',
   photo: 'Photo scan',
   link: 'Link import',
+  transform: 'AI Transform',
 };
 
 const STAGE_LABELS: Record<string, string> = {
   starting: 'Starting…',
   extracting: 'Extracting the recipe…',
+  transforming: 'Transforming the recipe…',
   nutrition: 'Analyzing nutrition…',
   image: 'Creating a cover photo…',
   saving: 'Saving to your library…',
@@ -187,6 +193,7 @@ export function initImportTray() {
       return;
     }
     listEl.innerHTML = [...list].reverse().map((e) => {
+      const isTransform = e.kind === 'transform';
       const label = `${KIND_LABELS[e.kind] ?? 'Import'}${e.label ? ` · ${escapeHtml(e.label)}` : ''}`;
       if (e.status === 'done') {
         return `<div class="rb-imp done" data-id="${escapeHtml(e.id)}">
@@ -199,21 +206,21 @@ export function initImportTray() {
       if (e.status === 'failed') {
         return `<div class="rb-imp stale" data-id="${escapeHtml(e.id)}">
           <span class="rb-imp-ico warn">${ICON_WARN}</span>
-          <span class="rb-imp-text"><b>Import failed</b><small>${escapeHtml(e.error || `${label} didn't go through.`)}</small></span>
+          <span class="rb-imp-text"><b>${isTransform ? 'Transform failed' : 'Import failed'}</b><small>${escapeHtml(e.error || `${label} didn't go through.`)}</small></span>
           <button class="rb-imp-x" data-dismiss="${escapeHtml(e.id)}" aria-label="Dismiss">×</button>
         </div>`;
       }
       if (e.status === 'stale') {
         return `<div class="rb-imp stale" data-id="${escapeHtml(e.id)}">
           <span class="rb-imp-ico warn">${ICON_WARN}</span>
-          <span class="rb-imp-text"><b>Import didn't finish</b><small>${label} — it may not have contained a recipe.</small></span>
+          <span class="rb-imp-text"><b>${isTransform ? "Transform didn't finish" : "Import didn't finish"}</b><small>${label}${isTransform ? '' : ' — it may not have contained a recipe.'}</small></span>
           <button class="rb-imp-x" data-dismiss="${escapeHtml(e.id)}" aria-label="Dismiss">×</button>
         </div>`;
       }
       const stageText = (e.stage && STAGE_LABELS[e.stage]) || 'safe to leave this page';
       return `<div class="rb-imp" data-id="${escapeHtml(e.id)}">
         <span class="rb-imp-ico">${ICON_SPINNER}</span>
-        <span class="rb-imp-text"><b>Importing recipe…</b><small>${label} — ${escapeHtml(stageText)}</small></span>
+        <span class="rb-imp-text"><b>${isTransform ? 'Transforming recipe…' : 'Importing recipe…'}</b><small>${label} — ${escapeHtml(stageText)}</small></span>
         <button class="rb-imp-x" data-dismiss="${escapeHtml(e.id)}" aria-label="Dismiss">×</button>
       </div>`;
     }).join('');
@@ -248,7 +255,7 @@ export function initImportTray() {
     try {
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
       const n = new Notification('Your recipe is ready 🍳', {
-        body: `${KIND_LABELS[e.kind] ?? 'Import'}${e.label ? ` · ${e.label}` : ''} finished importing.`,
+        body: `${KIND_LABELS[e.kind] ?? 'Import'}${e.label ? ` · ${e.label}` : ''} finished ${e.kind === 'transform' ? 'transforming' : 'importing'}.`,
         tag: `rb-import-${e.id}`,
       });
       n.onclick = () => {
@@ -286,8 +293,15 @@ export function initImportTray() {
       }
 
       // `recipes` check for everything the jobs table didn't already settle —
-      // it is also the ground truth that the row really landed.
-      const unsettled = ids.filter((id) => jobs.get(id)?.status !== 'failed');
+      // it is also the ground truth that the row really landed. Replace-mode
+      // transforms are excluded: their row exists the whole time, so only the
+      // job status can say when they're finished.
+      const byId = new Map(pending.map((e) => [e.id, e]));
+      const rowExistenceMeansDone = (e: PendingImport | undefined) =>
+        !(e?.kind === 'transform' && e.mode === 'replace');
+      const unsettled = ids.filter(
+        (id) => jobs.get(id)?.status !== 'failed' && rowExistenceMeansDone(byId.get(id)),
+      );
       let found = new Set<string>();
       if (unsettled.length > 0) {
         const { data } = await supabase.from('recipes').select('id').in('id', unsettled);
@@ -303,7 +317,7 @@ export function initImportTray() {
           changed = true;
           return { ...e, status: 'failed', error: job.error ?? undefined };
         }
-        if (found.has(e.id)) {
+        if (found.has(e.id) || (e.kind === 'transform' && job?.status === 'done')) {
           changed = true;
           fireNotification(e);
           return { ...e, status: 'done' };

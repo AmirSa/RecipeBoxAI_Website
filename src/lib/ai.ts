@@ -1346,3 +1346,54 @@ export async function waitForRecipe(
     await new Promise((r) => setTimeout(r, intervalMs));
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Transform via the `transform-recipe` Edge Function.
+//
+// Web port of the apps' AI Transform (AITransformView): convert a saved recipe
+// to a dietary style or per a custom instruction, saving the result as a new
+// recipe or replacing the original. Same background contract as imports: the
+// function responds 202 and finishes server-side, so the transform survives
+// the tab closing. Completion is detected by polling `recipes` — the new row
+// appearing ('new') or `updated_at` moving ('replace').
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TransformPayload {
+  recipeId: string;
+  /** Preset name (DietaryConversion.rawValue, e.g. 'Vegan') or 'Custom'. */
+  conversion?: string;
+  /** Required when conversion is 'Custom' (or omitted). */
+  customPrompt?: string;
+  target: 'new' | 'replace';
+  generateImage?: boolean;
+}
+
+/** Submit a transform job; resolves with the target recipe id once accepted. */
+export async function submitTransform(payload: TransformPayload): Promise<string> {
+  const res = await edgeFunction<{ accepted: boolean; recipeId: string }>('transform-recipe', payload, 60_000);
+  if (!res?.accepted || !res.recipeId) throw new Error('The transformation could not be started — please try again.');
+  return res.recipeId;
+}
+
+/**
+ * Poll `recipes` until the row's `updated_at` moves past the given baseline
+ * (replace-mode completion). Resolves true when it moves, false on timeout
+ * (the transform may STILL complete after — it runs server-side).
+ */
+export async function waitForRecipeUpdate(
+  recipeId: string,
+  baselineUpdatedAt: string | null,
+  opts: { timeoutMs?: number; intervalMs?: number; onTick?: (elapsedMs: number) => void } = {},
+): Promise<boolean> {
+  const timeoutMs = opts.timeoutMs ?? 300_000;
+  const intervalMs = opts.intervalMs ?? 3_000;
+  const started = Date.now();
+  for (;;) {
+    const { data } = await supabase.from('recipes').select('updated_at').eq('id', recipeId).maybeSingle();
+    if (data?.updated_at && data.updated_at !== baselineUpdatedAt) return true;
+    const elapsed = Date.now() - started;
+    if (elapsed >= timeoutMs) return false;
+    opts.onTick?.(elapsed);
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}

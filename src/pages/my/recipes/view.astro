@@ -68,12 +68,35 @@ import ImportTray from '@components/ImportTray.astro';
 
   <script>
     import {
-      supabase, requireSession, escapeHtml, tagHex, setRecipeFavorite, deleteRecipe,
+      supabase, requireSession, escapeHtml, tagHex, setRecipeFavorite, deleteRecipe, getSaveGate,
       parseIngredientSections, parseInstructions, parseNutrition,
       type UserRecipeRow, type UserTagRow, type WireNutrition,
     } from '@/lib/account';
+    import { submitTransform, waitForRecipe, waitForRecipeUpdate, type TransformPayload } from '@/lib/ai';
+    import { trackImport, removeImport, requestImportNotifications } from '@/lib/imports';
 
     const app = document.getElementById('app') as HTMLElement;
+    let userId = '';
+
+    // The apps' DietaryConversion presets, in AITransformView's grid order.
+    const CONVERSIONS: { name: string; emoji: string }[] = [
+      { name: 'Custom', emoji: '✍️' },
+      { name: 'Healthy', emoji: '❤️' },
+      { name: 'Vegetarian', emoji: '🥬' },
+      { name: 'Vegan', emoji: '🌱' },
+      { name: 'Pescatarian', emoji: '🐟' },
+      { name: 'Gluten-Free', emoji: '🌾' },
+      { name: 'Dairy-Free', emoji: '🥛' },
+      { name: 'Low Carb', emoji: '🥦' },
+      { name: 'High Protein', emoji: '💪' },
+      { name: 'Paleo', emoji: '🍖' },
+      { name: 'Keto', emoji: '🥑' },
+      { name: 'Low Sodium', emoji: '🧂' },
+      { name: 'Low Saturated Fat', emoji: '🫀' },
+      { name: 'Less Microplastic', emoji: '♻️' },
+      { name: 'High Fibre', emoji: '🌿' },
+      { name: 'Kid-Friendly', emoji: '🧒' },
+    ];
 
     const ICON = {
       heart: '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',
@@ -84,6 +107,7 @@ import ImportTray from '@components/ImportTray.astro';
       check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>',
       dots: '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>',
+      wand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>',
     };
 
     function showState(title: string, body: string, backLabel = 'Back to My Recipes') {
@@ -182,6 +206,7 @@ import ImportTray from '@components/ImportTray.astro';
               <div class="meta-line">
                 ${recipe.rating > 0 ? `<span class="stars">${starsHtml(recipe.rating)}</span>` : ''}
                 <button class="fav-chip ${recipe.is_favorite ? 'on' : ''}" id="fav-btn" aria-pressed="${recipe.is_favorite}">${recipe.is_favorite ? ICON.heart : ICON.heartLine} Favorite</button>
+                <button class="ai-chip" id="transform-btn">${ICON.wand} AI Transform</button>
                 ${recipe.source_name ? `<span>From <b>${escapeHtml(recipe.source_name)}</b></span>` : ''}
                 ${created ? `<span>Saved ${escapeHtml(created)}</span>` : ''}
                 <div class="opt-wrap">
@@ -303,11 +328,146 @@ import ImportTray from '@components/ImportTray.astro';
                 <p>This recipe doesn't have ingredients or steps stored. Open it in the app to add them.</p>
               </div>` : ''}
           </main>
+        </div>
+
+        <div class="tx-overlay" id="tx-overlay" hidden>
+          <div class="tx-modal" role="dialog" aria-modal="true" aria-labelledby="tx-title">
+            <button class="tx-close" id="tx-close" aria-label="Close">✕</button>
+            <div id="tx-config">
+              <h3 class="tx-h" id="tx-title">Transform Recipe</h3>
+              <p class="tx-sub">Convert “${escapeHtml(title)}” to a different dietary style — or describe your own changes.</p>
+              <div class="tx-grid">
+                ${CONVERSIONS.map((c) => `<button class="tx-preset${c.name === 'Custom' ? ' custom' : ''}" data-conversion="${escapeHtml(c.name)}"><span class="em">${c.emoji}</span>${escapeHtml(c.name)}</button>`).join('')}
+              </div>
+              <textarea class="tx-custom" id="tx-custom" rows="3" hidden placeholder="e.g. Make it spicier, double the servings, use only pantry staples… You can combine several changes at once."></textarea>
+              <div class="tx-options">
+                <label class="tx-opt"><input type="radio" name="tx-target" value="new" checked> Save as a new recipe</label>
+                <label class="tx-opt"><input type="radio" name="tx-target" value="replace"> Replace this recipe</label>
+                <label class="tx-opt"><input type="checkbox" id="tx-image" checked> Generate an AI cover photo</label>
+              </div>
+              <p class="tx-gate" id="tx-gate" hidden></p>
+              <button class="tx-go" id="tx-go" disabled>${ICON.wand} Transform Recipe</button>
+            </div>
+          </div>
         </div>`;
 
       wireInteractions(recipe.servings || 1);
       wireFavorite(recipe);
       wireOptions(recipe);
+      wireTransform(recipe);
+    }
+
+    // AI Transform — the apps' AITransformView flow, adapted to the imports'
+    // server-side contract: submit → 202 → poll `recipes` for completion.
+    function wireTransform(recipe: UserRecipeRow) {
+      const overlay = document.getElementById('tx-overlay') as HTMLElement;
+      const openBtn = document.getElementById('transform-btn');
+      const closeBtn = document.getElementById('tx-close');
+      const custom = document.getElementById('tx-custom') as HTMLTextAreaElement;
+      const imageChk = document.getElementById('tx-image') as HTMLInputElement;
+      const gateEl = document.getElementById('tx-gate') as HTMLElement;
+      const go = document.getElementById('tx-go') as HTMLButtonElement;
+      if (!overlay || !openBtn || !go) return;
+
+      let selected: string | null = null;
+      let imageTouched = false;
+
+      const target = (): 'new' | 'replace' =>
+        (document.querySelector('input[name="tx-target"]:checked') as HTMLInputElement)?.value === 'replace' ? 'replace' : 'new';
+      const refreshGo = () => {
+        go.disabled = !selected || (selected === 'Custom' && !custom.value.trim());
+      };
+      const setOpen = (open: boolean) => {
+        overlay.hidden = !open;
+        document.body.style.overflow = open ? 'hidden' : '';
+      };
+
+      openBtn.addEventListener('click', () => setOpen(true));
+      closeBtn?.addEventListener('click', () => setOpen(false));
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) setOpen(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) setOpen(false); });
+
+      document.querySelectorAll<HTMLButtonElement>('.tx-preset').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selected = btn.dataset.conversion!;
+          document.querySelectorAll('.tx-preset').forEach((b) => b.classList.toggle('on', b === btn));
+          custom.hidden = selected !== 'Custom';
+          if (!custom.hidden) custom.focus();
+          refreshGo();
+        });
+      });
+      custom.addEventListener('input', refreshGo);
+      imageChk.addEventListener('change', () => { imageTouched = true; });
+      document.querySelectorAll<HTMLInputElement>('input[name="tx-target"]').forEach((r) => {
+        r.addEventListener('change', () => {
+          // Mirror the apps' defaults: new recipes get an AI cover, replacing
+          // keeps the existing photo unless the user asks for a new one.
+          if (!imageTouched) imageChk.checked = target() === 'new';
+          gateEl.hidden = true;
+        });
+      });
+
+      go.addEventListener('click', async () => {
+        if (!selected) return;
+
+        // Free-tier gate only applies when adding a recipe (like the apps:
+        // "Replace Original" never counts against the library limit).
+        if (target() === 'new') {
+          go.disabled = true;
+          try {
+            const gate = await getSaveGate(userId);
+            if (!gate.allowed) {
+              gateEl.textContent = `Your free library is full (${gate.used}/${gate.limit} recipes). Delete a recipe, upgrade to Pro in the app, or choose “Replace this recipe”.`;
+              gateEl.hidden = false;
+              refreshGo();
+              return;
+            }
+          } catch { /* best-effort gate — don't block on a profile hiccup */ }
+        }
+
+        // Same background contract as imports, with zero waiting UI: mint the
+        // result id HERE (the function honors it, like import-recipe's photo
+        // flow), register it in the bell tray, and close the modal instantly.
+        // The submit itself runs in the background; if the server rejects it,
+        // the tray entry is rolled back and the modal reopens with the error.
+        const wantImage = imageChk.checked;
+        const mode = target();
+        const targetId = mode === 'new' ? crypto.randomUUID() : recipe.id;
+        const payload: TransformPayload & { id?: string } = selected === 'Custom'
+          ? { recipeId: recipe.id, conversion: 'Custom', customPrompt: custom.value.trim(), target: mode, generateImage: wantImage }
+          : { recipeId: recipe.id, conversion: selected, target: mode, generateImage: wantImage };
+        if (mode === 'new') payload.id = targetId;
+
+        requestImportNotifications();
+        trackImport({
+          id: targetId,
+          label: selected === 'Custom' ? 'Custom' : selected!,
+          kind: 'transform',
+          mode,
+        });
+        setOpen(false);
+        refreshGo();
+
+        try {
+          await submitTransform(payload);
+          // Accepted (202) — the tray owns tracking now. If the user stays on
+          // this page, redirect/reload when the transform lands (mirror of
+          // the add page's runImport).
+          const ok = mode === 'new'
+            ? await waitForRecipe(targetId)
+            : await waitForRecipeUpdate(recipe.id, recipe.updated_at);
+          if (ok) {
+            removeImport(targetId);
+            if (mode === 'new') window.location.href = `/my/recipes/view/?id=${targetId}`;
+            else window.location.reload();
+          }
+          // On timeout do nothing — the tray keeps tracking it.
+        } catch (err) {
+          removeImport(targetId);
+          setOpen(true);
+          alert('Could not start the transformation: ' + (err instanceof Error ? err.message : 'please try again'));
+        }
+      });
     }
 
     // Options (⋯) menu — currently just "Delete recipe". The delete is the
@@ -425,6 +585,7 @@ import ImportTray from '@components/ImportTray.astro';
     async function load() {
       const session = await requireSession();
       if (!session) return;
+      userId = session.user.id;
 
       const id = new URLSearchParams(window.location.search).get('id');
       if (!id) {
@@ -511,6 +672,8 @@ import ImportTray from '@components/ImportTray.astro';
   .hero .meta-line .fav-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); background: transparent; transition: color 120ms ease, border-color 120ms ease, background 120ms ease; }
   .hero .meta-line .fav-chip:hover { color: #e0533d; border-color: rgba(224,83,61,0.35); }
   .hero .meta-line .fav-chip.on { color: #e0533d; border-color: rgba(224,83,61,0.25); background: rgba(224,83,61,0.07); }
+  .hero .meta-line .ai-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 999px; font-size: 11.5px; font-weight: 700; color: #fff; border: 0; background: var(--ai-grad); box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent); transition: filter 120ms ease, transform 120ms ease; }
+  .hero .meta-line .ai-chip:hover { filter: brightness(1.08); transform: translateY(-1px); }
   .hero .meta-line .opt-wrap { position: relative; display: inline-flex; }
   .hero .meta-line .opt-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; color: var(--muted); border: 1px solid var(--line); background: transparent; padding: 0; transition: color 120ms ease, border-color 120ms ease; }
   .hero .meta-line .opt-btn:hover, .hero .meta-line .opt-btn[aria-expanded="true"] { color: var(--ink); border-color: var(--line-strong); }
@@ -605,6 +768,31 @@ import ImportTray from '@components/ImportTray.astro';
   .step-list .txt { font-size: 17px; line-height: 1.55; color: var(--ink); letter-spacing: -0.005em; padding-top: 6px; }
   .step-list li.done .n { color: var(--ink); }
   .step-list li.done .txt { color: var(--muted); }
+
+  /* AI Transform modal */
+  .tx-overlay { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 20px; background: color-mix(in srgb, var(--panel) 45%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .tx-modal { position: relative; width: 100%; max-width: 640px; max-height: 88vh; overflow: auto; background: var(--card); border: 1px solid var(--line-2); border-radius: 24px; padding: 28px; box-shadow: 0 24px 64px rgba(0,0,0,0.22); }
+  .tx-close { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 13px; display: grid; place-items: center; padding: 0; }
+  .tx-close:hover { color: var(--ink); border-color: var(--line-strong); }
+  .tx-h { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .tx-sub { margin: 0 0 20px; font-size: 13.5px; color: var(--muted); max-width: 52ch; }
+  .tx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(136px, 1fr)); gap: 8px; }
+  .tx-preset { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: transparent; font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-align: left; transition: border-color 120ms ease, background 120ms ease, color 120ms ease; }
+  .tx-preset .em { font-size: 15px; flex-shrink: 0; }
+  .tx-preset:hover { border-color: var(--line-strong); color: var(--ink); }
+  .tx-preset.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); color: var(--ink); }
+  .tx-preset.custom.on { border-color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 9%, transparent); }
+  .tx-custom { width: 100%; margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-2); color: var(--ink); font: inherit; font-size: 14px; resize: vertical; }
+  .tx-custom:focus { outline: none; border-color: var(--accent-2); }
+  .tx-options { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+  .tx-opt { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+  .tx-opt input { accent-color: var(--accent); margin: 0; }
+  .tx-gate { margin: 14px 0 0; padding: 10px 14px; border-radius: 12px; font-size: 13px; color: #e0533d; background: rgba(224,83,61,0.08); border: 1px solid rgba(224,83,61,0.25); }
+  .tx-go { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 48px; margin-top: 18px; border-radius: 999px; border: 0; background: var(--ai-grad); color: #fff; font-size: 14.5px; font-weight: 700; transition: filter 120ms ease; }
+  .tx-go:hover:not(:disabled) { filter: brightness(1.08); }
+  .tx-go:disabled { opacity: 0.45; cursor: default; }
+  :root[data-theme="dark"] .tx-overlay { background: rgba(0,0,0,0.55); }
+  :root[data-theme="dark"] .tx-gate { color: #f0725c; background: rgba(240,114,92,0.1); border-color: rgba(240,114,92,0.3); }
 
   /* Skeletons + states */
   .sk-inline { display: inline-block; width: 120px; height: 12px; border-radius: 6px; }

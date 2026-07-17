@@ -7,10 +7,13 @@ import ImportTray from '@components/ImportTray.astro';
 import { fetchAllPublishedRecipes } from '../../lib/supabase';
 
 const recipes = await fetchAllPublishedRecipes<Record<string, any>>(
-  'id, slug, title, description, prep_time, cook_time, servings, calories, tags, auto_tags, image_url, is_featured, view_count',
+  'id, slug, title, description, prep_time, cook_time, servings, calories, tags, auto_tags, image_url, is_featured, view_count, created_at',
 );
+// Match the iOS/Android Discover order (shared get_shared_recipes_list RPC):
+// featured first, then newest — ORDER BY is_featured DESC, created_at DESC NULLS LAST.
+// ISO-8601 timestamps sort correctly as strings; empty/null created_at sorts last in desc.
 recipes.sort((a, b) =>
-  (Number(!!b.is_featured) - Number(!!a.is_featured)) || ((b.view_count || 0) - (a.view_count || 0)),
+  (Number(!!b.is_featured) - Number(!!a.is_featured)) || (b.created_at || '').localeCompare(a.created_at || ''),
 );
 
 type Tags = { mealType?: string; cuisine?: string; diet?: string };
@@ -29,6 +32,7 @@ const recipeList = (recipes || []).map((r) => {
     diet:     tags.diet     || 'Standard',
     image: r.image_url || '',
     isFeatured: !!r.is_featured,
+    createdAt: r.created_at || '',
   };
 });
 
@@ -228,7 +232,7 @@ const itemListSchema = {
         }
         if (state.sort === 'Prep Time') list.sort((a, b) => (a.totalTime || 9999) - (b.totalTime || 9999));
         else if (state.sort === 'Calories') list.sort((a, b) => (a.calories || 9999) - (b.calories || 9999));
-        else if (state.sort === 'Newest') list.reverse();
+        else if (state.sort === 'Newest') list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
         return list;
       }
 

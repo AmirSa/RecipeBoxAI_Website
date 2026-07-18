@@ -1315,6 +1315,9 @@ export function extractRecipeJsonLd(html: string): string | null {
 export type ImportPayload = { id?: string } & (
   | { kind: 'text'; text: string }
   | { kind: 'ai'; mode: 'ingredients' | 'adventurous'; ingredients?: string }
+  // Guided mode: the apps' 4-step wizard (vibe → dietary → time → optional
+  // ingredients). The server builds the iOS createGuidedRecipePrompt verbatim.
+  | { kind: 'ai'; mode: 'guided'; vibe: string; dietary: string; time: string; ingredients?: string }
   | { kind: 'photo'; images: string[]; imageUrl?: string | null }
   | { kind: 'link'; url: string }
 );

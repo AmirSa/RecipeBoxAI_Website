@@ -67,7 +67,7 @@ import ImportTray from '@components/ImportTray.astro';
       <button class="method" data-method="ai" type="button">
         <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 3l1.9 5.8L20 10.6l-6.1 1.8L12 18l-1.9-5.6L4 10.6l6.1-1.8z"/></svg></span>
         <span class="m-name">Create with AI</span>
-        <span class="m-desc">From ingredients or luck</span>
+        <span class="m-desc">Guided, ingredients, or luck</span>
       </button>
     </div>
 
@@ -146,22 +146,103 @@ import ImportTray from '@components/ImportTray.astro';
 
         <!-- Create with AI -->
         <form class="method-form" id="form-ai" data-panel="ai" hidden>
-          <label class="field-label" for="ai-ingredients">What's in your kitchen — or what are you craving?</label>
-          <textarea
-            id="ai-ingredients"
-            class="ai-textarea"
-            placeholder="e.g. chicken thighs, a lemon, rice, and some spinach — or just “something cozy for a rainy evening”."
-            spellcheck="false"
-          ></textarea>
-          <div class="form-row">
-            <button class="lucky-btn" id="go-lucky" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
-              Feeling adventurous
+          <div id="ai-entry">
+            <button type="button" class="guided-launch" id="guided-open">
+              <span class="g-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 11l3-8 3 8"/><path d="M5 21h14"/><circle cx="12" cy="16" r="3"/></svg></span>
+              <span class="g-copy">
+                <b>Guided mode</b>
+                <span>Answer a few questions and we'll create a recipe for you</span>
+              </span>
+              <svg class="g-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </button>
-            <button class="go-btn" id="go-ai" type="submit" disabled>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 3l1.9 5.8L20 10.6l-6.1 1.8L12 18l-1.9-5.6L4 10.6l6.1-1.8z"/></svg>
-              Generate recipe
-            </button>
+            <div class="or-divider"><span>or</span></div>
+            <label class="field-label" for="ai-ingredients">What's in your kitchen — or what are you craving?</label>
+            <textarea
+              id="ai-ingredients"
+              class="ai-textarea"
+              placeholder="e.g. chicken thighs, a lemon, rice, and some spinach — or just “something cozy for a rainy evening”."
+              spellcheck="false"
+            ></textarea>
+            <div class="form-row">
+              <button class="lucky-btn" id="go-lucky" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+                Feeling adventurous
+              </button>
+              <button class="go-btn" id="go-ai" type="submit" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 3l1.9 5.8L20 10.6l-6.1 1.8L12 18l-1.9-5.6L4 10.6l6.1-1.8z"/></svg>
+                Generate recipe
+              </button>
+            </div>
+          </div>
+
+          <!-- Guided wizard (the apps' 4-step guided AI flow) -->
+          <div id="guided-wizard" hidden>
+            <div class="gw-head">
+              <div class="gw-dots" aria-hidden="true">
+                <span class="gw-dot"></span><span class="gw-line"></span>
+                <span class="gw-dot"></span><span class="gw-line"></span>
+                <span class="gw-dot"></span><span class="gw-line"></span>
+                <span class="gw-dot"></span>
+              </div>
+              <div class="gw-meta">
+                <span id="gw-stepnum">Step 1 of 4</span>
+                <button type="button" class="gw-exit" id="gw-exit">Exit guided mode</button>
+              </div>
+            </div>
+
+            <div class="gw-step" data-step="1">
+              <h3 class="gw-title">What's your vibe?</h3>
+              <p class="gw-sub">Choose the style of recipe you're craving</p>
+              <div class="gw-options" data-key="vibe">
+                <button type="button" class="gw-opt" data-value="Comfort Food">Comfort Food</button>
+                <button type="button" class="gw-opt" data-value="Healthy &amp; Light">Healthy &amp; Light</button>
+                <button type="button" class="gw-opt" data-value="Quick &amp; Easy">Quick &amp; Easy</button>
+                <button type="button" class="gw-opt" data-value="Gourmet">Gourmet</button>
+              </div>
+            </div>
+
+            <div class="gw-step" data-step="2" hidden>
+              <h3 class="gw-title">Any dietary needs?</h3>
+              <p class="gw-sub">We'll make sure your recipe fits your diet</p>
+              <div class="gw-options" data-key="dietary">
+                <button type="button" class="gw-opt" data-value="None">None</button>
+                <button type="button" class="gw-opt" data-value="Vegetarian">Vegetarian</button>
+                <button type="button" class="gw-opt" data-value="Vegan">Vegan</button>
+                <button type="button" class="gw-opt" data-value="Pescatarian">Pescatarian</button>
+                <button type="button" class="gw-opt" data-value="Dairy-Free">Dairy-Free</button>
+                <button type="button" class="gw-opt" data-value="Gluten-Free">Gluten-Free</button>
+                <button type="button" class="gw-opt" data-value="Keto">Keto</button>
+                <button type="button" class="gw-opt" data-value="High Protein">High Protein</button>
+                <button type="button" class="gw-opt" data-value="Paleo">Paleo</button>
+              </div>
+            </div>
+
+            <div class="gw-step" data-step="3" hidden>
+              <h3 class="gw-title">How much time?</h3>
+              <p class="gw-sub">We'll find something that fits your schedule</p>
+              <div class="gw-options" data-key="time">
+                <button type="button" class="gw-opt" data-value="Under 15 mins">Under 15 mins</button>
+                <button type="button" class="gw-opt" data-value="Under 45 mins">Under 45 mins</button>
+                <button type="button" class="gw-opt" data-value="No time limit">No time limit</button>
+              </div>
+            </div>
+
+            <div class="gw-step" data-step="4" hidden>
+              <h3 class="gw-title">Got ingredients? <span class="gw-badge">Optional</span></h3>
+              <p class="gw-sub">Tell us what you have and we'll work with it</p>
+              <textarea
+                id="gw-ingredients"
+                class="ai-textarea"
+                placeholder="e.g., Chicken, broccoli, garlic, olive oil..."
+                spellcheck="false"
+              ></textarea>
+              <p class="gw-hint">Skip this step to let AI surprise you!</p>
+            </div>
+
+            <div class="gw-nav">
+              <button type="button" class="lucky-btn" id="gw-back" hidden>Back</button>
+              <button type="button" class="go-btn" id="gw-next" disabled>Continue</button>
+            </div>
           </div>
         </form>
 
@@ -423,6 +504,85 @@ import ImportTray from '@components/ImportTray.astro';
       lucky.addEventListener('click', () => generate('adventurous'));
     }
 
+    // ── Flow: guided AI wizard (the apps' 4-step guided mode) ───────────────
+    function wireGuidedFlow(userId: string) {
+      const entry = document.getElementById('ai-entry') as HTMLElement;
+      const wizard = document.getElementById('guided-wizard') as HTMLElement;
+      const openBtn = document.getElementById('guided-open') as HTMLButtonElement;
+      const exitBtn = document.getElementById('gw-exit') as HTMLButtonElement;
+      const backBtn = document.getElementById('gw-back') as HTMLButtonElement;
+      const nextBtn = document.getElementById('gw-next') as HTMLButtonElement;
+      const stepNum = document.getElementById('gw-stepnum') as HTMLElement;
+      const ingredientsEl = document.getElementById('gw-ingredients') as HTMLTextAreaElement;
+      const steps = [...wizard.querySelectorAll<HTMLElement>('.gw-step')];
+      const dots = [...wizard.querySelectorAll<HTMLElement>('.gw-dot')];
+      const lines = [...wizard.querySelectorAll<HTMLElement>('.gw-line')];
+
+      // Step order + requiredness mirror iOS GuidedRecipeView.canProceed:
+      // vibe, dietary, time each required; ingredients (step 4) optional.
+      const picks: { vibe?: string; dietary?: string; time?: string } = {};
+      const stepKeys = ['vibe', 'dietary', 'time'] as const;
+      let step = 1;
+
+      function render() {
+        steps.forEach((s) => { s.hidden = Number(s.dataset.step) !== step; });
+        dots.forEach((d, i) => {
+          d.classList.toggle('filled', i + 1 <= step);
+          d.classList.toggle('current', i + 1 === step);
+        });
+        lines.forEach((l, i) => l.classList.toggle('filled', i + 1 < step));
+        stepNum.textContent = `Step ${step} of 4`;
+        backBtn.hidden = step === 1;
+        nextBtn.textContent = step === 4 ? 'Generate My Recipe' : 'Continue';
+        nextBtn.disabled = step < 4 && !picks[stepKeys[step - 1]];
+      }
+
+      function openWizard() {
+        errorEl.hidden = true;
+        entry.hidden = true;
+        wizard.hidden = false;
+        render();
+      }
+
+      openBtn.addEventListener('click', openWizard);
+      exitBtn.addEventListener('click', () => { wizard.hidden = true; entry.hidden = false; });
+
+      wizard.querySelectorAll<HTMLElement>('.gw-options').forEach((group) => {
+        group.addEventListener('click', (e) => {
+          const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.gw-opt');
+          if (!btn) return;
+          picks[group.dataset.key as (typeof stepKeys)[number]] = btn.dataset.value!;
+          group.querySelectorAll('.gw-opt').forEach((b) => b.classList.toggle('selected', b === btn));
+          render();
+        });
+      });
+
+      backBtn.addEventListener('click', () => { if (step > 1) { step -= 1; render(); } });
+      nextBtn.addEventListener('click', () => {
+        if (step < 4) {
+          if (!picks[stepKeys[step - 1]]) return;
+          step += 1;
+          render();
+          return;
+        }
+        const ingredients = ingredientsEl.value.trim();
+        runImport(
+          userId,
+          {
+            kind: 'ai',
+            mode: 'guided',
+            vibe: picks.vibe!,
+            dietary: picks.dietary!,
+            time: picks.time!,
+            ingredients: ingredients || undefined,
+          },
+          'Composing your recipe',
+        );
+      });
+
+      return { openWizard };
+    }
+
     // ── Init ────────────────────────────────────────────────────────────────
     async function init() {
       const session = await requireSession();
@@ -442,10 +602,13 @@ import ImportTray from '@components/ImportTray.astro';
       wireLinkFlow(userId);
       wirePhotoFlow(userId);
       wireAiFlow(userId);
+      const guided = wireGuidedFlow(userId);
 
       // Deep-linkable method selection: /my/recipes/add/?method=link
+      // (?method=guided opens the AI panel with the wizard already active)
       const method = new URLSearchParams(window.location.search).get('method');
       if (method && ['text', 'link', 'photo', 'ai'].includes(method)) showPanel(method);
+      if (method === 'guided') { showPanel('ai'); guided.openWizard(); }
     }
 
     init().catch((err) => {
@@ -517,6 +680,46 @@ import ImportTray from '@components/ImportTray.astro';
   .lucky-btn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 999px; background: transparent; border: 1px solid var(--line); color: var(--ink); font-size: 14px; font-weight: 600; transition: border-color 120ms ease; }
   .lucky-btn:hover { border-color: var(--line-strong); }
   .error { margin-top: 16px; padding: 14px 18px; border-radius: 14px; border: 1px solid color-mix(in srgb, #e0533d 35%, transparent); background: color-mix(in srgb, #e0533d 7%, transparent); color: var(--ink); font-size: 14px; }
+
+  /* Guided wizard */
+  .guided-launch { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 16px 18px; margin-bottom: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); color: var(--ink); transition: border-color 120ms ease, background 120ms ease; }
+  .guided-launch:hover { border-color: var(--line-strong); }
+  .guided-launch .g-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: color-mix(in srgb, var(--solid) 8%, transparent); color: var(--ink); flex-shrink: 0; }
+  .guided-launch .g-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .guided-launch .g-copy b { font-size: 14.5px; font-weight: 650; letter-spacing: -0.01em; }
+  .guided-launch .g-copy span { font-size: 12.5px; color: var(--muted); }
+  .guided-launch .g-arrow { margin-left: auto; color: var(--muted); flex-shrink: 0; transition: transform 120ms ease; }
+  .guided-launch:hover .g-arrow { transform: translateX(3px); color: var(--ink); }
+  .or-divider { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
+  .or-divider::before, .or-divider::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+
+  .gw-head { margin-bottom: 26px; }
+  .gw-dots { display: flex; align-items: center; max-width: 340px; margin: 0 auto 10px; }
+  .gw-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-strong); background: transparent; flex-shrink: 0; transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+  .gw-dot.filled { background: var(--solid); border-color: var(--solid); }
+  .gw-dot.current { box-shadow: 0 0 0 3px color-mix(in srgb, var(--solid) 22%, transparent); }
+  .gw-line { flex: 1; height: 2px; background: var(--line-2); margin: 0 6px; transition: background 150ms ease; }
+  .gw-line.filled { background: var(--solid); }
+  .gw-meta { display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 12.5px; color: var(--muted); }
+  .gw-exit { background: none; border: 0; padding: 0; font-size: 12.5px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+  .gw-exit:hover { color: var(--ink); }
+
+  .gw-title { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
+  .gw-badge { font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+  .gw-sub { margin: 0 0 18px; font-size: 14px; color: var(--muted); }
+  .gw-options { display: flex; flex-direction: column; gap: 10px; max-width: 480px; }
+  .gw-opt { text-align: left; padding: 14px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 14.5px; font-weight: 550; transition: border-color 120ms ease, background 120ms ease; }
+  .gw-opt:hover { border-color: var(--line-strong); }
+  .gw-opt.selected { border-color: var(--solid); background: color-mix(in srgb, var(--solid) 6%, transparent); font-weight: 650; }
+  #gw-ingredients { min-height: 120px; max-width: 480px; }
+  .gw-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+  .gw-nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 24px; }
+
+  @media (max-width: 760px) {
+    .gw-title { font-size: 24px; }
+    .gw-nav { flex-direction: column-reverse; align-items: stretch; }
+    .gw-nav .go-btn, .gw-nav .lucky-btn { justify-content: center; margin-left: 0; }
+  }
 
   /* Photo drop zone */
   .drop { display: block; border: 1.5px dashed var(--line-strong); border-radius: 18px; background: var(--card); padding: 36px 24px; cursor: pointer; transition: border-color 120ms ease, background 120ms ease; }
